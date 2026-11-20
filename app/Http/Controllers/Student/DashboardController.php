@@ -5,11 +5,9 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Enrollment;
-use App\Models\Invoice;
 use App\Models\User;
 use App\Services\ChatService;
 use App\Services\LiveClassService;
-use App\Services\SrsWorkflowService;
 use App\Support\DashboardFilters;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,8 +17,7 @@ use Illuminate\Support\Str;
 /**
  * Dashboard Controller
  *
- * This controller handles the student dashboard functionality with filtering,
- * internal communications, live notifications, and card pagination.
+ * This controller handles the Scholar (student) dashboard functionality for Maarifazone.
  *
  * @package App\Http\Controllers\Student
  * @author Renatus Bernardo
@@ -41,7 +38,6 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = $this->currentUser();
-        app(SrsWorkflowService::class)->syncMissingInvoicesForStudent($user);
 
         $filters = DashboardFilters::fromRequest($request);
         $dateWindow = DashboardFilters::dateWindow($filters['date_range']);
@@ -73,20 +69,6 @@ class DashboardController extends Controller
                 return $enrollment;
             });
 
-        $recentInvoices = Invoice::withoutGlobalScope('branch')
-            ->with(['course:id,title', 'branch:id,name'])
-            ->ownedByUser($user)
-            ->when(in_array($status, ['paid', 'partial', 'unpaid'], true), fn ($q) => $q->where('payment_status', $status))
-            ->when($dateWindow, fn ($q) => $q->whereBetween('created_at', $dateWindow))
-            ->when($search !== '', fn ($q) => $q->where(function ($sub) use ($search): void {
-                $sub->where('invoice_number', 'like', "%{$search}%")
-                    ->orWhere('control_number', 'like', "%{$search}%")
-                    ->orWhereHas('course', fn ($c) => $c->where('title', 'like', "%{$search}%"));
-            }))
-            ->latest()
-            ->paginate($perPage, ['*'], 'invoices_page')
-            ->withQueryString();
-
         $recentNotifications = $user->notifications()->latest()->limit(6)->get();
 
         $recentConversations = Conversation::query()
@@ -102,14 +84,6 @@ class DashboardController extends Controller
                 return $conv;
             });
 
-        $upcomingCampusSchedule = Enrollment::query()
-            ->with(['course:id,title', 'courseAssignment.venue:id,name', 'courseAssignment.instructor:id,name', 'venue:id,name'])
-            ->where('user_id', $user->id)
-            ->whereIn('status', [Enrollment::STATUS_APPROVED, Enrollment::STATUS_PENDING])
-            ->whereHas('course', fn ($q) => $q->whereIn('delivery_mode', ['face_to_face', 'hybrid']))
-            ->latest('id')
-            ->first();
-
         $stats = $kpis;
 
         $firstName = Str::of($user->name)->before(' ');
@@ -120,19 +94,14 @@ class DashboardController extends Controller
             'approved' => 'Active / Approved',
             'completed' => 'Completed',
             'pending' => 'Pending',
-            'paid' => 'Paid Invoices',
-            'partial' => 'Partial Invoices',
-            'unpaid' => 'Unpaid Invoices',
         ];
 
         return view('student.dashboard', compact(
             'user',
             'stats',
             'recentEnrollments',
-            'recentInvoices',
             'recentNotifications',
             'recentConversations',
-            'upcomingCampusSchedule',
             'firstName',
             'upcomingLiveClass',
             'filters',
@@ -141,12 +110,11 @@ class DashboardController extends Controller
     }
 
     /**
-     * Return live dashboard summary for real-time KPIs, invoices, and notification feed syncing.
+     * Return live dashboard summary for real-time KPIs and notification feed syncing.
      */
     public function liveSummary(Request $request): JsonResponse
     {
         $user = $this->currentUser();
-        app(SrsWorkflowService::class)->syncMissingInvoicesForStudent($user);
         $kpis = $this->buildKpis($user);
 
         $notifications = $user->notifications()
@@ -169,35 +137,16 @@ class DashboardController extends Controller
             })
             ->values();
 
-        $invoices = Invoice::withoutGlobalScope('branch')
-            ->with(['course:id,title'])
-            ->ownedByUser($user)
-            ->latest()
-            ->limit(5)
-            ->get()
-            ->map(fn (Invoice $inv): array => [
-                'id' => $inv->id,
-                'invoice_number' => $inv->invoice_number,
-                'control_number' => $inv->control_number ?: '-',
-                'course_title' => Str::limit($inv->course?->title ?? 'Course Fee', 28),
-                'balance_formatted' => currency_format($inv->balance),
-                'payment_status' => $inv->payment_status,
-            ])
-            ->values();
-
         return response()->json([
             'stats' => [
                 'total_enrollments' => $kpis['total_enrollments'],
                 'completed_courses' => $kpis['completed_courses'],
                 'pending_enrollments' => $kpis['pending_enrollments'],
                 'total_lessons' => $kpis['total_lessons'],
-                'outstanding_balance' => $kpis['outstanding_balance'],
-                'outstanding_balance_formatted' => currency_format($kpis['outstanding_balance']),
                 'unread_notifications' => $kpis['unread_notifications'],
                 'unread_messages' => $kpis['unread_messages'],
             ],
             'notifications' => $notifications,
-            'invoices' => $invoices,
             'synced_at' => now()->toIso8601String(),
         ]);
     }
@@ -229,17 +178,11 @@ class DashboardController extends Controller
                 return $enrollment->course?->topics->sum(fn ($topic) => $topic->lessons->count()) ?? 0;
             });
 
-        $outstandingBalance = (float) Invoice::withoutGlobalScope('branch')
-            ->ownedByUser($user)
-            ->whereIn('payment_status', ['unpaid', 'partial'])
-            ->sum('balance');
-
         return [
             'total_enrollments' => $totalEnrollments,
             'completed_courses' => $completedCourses,
             'pending_enrollments' => $pendingEnrollments,
             'total_lessons' => $totalLessons,
-            'outstanding_balance' => round($outstandingBalance, 2),
             'unread_notifications' => $user->unreadNotifications()->count(),
             'unread_messages' => $this->chatService->getUnreadCount($user->id, 'student'),
         ];

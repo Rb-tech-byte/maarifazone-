@@ -228,7 +228,9 @@ class PaymentController extends Controller
                 'payment_date' => $payment->payment_date ?? now()->toDateString(),
             ]);
 
-            app(\App\Services\SrsWorkflowService::class)->finalizeCompletedPayment($payment->fresh());
+            if ($payment->enrollment && $payment->enrollment->status !== Enrollment::STATUS_APPROVED) {
+                $payment->enrollment->update(['status' => Enrollment::STATUS_APPROVED]);
+            }
 
             DB::commit();
 
@@ -320,7 +322,9 @@ class PaymentController extends Controller
         $payment->save();
 
         if ($request->status === Payment::STATUS_COMPLETED) {
-            app(\App\Services\SrsWorkflowService::class)->finalizeCompletedPayment($payment->fresh());
+            if ($payment->enrollment && $payment->enrollment->status !== Enrollment::STATUS_APPROVED) {
+                $payment->enrollment->update(['status' => Enrollment::STATUS_APPROVED]);
+            }
         }
 
         if (in_array($request->status, [Payment::STATUS_FAILED, Payment::STATUS_REFUNDED]) && $payment->enrollment) {

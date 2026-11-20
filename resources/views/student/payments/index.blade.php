@@ -21,9 +21,6 @@
         <button type="button" id="refreshPaymentsLiveBtn" class="btn btn-sm btn-outline-primary">
             <i class="fa-solid fa-rotate me-1"></i> Sync Status Now
         </button>
-        <a href="{{ route('student.campus.invoices.index') }}" class="btn btn-sm btn-primary">
-            <i class="fa-solid fa-file-invoice me-1"></i> Campus Invoices
-        </a>
     </div>
 </div>
 

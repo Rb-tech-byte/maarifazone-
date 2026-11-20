@@ -5,12 +5,12 @@
 @section('content')
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
-        <h2 class="h4 fw-bold mb-1">My Courses</h2>
-        <p class="text-muted small mb-0">Manage your curriculum, track enrollments, and publish updates.</p>
+        <h2 class="h4 fw-bold mb-1">My Assigned Courses</h2>
+        <p class="text-muted small mb-0">Courses assigned to you by Maarifazone Administration. Guide scholars and host live interactive sessions.</p>
     </div>
     <div>
-        <a href="{{ route('instructor.courses.create') }}" class="btn btn-primary btn-sm px-3">
-            <i class="fa-solid fa-plus me-1"></i>Create New Course
+        <a href="{{ route('instructor.live-classes.create') }}" class="btn btn-primary btn-sm px-3">
+            <i class="fa-solid fa-video me-1"></i>Schedule Live Class
         </a>
     </div>
 </div>

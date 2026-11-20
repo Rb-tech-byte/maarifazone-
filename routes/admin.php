@@ -10,7 +10,6 @@
  */
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\AssignmentSubmissionController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InstructorController;
 use App\Http\Controllers\Admin\StudentController;
@@ -32,10 +31,7 @@ use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\ProfileController;
-use App\Http\Controllers\Admin\QuizAttemptController;
 use App\Http\Controllers\Admin\WithdrawalController;
-use App\Http\Controllers\Admin\CertificateController;
-use App\Http\Controllers\Admin\CertificateTemplateController;
 use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\SupportTicketController as AdminSupportTicketController;
@@ -183,33 +179,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/payments/{id}/approve', [PaymentController::class, 'approve'])->name('payments.approve');
     Route::post('/payments/{id}/reject', [PaymentController::class, 'reject'])->name('payments.reject');
 
-    // Reports & Analytics (Online + Merged Regional SCMS Reports)
+    // Reports & Analytics
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
-    Route::get('/reports/center-courses', [ReportsController::class, 'centerCourseReport'])->name('reports.center-courses');
-    Route::get('/reports/applicants', [ReportsController::class, 'applicantReport'])->name('reports.applicants');
 
     // Audit Logs & Online Help
     Route::get('/audit-logs', [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
     Route::get('/help', [\App\Http\Controllers\HelpController::class, 'index'])->name('help.index');
-
-    // Certificates
-    Route::get('/certificates', [CertificateController::class, 'index'])->name('certificates.index');
-    Route::get('/certificates/{enrollment}/download', [CertificateController::class, 'download'])->name('certificates.download');
-
-    // Certificate Templates (Drag & Drop Builder)
-    Route::prefix('certificates/templates')->name('certificates.templates.')->group(function () {
-        Route::get('/', [CertificateTemplateController::class, 'index'])->name('index');
-        Route::get('/create', [CertificateTemplateController::class, 'create'])->name('create');
-        Route::post('/', [CertificateTemplateController::class, 'store'])->name('store');
-        Route::post('/install-prebuilt', [CertificateTemplateController::class, 'installPrebuilt'])->name('install-prebuilt');
-        Route::get('/{template}/edit', [CertificateTemplateController::class, 'edit'])->name('edit');
-        Route::put('/{template}', [CertificateTemplateController::class, 'update'])->name('update');
-        Route::delete('/{template}', [CertificateTemplateController::class, 'destroy'])->name('destroy');
-        Route::post('/{template}/default', [CertificateTemplateController::class, 'setDefault'])->name('default');
-        Route::post('/{template}/duplicate', [CertificateTemplateController::class, 'duplicate'])->name('duplicate');
-        Route::get('/{template}/preview', [CertificateTemplateController::class, 'preview'])->name('preview');
-        Route::put('/courses/{course}/assign', [CertificateTemplateController::class, 'assignToCourse'])->name('assign');
-    });
 
     // Payout management
     Route::get('/withdrawals', [WithdrawalController::class, 'index'])->name('withdrawals.index');
@@ -243,6 +218,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/courses', [SharedCourseBuilderController::class, 'store'])->name('courses.store');
     Route::post('/courses/ai-builder', [SharedCourseBuilderController::class, 'aiCourseBuilder'])->name('courses.ai-builder');
     Route::post('/courses/ai-studio', [SharedCourseBuilderController::class, 'aiStudio'])->name('courses.ai-studio');
+    Route::post('/courses/generate-description', [SharedCourseBuilderController::class, 'generateDescription'])->name('courses.generate-description');
     Route::post('/courses/import-youtube-playlist', [SharedCourseBuilderController::class, 'importYoutubePlaylist'])->name('courses.import-youtube-playlist');
     Route::get('/courses/pending', [CourseController::class, 'pending'])->name('courses.pending');
     Route::get('/courses/{id}/edit', [SharedCourseBuilderController::class, 'edit'])->name('courses.edit');
@@ -297,15 +273,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    // Learning activity
-    Route::get('/learning/quiz-attempts', [QuizAttemptController::class, 'index'])->name('quiz-attempts.index');
-    Route::get('/learning/quiz-attempts/{quizAttempt}', [QuizAttemptController::class, 'show'])->name('quiz-attempts.show');
-    Route::get('/learning/assignment-submissions', [AssignmentSubmissionController::class, 'index'])->name('assignment-submissions.index');
-    Route::get('/learning/assignment-submissions/{assignmentSubmission}', [AssignmentSubmissionController::class, 'show'])->name('assignment-submissions.show');
-
-    // Certificate management
-    Route::resource('certificates', CertificateController::class);
-
     // Notifications
     Route::resource('notifications', NotificationController::class);
     Route::post('notifications/{id}/resend', [NotificationController::class, 'resend'])->name('notifications.resend');
@@ -313,69 +280,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Coupons
     Route::resource('coupons', CouponController::class);
 
-    // ===== Campus & Short Courses (Face-to-Face / Hybrid) =====
-    Route::prefix('campus')->name('campus.')->group(function () {
-        Route::get('search', [\App\Http\Controllers\Admin\Campus\GlobalSearchController::class, 'search'])->name('search');
-
-        Route::prefix('analytics')->name('analytics.')->group(function () {
-            Route::get('active-classes', [\App\Http\Controllers\Admin\Campus\AnalyticsController::class, 'activeClasses'])->name('active-classes');
-            Route::get('branches', [\App\Http\Controllers\Admin\Campus\AnalyticsController::class, 'branches'])->name('branches');
-            Route::get('discounts', [\App\Http\Controllers\Admin\Campus\AnalyticsController::class, 'discounts'])->name('discounts');
-            Route::get('tutor-workload', [\App\Http\Controllers\Admin\Campus\AnalyticsController::class, 'tutorWorkload'])->name('tutor-workload');
-        });
-
-        Route::resource('branches', \App\Http\Controllers\Admin\Campus\BranchController::class)->except(['create', 'show']);
-        Route::resource('venues', \App\Http\Controllers\Admin\Campus\VenueController::class)->except(['create', 'show']);
-        Route::get('branches/{branch}/venues', [\App\Http\Controllers\Admin\Campus\VenueController::class, 'byBranch'])->name('venues.by-branch');
-        Route::resource('countries', \App\Http\Controllers\Admin\Campus\CountryController::class)->except(['create', 'show', 'edit']);
-
-        Route::resource('timetable', \App\Http\Controllers\Admin\Campus\CourseAssignmentController::class)->except(['show']);
-        Route::post('timetable/{timetable}/toggle-status', [\App\Http\Controllers\Admin\Campus\CourseAssignmentController::class, 'toggleStatus'])->name('timetable.toggle-status');
-
-        Route::get('applicants', [\App\Http\Controllers\Admin\Campus\ApplicantController::class, 'index'])->name('applicants.index');
-        Route::get('applicants/create', [\App\Http\Controllers\Admin\Campus\ApplicantController::class, 'create'])->name('applicants.create');
-        Route::post('applicants', [\App\Http\Controllers\Admin\Campus\ApplicantController::class, 'store'])->name('applicants.store');
-        Route::get('applicants/{applicant}', [\App\Http\Controllers\Admin\Campus\ApplicantController::class, 'show'])->name('applicants.show');
-        Route::get('applicants/course-fee/{course}', [\App\Http\Controllers\Admin\Campus\ApplicantController::class, 'courseFee'])->name('applicants.course-fee');
-
-        Route::get('invoices', [\App\Http\Controllers\Admin\Campus\InvoiceController::class, 'index'])->name('invoices.index');
-        Route::get('invoices/{invoice}', [\App\Http\Controllers\Admin\Campus\InvoiceController::class, 'show'])->name('invoices.show');
-        Route::get('invoices/{invoice}/print', [\App\Http\Controllers\Admin\Campus\InvoiceController::class, 'print'])->name('invoices.print');
-        Route::get('invoices/payments/{payment}/receipt', [\App\Http\Controllers\Admin\Campus\InvoiceController::class, 'receipt'])->name('invoices.receipt');
-        Route::post('invoices/{invoice}/payments', [\App\Http\Controllers\Admin\Campus\InvoiceController::class, 'recordPayment'])->name('invoices.payments.store');
-        Route::post('invoices/{invoice}/control-number', [\App\Http\Controllers\Admin\Campus\InvoiceController::class, 'regenerateControlNumber'])->name('invoices.control-number');
-        Route::post('invoices/payments/{payment}/verify', [\App\Http\Controllers\Admin\Campus\InvoiceController::class, 'verifyPayment'])->name('invoices.payments.verify');
-
-        Route::get('installments', [\App\Http\Controllers\Admin\Campus\PaymentScheduleController::class, 'index'])->name('installments.index');
-        Route::get('installments/create', [\App\Http\Controllers\Admin\Campus\PaymentScheduleController::class, 'create'])->name('installments.create');
-        Route::post('installments/generate', [\App\Http\Controllers\Admin\Campus\PaymentScheduleController::class, 'generate'])->name('installments.generate');
-        Route::get('installments/reminders', [\App\Http\Controllers\Admin\Campus\PaymentScheduleController::class, 'reminders'])->name('installments.reminders-list');
-        Route::post('installments/reminders', [\App\Http\Controllers\Admin\Campus\PaymentScheduleController::class, 'sendReminders'])->name('installments.reminders');
-        Route::get('installments/invoice/{invoice}', [\App\Http\Controllers\Admin\Campus\PaymentScheduleController::class, 'show'])->name('installments.show');
-        Route::put('installments/{schedule}', [\App\Http\Controllers\Admin\Campus\PaymentScheduleController::class, 'update'])->name('installments.update');
-        Route::post('installments/{schedule}/mark-sent', [\App\Http\Controllers\Admin\Campus\PaymentScheduleController::class, 'markAsSent'])->name('installments.mark-sent');
-        Route::post('installments/{schedule}/cancel', [\App\Http\Controllers\Admin\Campus\PaymentScheduleController::class, 'cancel'])->name('installments.cancel');
-        Route::delete('installments/{schedule}', [\App\Http\Controllers\Admin\Campus\PaymentScheduleController::class, 'destroy'])->name('installments.destroy');
-
-        Route::get('attendance', [\App\Http\Controllers\Admin\Campus\AttendanceController::class, 'index'])->name('attendance.index');
-        Route::get('attendance/{assignment}', [\App\Http\Controllers\Admin\Campus\AttendanceController::class, 'show'])->name('attendance.show');
-        Route::post('attendance/{assignment}', [\App\Http\Controllers\Admin\Campus\AttendanceController::class, 'store'])->name('attendance.store');
-        Route::post('attendance/{assignment}/qr', [\App\Http\Controllers\Admin\Campus\AttendanceController::class, 'openQr'])->name('attendance.qr');
-        Route::get('attendance/{assignment}/export', [\App\Http\Controllers\Admin\Campus\AttendanceController::class, 'export'])->name('attendance.export');
-
-        Route::get('certificates', [\App\Http\Controllers\Admin\Campus\CertificateClearanceController::class, 'index'])->name('certificates.index');
-        Route::post('certificates/{enrollment}', [\App\Http\Controllers\Admin\Campus\CertificateClearanceController::class, 'update'])->name('certificates.update');
-        Route::get('certificates/{enrollment}/pdf', [\App\Http\Controllers\Admin\Campus\CertificateClearanceController::class, 'downloadPdf'])->name('certificates.pdf');
-
-        Route::get('templates', [\App\Http\Controllers\Admin\Campus\NotificationTemplateController::class, 'index'])->name('templates.index');
-        Route::put('templates/{template}', [\App\Http\Controllers\Admin\Campus\NotificationTemplateController::class, 'update'])->name('templates.update');
-    });
-
-    // SRS account security actions (merged into existing user management)
+    // User security actions
     Route::post('users/{user}/block', [\App\Http\Controllers\Admin\UserSecurityController::class, 'block'])->name('user-security.block');
     Route::post('users/{user}/unblock', [\App\Http\Controllers\Admin\UserSecurityController::class, 'unblock'])->name('user-security.unblock');
     Route::post('users/{user}/force-reset', [\App\Http\Controllers\Admin\UserSecurityController::class, 'forceReset'])->name('user-security.force-reset');
-
 
     // System Updater
     Route::get('/updater', [\App\Http\Controllers\Admin\UpdaterController::class, 'index'])->name('updater.index');

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Conversation;
-use App\Models\Invoice;
 use App\Models\User;
 use App\Notifications\GeneralNotification;
 use Illuminate\Support\Facades\Route;
@@ -74,33 +73,6 @@ class PortalNotificationService
             'Signed In to Maarifazone',
             720
         );
-
-        // Remind students of any outstanding invoice balances upon login
-        if (! $user->isAdmin() && ! $user->isInstructor() && Schema::hasTable('invoices')) {
-            try {
-                $outstanding = (float) Invoice::withoutGlobalScope('branch')
-                    ->ownedByUser($user)
-                    ->whereIn('payment_status', ['unpaid', 'partial'])
-                    ->sum('balance');
-
-                if ($outstanding > 0 && Route::has('student.campus.invoices.index')) {
-                    $formatted = function_exists('currency_format')
-                        ? currency_format($outstanding)
-                        : number_format($outstanding, 0);
-
-                    $this->notifyUser(
-                        $user,
-                        'Outstanding Fee Balance',
-                        "You have an unpaid invoice balance of {$formatted}. View invoices or submit a payment receipt.",
-                        'warning',
-                        route('student.campus.invoices.index'),
-                        'Outstanding Fee Balance',
-                        720
-                    );
-                }
-            } catch (\Throwable) {
-            }
-        }
 
         // Remind student or instructor if unread messages are waiting in inbox
         $role = $user->isInstructor() ? 'instructor' : (! $user->isAdmin() ? 'student' : null);

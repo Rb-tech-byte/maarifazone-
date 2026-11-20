@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\CourseTopic;
 use App\Models\Lesson;
-use App\Models\Quiz;
-use App\Models\Assignment;
 use App\Models\Enrollment;
 use App\Models\Review;
 use App\Models\Payment;
@@ -150,8 +148,6 @@ class CourseController extends Controller
         $course = Course::with([
             'instructor',
             'topics.lessons',
-            'topics.quizzes',
-            'topics.assignments',
             'enrollments',
             'reviews.user',
             'reviews.replies.user'
@@ -159,14 +155,6 @@ class CourseController extends Controller
 
         $lessonCount = $course->topics->sum(function ($topic) {
             return $topic->lessons->count();
-        });
-
-        $quizCount = $course->topics->sum(function ($topic) {
-            return $topic->quizzes->count();
-        });
-
-        $assignmentCount = $course->topics->sum(function ($topic) {
-            return $topic->assignments->count();
         });
 
         $totalDuration = $course->topics->sum(function ($topic) {
@@ -182,8 +170,6 @@ class CourseController extends Controller
         return view('admin.courses.show', compact(
             'course',
             'lessonCount',
-            'quizCount',
-            'assignmentCount',
             'totalDuration',
             'totalReviews',
             'averageRating'
@@ -264,7 +250,7 @@ class CourseController extends Controller
      */
     public function fullDelete($id)
     {
-        $course = Course::with(['topics.lessons', 'topics.quizzes.questions', 'topics.assignments.files', 'enrollments.payment', 'reviews'])->findOrFail($id);
+        $course = Course::with(['topics.lessons', 'enrollments.payment', 'reviews'])->findOrFail($id);
         $courseTitle = $course->title;
 
         try {
@@ -278,49 +264,14 @@ class CourseController extends Controller
                 Storage::disk('public')->delete($course->intro_video);
             }
 
-            // 2. Cascade delete topics, lessons, quizzes, assignments
+            // 2. Cascade delete topics and lessons
             foreach ($course->topics as $topic) {
-                // Delete lessons and their videos
                 foreach ($topic->lessons as $lesson) {
                     if ($lesson->video_path) {
                         Storage::disk('public')->delete($lesson->video_path);
                     }
                     $lesson->progress()->delete();
                     $lesson->delete();
-                }
-
-                // Delete quizzes, questions, and attempts
-                foreach ($topic->quizzes as $quiz) {
-                    foreach ($quiz->questions as $question) {
-                        $question->delete();
-                    }
-                    
-                    foreach ($quiz->attempts as $attempt) {
-                        $attempt->answers()->delete();
-                        $attempt->delete();
-                    }
-                    $quiz->delete();
-                }
-
-                // Delete assignments, files, and submissions
-                foreach ($topic->assignments as $assignment) {
-                    foreach ($assignment->files as $file) {
-                        if ($file->file_path) {
-                            Storage::disk('public')->delete($file->file_path);
-                        }
-                        $file->delete();
-                    }
-                    foreach ($assignment->submissions as $submission) {
-                        // Delete submission files
-                        foreach ($submission->files as $subFile) {
-                            if ($subFile->file_path) {
-                                Storage::disk('public')->delete($subFile->file_path);
-                            }
-                            $subFile->delete();
-                        }
-                        $submission->delete();
-                    }
-                    $assignment->delete();
                 }
 
                 $topic->delete();
@@ -336,8 +287,6 @@ class CourseController extends Controller
                 }
                 
                 $enrollment->lessonProgress()->delete();
-                $enrollment->quizAttempts()->delete();
-                $enrollment->assignmentSubmissions()->delete();
                 $enrollment->delete();
             }
 

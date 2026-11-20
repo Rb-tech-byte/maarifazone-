@@ -108,11 +108,8 @@
                 <i class="fa-solid fa-rotate-left me-1"></i>Reset Filters
             </button>
         @else
-            <h5 class="fw-semibold mb-1">No courses created yet</h5>
-            <p class="text-muted small mb-3">Create your first course to start publishing lessons and enrolling students.</p>
-            <a href="{{ route('instructor.courses.create') }}" class="btn btn-primary btn-sm">
-                <i class="fa-solid fa-plus me-1"></i>Create New Course
-            </a>
+            <h5 class="fw-semibold mb-1">No courses assigned yet</h5>
+            <p class="text-muted small mb-3">Courses are created and assigned to instructors by the Maarifazone Administration.</p>
         @endif
     </div>
 @endforelse

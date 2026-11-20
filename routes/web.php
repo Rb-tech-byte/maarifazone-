@@ -3,8 +3,8 @@
 /**
  * Public Web & Storefront Routes
  *
- * Defines public catalog, live search, F2F/Hybrid application intake,
- * certificate verification, custom CMS pages, and payment gateway callbacks.
+ * Defines public catalog, live search, course checkout,
+ * custom CMS pages, and payment gateway callbacks for Maarifazone.
  *
  * @author Renatus Bernardo
  */
@@ -24,12 +24,10 @@ use App\Http\Controllers\Front\HomeController;
 use App\Http\Controllers\Front\CurrencyController;
 use App\Http\Controllers\Front\BundleController;
 use App\Http\Controllers\Admin\ImpersonationController;
-use App\Http\Controllers\Front\CertificateVerificationController;
 use App\Models\CustomPage;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/currency/{code}', CurrencyController::class)->name('currency.switch');
-Route::match(['get', 'post'], '/verify-certificate', [CertificateVerificationController::class, 'verify'])->name('verify-certificate');
 
 // Terms and conditions routes
 Route::redirect('/terms-conditions', '/pages/terms-and-conditions', 301);
@@ -69,12 +67,7 @@ Route::get('/faq', FaqController::class)->name('faq');
 // Courses & Live Search routes
 Route::get('/live-search', [CoursesController::class, 'liveSearch'])->name('live-search');
 Route::get('/courses', [CoursesController::class, 'index'])->name('courses');
-Route::get('/courses/apply/fee/{course}', [\App\Http\Controllers\Front\CourseApplyController::class, 'courseFee'])->name('courses.apply.fee');
-Route::get('/courses/{course}/apply', [\App\Http\Controllers\Front\CourseApplyController::class, 'show'])->name('courses.apply');
-Route::post('/courses/{course}/apply', [\App\Http\Controllers\Front\CourseApplyController::class, 'store'])->name('courses.apply.store');
-Route::get('/courses/apply/{invoice}/confirmation', [\App\Http\Controllers\Front\CourseApplyController::class, 'confirmation'])->name('courses.apply.confirmation');
-Route::get('/courses/apply/{invoice}/print', [\App\Http\Controllers\Front\CourseApplyController::class, 'print'])->name('courses.apply.print');
-Route::get('/campus/invoice-verify/{number}', [\App\Http\Controllers\Front\CourseApplyController::class, 'verifyInvoice'])->name('campus.invoice.verify');
+Route::get('/courses-catalog', [CoursesController::class, 'index'])->name('courses.index');
 Route::get('/courses/{course}', [CoursesController::class, 'show'])->name('courses.show');
 
 // Bundle public routes
@@ -91,7 +84,6 @@ Route::get('/payment/pesapal/status', [CourseEnrollmentController::class, 'pesap
 
 // Course checkout routes
 Route::middleware(['auth'])->group(function () {
-
     Route::get('/courses/{id}/checkout', [CourseEnrollmentController::class, 'checkout'])->name('courses.checkout');
     Route::post('/courses/{id}/checkout', [CourseEnrollmentController::class, 'processCheckout'])->name('courses.checkout.process');
     Route::get('/bundles/{id}/checkout', [CourseEnrollmentController::class, 'checkoutBundle'])->name('bundles.checkout');
@@ -110,7 +102,7 @@ Route::middleware(['auth'])->group(function () {
 // Cron runner route
 Route::get('/cron/run', [App\Http\Controllers\CronController::class, 'run'])->name('cron.run');
 
-// Include all route files
+// Include portal route files
 require __DIR__ . '/auth.php';
 require __DIR__ . '/student.php';
 require __DIR__ . '/instructor.php';

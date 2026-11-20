@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Traits\BranchScoped;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,23 +10,18 @@ use Illuminate\Support\Facades\Storage;
 /**
  * Payment Model
  *
- * This model represents a payment for a course.
+ * Represents an online payment for a course or bundle in Maarifazone.
  *
  * @package App\Models
  * @author Renatus Bernardo
  */
 class Payment extends Model
 {
-    use BranchScoped;
-
     protected $fillable = [
         'user_id',
         'bundle_id',
         'enrollment_id',
-        'invoice_id',
-        'applicant_id',
         'payment_method',
-        'installment_type',
         'amount',
         'subtotal',
         'tax_amount',
@@ -49,13 +43,11 @@ class Payment extends Model
         'pesapal_confirmation_code',
         'pesapal_payment_account',
         'receipt_file',
-        'receipt_number',
         'payment_date',
         'transaction_id',
         'notes',
         'coupon_id',
         'discount_amount',
-        'legacy_scms_id',
     ];
 
     protected $casts = [
@@ -124,7 +116,18 @@ class Payment extends Model
                     }
                 }
 
-                app(\App\Services\SrsWorkflowService::class)->finalizeCompletedPayment($payment);
+                // Activate linked enrollment if not already approved
+                if ($payment->enrollment_id) {
+                    $enrollment = $payment->enrollment;
+                    if ($enrollment && $enrollment->status !== \App\Models\Enrollment::STATUS_APPROVED) {
+                        $enrollment->update(['status' => \App\Models\Enrollment::STATUS_APPROVED]);
+                    }
+                }
+
+                // Settle instructor and platform commissions
+                if (class_exists(\App\Services\RevenueShareService::class)) {
+                    app(\App\Services\RevenueShareService::class)->settlePaymentCommission($payment);
+                }
             }
         });
     }
@@ -245,49 +248,5 @@ class Payment extends Model
     public function isPesapal(): bool
     {
         return $this->payment_method === self::PAYMENT_METHOD_PESAPAL;
-    }
-
-    /**
-     * Eloquent belongsTo relationship for Invoice.
-     */
-    public function invoice(): BelongsTo
-    {
-        return $this->belongsTo(Invoice::class);
-    }
-
-    /**
-     * Eloquent belongsTo relationship for Applicant.
-     */
-    public function applicant(): BelongsTo
-    {
-        return $this->belongsTo(Applicant::class);
-    }
-
-    /**
-     * Restrict branch-isolated staff to payments tied to their branch's invoices or applicants.
-     */
-    public function applyBranchScope(Builder $builder, int $branchId): void
-    {
-        $builder->where(function (Builder $q) use ($branchId): void {
-            $q->whereHas('invoice', fn (Builder $iq) => $iq->withoutGlobalScope('branch')->where('branch_id', $branchId))
-                ->orWhereHas('applicant', fn (Builder $aq) => $aq->withoutGlobalScope('branch')->where('branch_id', $branchId));
-        });
-    }
-
-    /**
-     * Explicitly scope payments to a branch via invoice/applicant relations.
-     */
-    public function scopeForBranch(Builder $query, ?int $branchId): Builder
-    {
-        if (! $branchId) {
-            return $query;
-        }
-
-        $query->where(function (Builder $q) use ($branchId): void {
-            $q->whereHas('invoice', fn (Builder $iq) => $iq->withoutGlobalScope('branch')->where('branch_id', $branchId))
-                ->orWhereHas('applicant', fn (Builder $aq) => $aq->withoutGlobalScope('branch')->where('branch_id', $branchId));
-        });
-
-        return $query;
     }
 }

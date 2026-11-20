@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\User;
-use App\Services\SrsWorkflowService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,12 +28,10 @@ class PaymentsController extends Controller
      */
     private function studentPaymentsQuery(int $userId): Builder
     {
-        return Payment::withoutGlobalScope('branch')
-            ->where(function (Builder $query) use ($userId): void {
-                $query->where('user_id', $userId)
-                    ->orWhereHas('enrollment', fn (Builder $eq) => $eq->withoutGlobalScope('branch')->where('user_id', $userId))
-                    ->orWhereHas('invoice', fn (Builder $iq) => $iq->withoutGlobalScope('branch')->where('user_id', $userId));
-            });
+        return Payment::where(function (Builder $query) use ($userId): void {
+            $query->where('user_id', $userId)
+                ->orWhereHas('enrollment', fn (Builder $eq) => $eq->where('user_id', $userId));
+        });
     }
 
     /**
@@ -43,16 +40,13 @@ class PaymentsController extends Controller
     private function transformPayment(Payment $payment): Payment
     {
         $courseTitle = $payment->enrollment?->course?->title
-            ?? $payment->invoice?->course?->title
             ?? $payment->bundle?->title
-            ?? 'Tuition / Course Payment';
+            ?? 'Course / Learning Payment';
 
         $payment->course_title = $courseTitle;
-        $payment->invoice_number = $payment->invoice?->invoice_number;
-        $payment->control_number = $payment->invoice?->control_number;
-        $payment->invoice_print_url = ($payment->invoice_id && Route::has('courses.apply.print'))
-            ? route('courses.apply.print', $payment->invoice_id)
-            : null;
+        $payment->invoice_number = null;
+        $payment->control_number = null;
+        $payment->invoice_print_url = null;
         $payment->status_label = ucfirst((string) $payment->status);
         $payment->created_at_formatted = optional($payment->payment_date ?? $payment->created_at)?->format('M d, Y h:i A');
         $payment->method_label = ucwords(str_replace('_', ' ', (string) ($payment->payment_method ?: 'offline')));
@@ -83,9 +77,7 @@ class PaymentsController extends Controller
             default => 'badge-review',
         };
 
-        $payment->receipt_action_url = ($payment->invoice_id || $payment->status === Payment::STATUS_COMPLETED)
-            ? route('student.campus.invoices.receipt.show', $payment->id)
-            : $payment->receipt_url;
+        $payment->receipt_action_url = $payment->receipt_url ?? null;
 
         return $payment;
     }
@@ -96,7 +88,6 @@ class PaymentsController extends Controller
     public function index(Request $request): View
     {
         $user = $this->currentUser();
-        app(SrsWorkflowService::class)->syncMissingInvoicesForStudent($user);
         $methodOptions = $this->methodOptions($user->id);
 
         $method = $this->normalizeMethod($request->input('method'), $methodOptions);
@@ -138,7 +129,6 @@ class PaymentsController extends Controller
     public function liveStatus(Request $request): JsonResponse
     {
         $user = $this->currentUser();
-        app(SrsWorkflowService::class)->syncMissingInvoicesForStudent($user);
         $methodOptions = $this->methodOptions($user->id);
         $method = $this->normalizeMethod($request->input('method'), $methodOptions);
         $status = $this->normalizeStatus($request->input('status'));
@@ -198,7 +188,6 @@ class PaymentsController extends Controller
         $paymentsQuery = $this->studentPaymentsQuery($userId)
             ->with([
                 'enrollment' => fn ($q) => $q->withoutGlobalScope('branch')->with('course:id,title'),
-                'invoice' => fn ($q) => $q->withoutGlobalScope('branch')->with('course:id,title'),
                 'bundle:id,title',
                 'coupon',
             ]);
@@ -218,10 +207,6 @@ class PaymentsController extends Controller
                     ->orWhere('pesapal_confirmation_code', 'like', '%' . $search . '%')
                     ->orWhere('pesapal_order_tracking_id', 'like', '%' . $search . '%')
                     ->orWhereHas('enrollment.course', fn (Builder $cq) => $cq->where('title', 'like', '%' . $search . '%'))
-                    ->orWhereHas('invoice', fn (Builder $iq) => $iq->withoutGlobalScope('branch')
-                        ->where('invoice_number', 'like', '%' . $search . '%')
-                        ->orWhere('control_number', 'like', '%' . $search . '%')
-                        ->orWhereHas('course', fn (Builder $icq) => $icq->where('title', 'like', '%' . $search . '%')))
                     ->orWhereHas('bundle', fn (Builder $bq) => $bq->where('title', 'like', '%' . $search . '%'));
             });
         }

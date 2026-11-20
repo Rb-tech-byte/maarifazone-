@@ -36,11 +36,28 @@ class PesapalService
     {
         $credentials = $this->paymentGatewayService->credentialsFor('pesapal');
 
+        $consumerKey = trim((string) ($credentials['consumer_key'] ?? ''));
+        $consumerSecret = trim((string) ($credentials['consumer_secret'] ?? ''));
+
+        if ($consumerKey === '') {
+            $consumerKey = trim((string) env('PESAPAL_CONSUMER_KEY', ''));
+        }
+        if ($consumerKey === '') {
+            $consumerKey = 'ngW+UEcnDhltUc5fxPfrCD987xMh3Lx8';
+        }
+
+        if ($consumerSecret === '') {
+            $consumerSecret = trim((string) env('PESAPAL_CONSUMER_SECRET', ''));
+        }
+        if ($consumerSecret === '') {
+            $consumerSecret = 'q27RChYs5UkypdcNYKzuUw460Dg=';
+        }
+
         return [
-            'consumer_key'    => trim((string) ($credentials['consumer_key'] ?? '')),
-            'consumer_secret' => trim((string) ($credentials['consumer_secret'] ?? '')),
-            'ipn_id'          => trim((string) ($credentials['ipn_id'] ?? '')),
-            'mode'            => strtolower(trim((string) ($credentials['mode'] ?? 'sandbox'))) === 'live' ? 'live' : 'sandbox',
+            'consumer_key'    => $consumerKey,
+            'consumer_secret' => $consumerSecret,
+            'ipn_id'          => trim((string) ($credentials['ipn_id'] ?? env('PESAPAL_IPN_ID', ''))),
+            'mode'            => strtolower(trim((string) ($credentials['mode'] ?? env('PESAPAL_MODE', 'sandbox')))) === 'live' ? 'live' : 'sandbox',
         ];
     }
 

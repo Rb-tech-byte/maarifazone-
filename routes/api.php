@@ -3,8 +3,8 @@
 /**
  * Sanctum REST API Routes
  *
- * Exposes public catalog/campus intake endpoints and token-authenticated
- * Student and Instructor API suites for mobile and decoupled clients.
+ * Exposes public catalog and token-authenticated
+ * Scholar (Student) and Instructor API suites in Maarifazone.
  *
  * @author Renatus Bernardo
  */
@@ -24,8 +24,6 @@ use App\Http\Controllers\Api\CourseEnrollmentController;
 use App\Http\Controllers\Api\BundleController;
 use App\Http\Controllers\Api\StudentCourseController;
 use App\Http\Controllers\Api\ProfileController;
-use App\Http\Controllers\Api\CertificateController;
-use App\Http\Controllers\Api\CertificateVerificationController as ApiCertificateVerificationController;
 use App\Http\Controllers\Api\CustomPageController;
 use App\Http\Controllers\Api\CommunityController;
 use App\Http\Controllers\Api\ChatController;
@@ -34,8 +32,6 @@ use App\Http\Controllers\Api\ValidateCouponController;
 use App\Http\Controllers\Api\CourseDiscussionController;
 use App\Http\Controllers\Api\Instructor\CourseDiscussionController as InstructorCourseDiscussionController;
 use App\Http\Controllers\Api\LiveClassController;
-use App\Http\Controllers\Api\CampusController as ApiCampusController;
-use App\Http\Controllers\Api\Instructor\CampusController as ApiInstructorCampusController;
 
 Route::get('/settings', [SettingController::class, 'index']);
 Route::get('/settings/pages', [CustomPageController::class, 'index']);
@@ -51,7 +47,6 @@ Route::prefix('auth')->group(function () {
 Route::get('/home', [HomeController::class, 'index']);
 Route::get('/courses/recent', [HomeController::class, 'recentCourses']);
 Route::get('/courses', [CourseController::class, 'index']);
-// Categories
 Route::get('/categories', [CourseController::class, 'categories']);
 Route::get('/courses/{id}', [CourseController::class, 'show']);
 Route::get('/bundles', [BundleController::class, 'index']);
@@ -59,26 +54,10 @@ Route::get('/bundles/{id}', [BundleController::class, 'show']);
 Route::get('/video/stream', [FileController::class, 'stream']);
 Route::get('/instructors', [InstructorController::class, 'index']);
 Route::get('/instructors/{id}', [InstructorController::class, 'show']);
-Route::get('/certificates/download/signed/{id}', [CertificateController::class, 'downloadSigned'])->name('api.certificates.download.signed')->middleware('signed');
-
-
-// Certificate Verification (Public)
-Route::post('/verify-certificate', [ApiCertificateVerificationController::class, 'verify']);
-Route::get('/verify-certificate/{code}', [ApiCertificateVerificationController::class, 'show']);
 
 // Community Q&A (Public)
 Route::get('/community/questions', [CommunityController::class, 'index']);
 Route::get('/community/questions/{id}', [CommunityController::class, 'show']);
-
-// Campus & Short Courses (Public Intake, Lookup & Invoice Verification)
-Route::prefix('campus')->group(function () {
-    Route::get('/meta', [ApiCampusController::class, 'meta']);
-    Route::get('/branches', [ApiCampusController::class, 'branches']);
-    Route::get('/branches/{branch}/venues', [ApiCampusController::class, 'venuesByBranch']);
-    Route::get('/courses/{course}/fee', [ApiCampusController::class, 'courseFee']);
-    Route::post('/courses/{course}/apply', [ApiCampusController::class, 'apply']);
-    Route::get('/invoices/verify/{number}', [ApiCampusController::class, 'verifyInvoice']);
-});
 
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
@@ -89,7 +68,6 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('/user/profile-photo', [ProfileController::class, 'updateProfilePhoto']);
     Route::post('/user/password', [ProfileController::class, 'updatePassword']);
     Route::post('/user/delete-request', [ProfileController::class, 'requestDeleteAccount']);
-    // ...
     Route::get('/user/delete-request', [ProfileController::class, 'getDeleteRequestStatus']);
     Route::get('/user/settings/notifications', [ProfileController::class, 'getNotificationSettings']);
     Route::put('/user/settings/notifications', [ProfileController::class, 'updateNotificationSettings']);
@@ -103,35 +81,22 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
-    // Enrollment
+    // Enrollment & Checkout
     Route::post('/courses/{id}/enroll', [CourseEnrollmentController::class, 'enroll']);
     Route::post('/bundles/{id}/checkout', [CourseEnrollmentController::class, 'enrollBundle']);
     Route::post('/payments/stripe/verify', [CourseEnrollmentController::class, 'stripeVerify']);
     Route::post('/payments/pesapal/verify', [CourseEnrollmentController::class, 'pesapalVerify']);
+    Route::post('/payments/paypal/verify', [CourseEnrollmentController::class, 'paypalVerify']);
     Route::get('/user/courses', [CourseController::class, 'myCourses']);
-    Route::get('/user/certificates', [CertificateController::class, 'index']);
-    Route::get('/user/certificates/{id}', [CertificateController::class, 'show']);
-    Route::get('/user/certificates/{id}/download', [CertificateController::class, 'download']);
 
     // Payment History
     Route::get('/user/payments', [App\Http\Controllers\Api\PaymentController::class, 'index']);
     Route::get('/user/payments/{id}/receipt', [App\Http\Controllers\Api\PaymentController::class, 'downloadReceipt']);
 
-
-    // Course Learning & Progress
+    // Course Learning & Progress (Online Maarifa Lessons)
     Route::get('/user/courses/{course}/learn', [StudentCourseController::class, 'show']);
-    // ...
     Route::get('/user/courses/{course}/lessons/{lesson}', [StudentCourseController::class, 'loadLesson']);
     Route::post('/user/courses/{course}/lessons/{lesson}/complete', [StudentCourseController::class, 'markLessonComplete']);
-
-    // Quiz & Assignment Routes
-    Route::get('/user/assignments', [StudentCourseController::class, 'myAssignments']);
-    Route::get('/user/quizzes', [StudentCourseController::class, 'myQuizzes']);
-    Route::get('/user/courses/{course}/quizzes/{quiz}', [StudentCourseController::class, 'loadQuiz']);
-    Route::post('/user/courses/{course}/quizzes/{quiz}/submit', [StudentCourseController::class, 'submitQuiz']);
-    Route::get('/user/courses/{course}/assignments/{assignment}', [StudentCourseController::class, 'loadAssignment']);
-    Route::post('/user/courses/{course}/assignments/{assignment}/submit', [StudentCourseController::class, 'submitAssignment']);
-    Route::post('/payments/paypal/verify', [CourseEnrollmentController::class, 'paypalVerify']);
 
     // Community Q&A (Protected)
     Route::post('/community/questions', [CommunityController::class, 'store']);
@@ -143,7 +108,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/ai-chat', [AiChatController::class, 'index']);
     Route::post('/ai-chat/send', [AiChatController::class, 'sendMessage']);
 
-    // Student ↔ Instructor Chat
+    // Student ↔ Instructor Messages
     Route::prefix('messages')->group(function () {
         Route::get('/', [ChatController::class, 'index']);
         Route::get('/requests', [ChatController::class, 'requests']);
@@ -175,7 +140,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/live-classes/upcoming', [LiveClassController::class, 'upcoming']);
     Route::get('/live-classes/{id}', [LiveClassController::class, 'show']);
 
-    // Support Tickets (Student v3.0.0)
+    // Support Tickets (Student)
     Route::prefix('tickets')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\SupportTicketController::class, 'index']);
         Route::post('/', [\App\Http\Controllers\Api\SupportTicketController::class, 'store']);
@@ -183,23 +148,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::post('/{id}/reply', [\App\Http\Controllers\Api\SupportTicketController::class, 'reply']);
         Route::post('/{id}/close', [\App\Http\Controllers\Api\SupportTicketController::class, 'close']);
     });
-
-    // Campus Invoices, Installments, Receipts & QR Attendance (Student)
-    Route::prefix('campus')->group(function () {
-        Route::get('/invoices', [ApiCampusController::class, 'invoices']);
-        Route::post('/invoices/{invoice}/control-number', [ApiCampusController::class, 'generateControlNumber']);
-        Route::post('/invoices/{invoice}/receipt', [ApiCampusController::class, 'uploadReceipt']);
-        Route::delete('/enrollments/{enrollment}', [ApiCampusController::class, 'unenroll']);
-        Route::get('/attendance', [ApiCampusController::class, 'attendance']);
-        Route::post('/checkin', [ApiCampusController::class, 'checkIn']);
-    });
 });
 
 // Instructor App Routes
 Route::prefix('instructor')->group(function () {
-    Route::post('/verify-certificate', [ApiCertificateVerificationController::class, 'verify']);
-    Route::get('/verify-certificate/{code}', [ApiCertificateVerificationController::class, 'show']);
-
     Route::prefix('auth')->group(function () {
         Route::post('/register', [\App\Http\Controllers\Api\Instructor\AuthController::class, 'register']);
         Route::post('/login', [\App\Http\Controllers\Api\Instructor\AuthController::class, 'login']);
@@ -207,7 +159,7 @@ Route::prefix('instructor')->group(function () {
         Route::post('/login/otp/resend', [\App\Http\Controllers\Api\Instructor\AuthController::class, 'resendOtp']);
         Route::post('/forgot-password', [\App\Http\Controllers\Api\Instructor\AuthController::class, 'forgotPassword']);
     });
-    
+
     Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::get('/user', [\App\Http\Controllers\Api\Instructor\AuthController::class, 'user']);
         Route::post('/logout', [\App\Http\Controllers\Api\Instructor\AuthController::class, 'logout']);
@@ -241,17 +193,7 @@ Route::prefix('instructor')->group(function () {
         Route::post('/chat/{id}/send', [\App\Http\Controllers\Api\Instructor\ChatController::class, 'sendMessage']);
         Route::get('/chat/{id}/poll', [\App\Http\Controllers\Api\Instructor\ChatController::class, 'poll']);
 
-        // Assignment Routes
-        Route::get('/assignments', [\App\Http\Controllers\Api\Instructor\AssignmentController::class, 'index']);
-        Route::get('/assignments/{id}', [\App\Http\Controllers\Api\Instructor\AssignmentController::class, 'show']);
-        Route::get('/assignments/submissions/{id}', [\App\Http\Controllers\Api\Instructor\AssignmentController::class, 'showSubmission']);
-        Route::put('/assignments/submissions/{id}', [\App\Http\Controllers\Api\Instructor\AssignmentController::class, 'updateSubmission']);
-
-        // Quiz Attempt Routes
-        Route::get('/quizzes', [\App\Http\Controllers\Api\Instructor\QuizAttemptController::class, 'index']);
-        Route::get('/quizzes/{id}', [\App\Http\Controllers\Api\Instructor\QuizAttemptController::class, 'show']);
-
-        // Students
+        // Students (Scholars)
         Route::get('/students', [\App\Http\Controllers\Api\Instructor\StudentsController::class, 'index']);
         Route::get('/students/{id}', [\App\Http\Controllers\Api\Instructor\StudentsController::class, 'show']);
 
@@ -297,7 +239,7 @@ Route::prefix('instructor')->group(function () {
         Route::post('/live-classes/{id}/start', [\App\Http\Controllers\Api\Instructor\LiveClassController::class, 'start']);
         Route::post('/live-classes/{id}/end', [\App\Http\Controllers\Api\Instructor\LiveClassController::class, 'end']);
 
-        // Support Tickets (Instructor v3.0.0)
+        // Support Tickets (Instructor)
         Route::prefix('tickets')->group(function () {
             Route::get('/', [\App\Http\Controllers\Api\SupportTicketController::class, 'index']);
             Route::post('/', [\App\Http\Controllers\Api\SupportTicketController::class, 'store']);
@@ -305,14 +247,5 @@ Route::prefix('instructor')->group(function () {
             Route::post('/{id}/reply', [\App\Http\Controllers\Api\SupportTicketController::class, 'reply']);
             Route::post('/{id}/close', [\App\Http\Controllers\Api\SupportTicketController::class, 'close']);
         });
-
-        // Campus Attendance & Cohorts (Instructor)
-        Route::prefix('campus')->group(function () {
-            Route::get('/', [ApiInstructorCampusController::class, 'index']);
-            Route::get('/{assignment}/roster', [ApiInstructorCampusController::class, 'roster']);
-            Route::post('/{assignment}/attendance', [ApiInstructorCampusController::class, 'storeAttendance']);
-            Route::post('/{assignment}/qr', [ApiInstructorCampusController::class, 'openQr']);
-        });
-
     });
 });

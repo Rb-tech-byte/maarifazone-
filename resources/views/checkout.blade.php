@@ -489,6 +489,7 @@
 
 @section('content')
     @php
+        $campusInvoice = null;
         $isBundle = isset($isBundle) && $isBundle;
         $itemTitle = $course->title ?? '';
         $itemImage = !empty($course->featured_image)
@@ -514,9 +515,7 @@
         $taxAmt = (tax_enabled() && $price > 0) ? calculate_tax($price) : 0;
         $totalWithTax = ($price > 0) ? ($price + $taxAmt) : 0;
         $formattedTotal = $price > 0 ? currency_format($totalWithTax) : __('frontend.free');
-        $backRoute = !empty($campusInvoice)
-            ? route('student.campus.invoices.index')
-            : ($isBundle ? route('courses') : route('courses.show', $course->id));
+        $backRoute = $isBundle ? route('courses') : route('courses.show', $course->id);
     @endphp
 
     <section class="maarifazone-checkout-page">
@@ -524,7 +523,7 @@
             <div class="maarifazone-co-topbar">
                 <a href="{{ $backRoute }}" class="maarifazone-co-back">
                     <i class="fa-solid fa-arrow-left"></i>
-                    {{ !empty($campusInvoice) ? 'Back to My Invoices' : ($isBundle ? 'Back to Courses' : 'Back to Course Details') }}
+                    {{ $isBundle ? 'Back to Courses' : 'Back to Course Details' }}
                 </a>
                 <span class="maarifazone-co-secure-pill">
                     <i class="fa-solid fa-shield-check"></i>
@@ -886,7 +885,7 @@
                 }
 
                 function currentOrderKey() {
-                    return '{{ $course->id }}|{{ $campusInvoice->id ?? 0 }}|' + ($('#applied_coupon_code').val() || '');
+                    return '{{ $course->id }}|' + ($('#applied_coupon_code').val() || '');
                 }
 
                 function setPesapalUiState(state, message) {

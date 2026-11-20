@@ -35,8 +35,7 @@ class CoursesController extends Controller
 
         $scopeFilter = function ($q) use ($user) {
             $q->where('instructor_id', $user->id)
-                ->orWhere('assistant_instructor_id', $user->id)
-                ->orWhereHas('coInstructors', fn ($co) => $co->where('user_id', $user->id));
+                ->orWhere('assistant_instructor_id', $user->id);
         };
 
         $baseQuery = Course::where($scopeFilter);

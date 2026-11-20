@@ -6,7 +6,7 @@ use App\Models\NotificationTemplate;
 use Illuminate\Database\Seeder;
 
 /**
- * Notification template seeder — seeds baseline institutional, RBAC, or reference records.
+ * Notification template seeder — seeds Maarifazone online learning notification templates.
  *
  * @author Renatus Bernardo
  */
@@ -19,51 +19,54 @@ class NotificationTemplateSeeder extends Seeder
     {
         $templates = [
             [
-                'key' => 'invoice_control_number',
-                'name' => 'Invoice & Control Number Issued',
+                'key' => 'welcome_scholar',
+                'name' => 'Welcome New Scholar',
                 'channel' => 'email',
-                'subject' => 'Your Maarifazone Invoice & Control Number ({control_number})',
-                'body' => "Hello {student_name},\n\nYour registration for {course_title} at {branch_name} is confirmed as pending payment.\n\nInvoice Number: {invoice_number}\nGePG Control Number: {control_number}\nAmount Due: {amount_due}\nDue Date: {due_date}\n\nYou may pay using your control number or upload your receipt via your Student Portal.",
-                'variables' => ['student_name', 'course_title', 'branch_name', 'invoice_number', 'control_number', 'amount_due', 'due_date'],
+                'subject' => 'Welcome to Maarifazone, {scholar_name}!',
+                'body' => "Hello {scholar_name},\n\nWelcome to Maarifazone! Your journey of gaining lifelong knowledge (maarifa) begins now.\n\nBrowse our comprehensive online courses and start learning today.",
+                'variables' => ['scholar_name'],
                 'is_active' => true,
             ],
             [
-                'key' => 'installment_reminder',
-                'name' => 'Installment Due Reminder',
+                'key' => 'course_enrolled',
+                'name' => 'Course Enrollment Confirmation',
                 'channel' => 'email',
-                'subject' => 'Installment #{installment_number} Payment Reminder - {course_title}',
-                'body' => "Hello {student_name},\n\nThis is a friendly reminder that installment #{installment_number} ({amount_due}) for {course_title} is due on {due_date}.\n\nControl Number: {control_number}\nInvoice Number: {invoice_number}\nRemaining Balance: {balance}\n\nPlease settle on time to remain eligible for your certificate.",
-                'variables' => ['student_name', 'course_title', 'installment_number', 'amount_due', 'due_date', 'control_number', 'invoice_number', 'balance'],
+                'subject' => 'Enrollment Confirmed: {course_title}',
+                'body' => "Hello {scholar_name},\n\nYou have successfully enrolled in {course_title}.\n\nAccess your lessons, join live classes, and engage in discussions directly from your scholar portal.",
+                'variables' => ['scholar_name', 'course_title'],
                 'is_active' => true,
             ],
             [
-                'key' => 'overdue_notice',
-                'name' => 'Overdue Installment Notice',
+                'key' => 'live_class_reminder',
+                'name' => 'Live Class Reminder',
                 'channel' => 'email',
-                'subject' => 'Action Required: Overdue Installment for {course_title}',
-                'body' => "Hello {student_name},\n\nYour installment #{installment_number} of {amount_due} for {course_title} (Invoice {invoice_number}) is overdue since {due_date}.\n\nControl Number: {control_number}\nOutstanding Balance: {balance}\n\nPlease clear the balance or upload payment proof in your Student Portal.",
-                'variables' => ['student_name', 'course_title', 'installment_number', 'amount_due', 'due_date', 'control_number', 'invoice_number', 'balance'],
+                'subject' => 'Upcoming Live Class: {class_title} ({course_title})',
+                'body' => "Hello {scholar_name},\n\nA live session for {course_title} is scheduled for {scheduled_at}.\n\nTitle: {class_title}\nJoin Link: {join_url}\n\nSee you in class!",
+                'variables' => ['scholar_name', 'course_title', 'class_title', 'scheduled_at', 'join_url'],
                 'is_active' => true,
             ],
             [
-                'key' => 'payment_verified',
-                'name' => 'Payment Verified Confirmation',
+                'key' => 'instructor_payout_approved',
+                'name' => 'Instructor Payout Approved',
                 'channel' => 'email',
-                'subject' => 'Payment Received & Verified - {invoice_number}',
-                'body' => "Hello {student_name},\n\nWe have verified your payment of {amount_paid} for {course_title}.\n\nInvoice Number: {invoice_number}\nReceipt Number: {receipt_number}\nRemaining Balance: {balance}\n\nThank you for learning with Maarifazone.",
-                'variables' => ['student_name', 'course_title', 'amount_paid', 'invoice_number', 'receipt_number', 'balance'],
+                'subject' => 'Your Payout Request Has Been Approved ({amount})',
+                'body' => "Hello {instructor_name},\n\nYour payout request for {amount} has been approved and processed.\n\nReference: {payout_reference}\nThank you for sharing your maarifa with our learners.",
+                'variables' => ['instructor_name', 'amount', 'payout_reference'],
                 'is_active' => true,
             ],
             [
-                'key' => 'certificate_ready',
-                'name' => 'Certificate Ready for Issue',
+                'key' => 'course_discussion_reply',
+                'name' => 'Course Discussion Reply',
                 'channel' => 'email',
-                'subject' => 'Your Certificate for {course_title} is Ready ({certificate_serial})',
-                'body' => "Congratulations {student_name}!\n\nYou have met the attendance and tuition requirements for {course_title}. Your certificate ({certificate_serial}) is ready/issued and can be verified or downloaded from your Student Portal.",
-                'variables' => ['student_name', 'course_title', 'certificate_serial'],
+                'subject' => 'New reply in {course_title}: {discussion_title}',
+                'body' => "Hello {scholar_name},\n\n{replier_name} replied to your discussion on {course_title}.\n\nCheck your scholar portal to view the reply and continue the conversation.",
+                'variables' => ['scholar_name', 'course_title', 'discussion_title', 'replier_name'],
                 'is_active' => true,
             ],
         ];
+
+        // Clean out obsolete templates
+        NotificationTemplate::whereNotIn('key', array_column($templates, 'key'))->delete();
 
         foreach ($templates as $tpl) {
             NotificationTemplate::updateOrCreate(['key' => $tpl['key']], $tpl);

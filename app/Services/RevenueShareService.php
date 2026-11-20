@@ -72,6 +72,14 @@ class RevenueShareService
     }
 
     /**
+     * Settle payment commission alias.
+     */
+    public function settlePaymentCommission(Payment $payment, bool $force = false): Payment
+    {
+        return $this->process($payment, $force);
+    }
+
+    /**
      * Process revenue share splits and credit instructor wallet balances atomically.
      */
     public function process(Payment $payment, bool $force = false): Payment

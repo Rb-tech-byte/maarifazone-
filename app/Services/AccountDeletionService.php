@@ -26,8 +26,6 @@ class AccountDeletionService
         DB::transaction(function () use ($user, $profilePhoto) {
             if ($user->isStudent()) {
                 $user->lessonProgress()->delete();
-                $user->quizAttempts()->delete();
-                $user->assignmentSubmissions()->delete();
                 $user->eventBookings()->delete();
                 $user->enrollments()->delete();
                 $user->reviews()->delete();

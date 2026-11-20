@@ -32,16 +32,4 @@ class Country extends Model
     /**
      * Eloquent hasMany relationship for Branches.
      */
-    public function branches(): HasMany
-    {
-        return $this->hasMany(Branch::class);
-    }
-
-    /**
-     * Eloquent hasMany relationship for Applicants.
-     */
-    public function applicants(): HasMany
-    {
-        return $this->hasMany(Applicant::class);
-    }
 }

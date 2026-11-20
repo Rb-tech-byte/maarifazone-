@@ -57,11 +57,11 @@
             <li><a href="#" data-toggle="sidebar" class="nav-link nav-link-lg"><i class="fas fa-bars"></i></a></li>
             @auth
               <li class="d-none d-md-flex align-items-center ml-2">
-                <form action="{{ route('admin.campus.search') }}" method="GET" class="form-inline">
+                <form action="{{ route('admin.courses.index') }}" method="GET" class="form-inline">
                   <div class="input-group input-group-sm">
-                    <input type="text" name="q" value="{{ request('q') }}" class="form-control bg-white text-dark border-0" placeholder="Search applicant, invoice, control #..." style="min-width: 240px;">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control bg-white text-dark border-0" placeholder="Search courses..." style="min-width: 240px;">
                     <div class="input-group-append">
-                      <button class="btn btn-light" type="submit" title="Global Search"><i class="fas fa-search text-primary"></i></button>
+                      <button class="btn btn-light" type="submit" title="Search Courses"><i class="fas fa-search text-primary"></i></button>
                     </div>
                   </div>
                 </form>

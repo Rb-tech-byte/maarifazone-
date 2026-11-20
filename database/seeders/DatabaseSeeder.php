@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 
 /**
- * Database seeder — seeds baseline institutional, RBAC, or reference records.
+ * Database seeder — seeds Maarifazone baseline records.
  *
  * @author Renatus Bernardo
  */
@@ -19,7 +19,6 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             CountrySeeder::class,
-            CampusReferenceSeeder::class,
             AdminSeeder::class,
             PaymentGatewaySettingSeeder::class,
             PlatformSettingSeeder::class,
@@ -29,9 +28,7 @@ class DatabaseSeeder extends Seeder
             MenuSeeder::class,
             FrontendSettingSeeder::class,
             CustomPageSeeder::class,
-            CertificateTemplateSeeder::class,
             DemoContentSeeder::class,
-            CampusShowcaseSeeder::class,
             VersionUpdateSeeder::class,
         ]);
     }

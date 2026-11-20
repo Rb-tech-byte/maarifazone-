@@ -95,7 +95,6 @@
                         <li><a href="{{ route('courses') }}">Browse Courses <i class="fa-solid fa-arrow-right maarifazone-ext-icon"></i></a></li>
                         <li><a href="{{ route('bundles.index') }}">Course Bundles <i class="fa-solid fa-arrow-right maarifazone-ext-icon"></i></a></li>
                         <li><a href="{{ route('instructors.index') }}">Instructors <i class="fa-solid fa-arrow-right maarifazone-ext-icon"></i></a></li>
-                        <li><a href="{{ route('verify-certificate') }}">Verify Certificate <i class="fa-solid fa-arrow-right maarifazone-ext-icon"></i></a></li>
                         <li><a href="{{ route('login') }}">Portal Login <i class="fa-solid fa-arrow-right maarifazone-ext-icon"></i></a></li>
                         <li><a href="{{ route('register') }}">Create Account <i class="fa-solid fa-arrow-right maarifazone-ext-icon"></i></a></li>
                     @endif
@@ -117,9 +116,8 @@
                     @else
                         <li><a href="{{ route('about') }}">About {{ $siteName }} <i class="fa-solid fa-arrow-right maarifazone-ext-icon"></i></a></li>
                         <li><a href="{{ route('contact') }}">Contact &amp; Support <i class="fa-solid fa-arrow-right maarifazone-ext-icon"></i></a></li>
-                        <li><a href="{{ route('verify-certificate') }}">Certificate Verification <i class="fa-solid fa-arrow-right maarifazone-ext-icon"></i></a></li>
                         <li><a href="{{ url('/terms-conditions') }}">Terms &amp; Conditions <i class="fa-solid fa-arrow-right maarifazone-ext-icon"></i></a></li>
-                        <li><a href="{{ route('register') }}">Become a Learner <i class="fa-solid fa-arrow-right maarifazone-ext-icon"></i></a></li>
+                        <li><a href="{{ route('register') }}">Become a Scholar <i class="fa-solid fa-arrow-right maarifazone-ext-icon"></i></a></li>
                     @endif
                 </ul>
             </div>
@@ -183,7 +181,6 @@
             </p>
             <div class="maarifazone-brand-footer__bottom-links">
                 <a href="{{ route('courses') }}">Courses</a>
-                <a href="{{ route('verify-certificate') }}">Verify Certificate</a>
                 <a href="{{ url('/terms-conditions') }}">Terms &amp; Privacy</a>
                 <a href="{{ route('contact') }}">Contact</a>
             </div>

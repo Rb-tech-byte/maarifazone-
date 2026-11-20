@@ -2,9 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Assignment;
 use App\Models\Bundle;
-use App\Models\CertificateTemplate;
 use App\Models\Course;
 use App\Models\CourseCategory;
 use App\Models\CourseLanguage;
@@ -12,8 +10,6 @@ use App\Models\CourseTopic;
 use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Models\LiveClass;
-use App\Models\Quiz;
-use App\Models\QuizQuestion;
 use App\Models\Review;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketMessage;
@@ -222,9 +218,6 @@ class DemoContentSeeder extends Seeder
         }
 
         // 4. Courses (6 flagship published courses)
-        $templateIds = CertificateTemplate::pluck('id')->toArray();
-        $defaultTemplateId = $templateIds[0] ?? null;
-
         $coursesData = [
             [
                 'title' => 'Complete Full-Stack Web Development Bootcamp (Laravel & React)',
@@ -315,13 +308,12 @@ class DemoContentSeeder extends Seeder
         $courses = [];
         foreach ($coursesData as $idx => $cData) {
             $cat = $categories[$cData['category_slug']];
-            $tplId = $templateIds[$idx % max(1, count($templateIds))] ?? $defaultTemplateId;
 
             $course = Course::updateOrCreate(
                 ['title' => $cData['title']],
                 [
                     'instructor_id' => $cData['instructor']->id,
-                    'certificate_template_id' => $tplId,
+                    'delivery_mode' => 'online',
                     'description' => $cData['description'],
                     'featured_image' => $cData['featured_image'],
                     'intro_video' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
@@ -345,7 +337,7 @@ class DemoContentSeeder extends Seeder
             );
             $courses[] = $course;
 
-            // Seed 2 Topics, 4 Lessons, 1 Quiz, and 1 Assignment per course
+            // Seed 2 Topics with rich Online Lessons per course (No quizzes or assignments)
             $topic1 = CourseTopic::updateOrCreate(
                 ['course_id' => $course->id, 'order' => 1],
                 [
@@ -380,43 +372,31 @@ class DemoContentSeeder extends Seeder
                 ]
             );
 
-            $quiz = Quiz::updateOrCreate(
+            Lesson::updateOrCreate(
                 ['course_topic_id' => $topic1->id, 'order' => 3],
                 [
-                    'title' => 'Module 1 Knowledge Check Quiz',
-                    'description' => 'Verify your understanding of the core concepts covered in Module 1.',
-                    'passing_score' => 70,
-                    'time_limit' => 15,
-                ]
-            );
-
-            QuizQuestion::updateOrCreate(
-                ['quiz_id' => $quiz->id, 'order' => 1],
-                [
-                    'question' => 'Which architectural practice improves maintainability and scalability the most?',
-                    'type' => 'multiple-choice',
-                    'options' => [
-                        'Modular separation of concerns and automated testing',
-                        'Hardcoding configuration values directly in views',
-                        'Skipping version control',
-                        'Disabling error logging',
-                    ],
-                    'correct_answer' => 0,
+                    'title' => 'Practical Knowledge Application & Architectural Patterns',
+                    'description' => '<p>Synthesizing core patterns into resilient, scalable systems with real-world case studies.</p>',
+                    'video_type' => 'url',
+                    'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    'duration' => 25,
+                    'is_preview' => false,
+                    'is_live' => false,
                 ]
             );
 
             $topic2 = CourseTopic::updateOrCreate(
                 ['course_id' => $course->id, 'order' => 2],
                 [
-                    'title' => 'Module 2: Production Implementation & Capstone Project',
-                    'description' => 'Build, test, optimize, and ship a complete real-world project.',
+                    'title' => 'Module 2: Production Implementation & Advanced Mastery',
+                    'description' => 'Build, test, optimize, and ship complete real-world projects.',
                 ]
             );
 
             Lesson::updateOrCreate(
                 ['course_topic_id' => $topic2->id, 'order' => 1],
                 [
-                    'title' => 'Building the Real-World Capstone Project',
+                    'title' => 'Building the Real-World Production System',
                     'description' => '<p>Follow along as we build and test the complete production project from end to end.</p>',
                     'video_type' => 'url',
                     'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
@@ -426,24 +406,28 @@ class DemoContentSeeder extends Seeder
                 ]
             );
 
-            Assignment::updateOrCreate(
+            Lesson::updateOrCreate(
                 ['course_topic_id' => $topic2->id, 'order' => 2],
                 [
-                    'title' => 'Capstone Project Submission',
-                    'description' => 'Submit your completed project repository and documentation for instructor feedback.',
-                    'instructions' => 'Upload a ZIP archive or PDF summary containing your project code, screenshots, and architecture notes.',
+                    'title' => 'Comprehensive Project Walkthrough & Mastery Summary',
+                    'description' => '<p>In-depth review of advanced techniques, optimization strategies, and future learning trajectories.</p>',
+                    'video_type' => 'url',
+                    'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    'duration' => 28,
+                    'is_preview' => false,
+                    'is_live' => false,
                 ]
             );
         }
 
         // 5. Enrollments & Reviews (Testimonials)
         $reviewsComments = [
-            'This course completely transformed my career trajectory. The hands-on projects and instructor mentorship are unmatched!',
+            'This course completely transformed my career trajectory. The practical knowledge and instructor mentorship are unmatched!',
             'Crystal clear explanations, modern production patterns, and an awesome interactive learning portal. Highly recommended!',
             'The curriculum is structured so thoughtfully. I was able to apply everything directly to my team\'s production project.',
-            'Best online learning experience I have ever had. The live sessions and practical capstone assignments made all the difference.',
+            'Best online learning experience I have ever had. The live sessions and comprehensive walkthroughs made all the difference.',
             'From beginner concepts to advanced enterprise architecture, every module delivered immense value.',
-            'Outstanding instructor support and top-notch course materials. Earned my verified certificate and landed a promotion!',
+            'Outstanding instructor support and top-notch learning materials. Gained tremendous practical maarifa!',
         ];
 
         foreach ($courses as $idx => $course) {

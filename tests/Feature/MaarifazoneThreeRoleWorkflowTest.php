@@ -1,0 +1,159 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Course;
+use App\Models\CourseTopic;
+use App\Models\Enrollment;
+use App\Models\Lesson;
+use App\Models\User;
+use Database\Seeders\RoleSeeder;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
+use Tests\TestCase;
+
+/**
+ * End-to-end verification of Maarifazone's strict 3-role model:
+ * 1. Admin: Full system management, creates courses, assigns to instructors.
+ * 2. Instructor: Tutors assigned courses, cannot create courses, views earnings & payouts.
+ * 3. Scholar (Student): Enrolls in 100% online courses to gain maarifa.
+ *
+ * @author Maarifazone Team
+ */
+class MaarifazoneThreeRoleWorkflowTest extends TestCase
+{
+    use DatabaseTransactions;
+
+    private User $admin;
+
+    private User $instructor;
+
+    private User $scholar;
+
+    private Course $onlineCourse;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        URL::forceRootUrl('http://localhost');
+
+        $this->seed(RoleSeeder::class);
+
+        $this->admin = User::create([
+            'name'                => 'System Administrator',
+            'email'               => 'admin-' . Str::random(6) . '@maarifazone.com',
+            'password'            => Hash::make('Secret@123'),
+            'role'                => 'admin',
+            'is_approved'         => true,
+            'password_changed_at' => now(),
+        ]);
+        $this->admin->assignRole('admin');
+
+        $this->instructor = User::create([
+            'name'                => 'Mwalimu Instructor',
+            'email'               => 'inst-' . Str::random(6) . '@maarifazone.com',
+            'password'            => Hash::make('Secret@123'),
+            'role'                => 'instructor',
+            'is_approved'         => true,
+            'password_changed_at' => now(),
+        ]);
+        $this->instructor->assignRole('instructor');
+
+        $this->scholar = User::create([
+            'name'                => 'Maarifa Scholar',
+            'email'               => 'scholar-' . Str::random(6) . '@maarifazone.com',
+            'password'            => Hash::make('Secret@123'),
+            'role'                => 'student',
+            'is_approved'         => true,
+            'password_changed_at' => now(),
+        ]);
+        $this->scholar->assignRole('student');
+
+        $this->onlineCourse = Course::create([
+            'title'         => 'Advanced Web Engineering with Laravel ' . Str::random(4),
+            'course_type'   => 'course',
+            'delivery_mode' => 'online',
+            'description'   => 'A 100% online course created by Admin and assigned to Instructor.',
+            'instructor_id' => $this->instructor->id,
+            'pricing_model' => 'free',
+            'status'        => 'published',
+            'visibility'    => 'public',
+        ]);
+    }
+
+    public function test_admin_has_full_system_access_and_manages_courses(): void
+    {
+        // Admin dashboard
+        $res = $this->actingAs($this->admin)->get(route('admin.dashboard'));
+        $res->assertStatus(200);
+
+        // Admin course management
+        $courseRes = $this->actingAs($this->admin)->get(route('admin.courses.index'));
+        $courseRes->assertStatus(200);
+        $courseRes->assertSee($this->onlineCourse->title, false);
+    }
+
+    public function test_instructor_can_access_assigned_courses_but_cannot_create_courses(): void
+    {
+        // Instructor dashboard
+        $dashRes = $this->actingAs($this->instructor)->get(route('instructor.dashboard'));
+        $dashRes->assertStatus(200);
+
+        // Instructor assigned courses
+        $coursesRes = $this->actingAs($this->instructor)->get(route('instructor.courses.index'));
+        $coursesRes->assertStatus(200);
+        $coursesRes->assertSee($this->onlineCourse->title, false);
+
+        // Instructor cannot create courses; attempts redirect to assigned courses with notification
+        $createRes = $this->actingAs($this->instructor)->get('/instructor/courses/create');
+        $createRes->assertRedirect(route('instructor.courses'));
+
+        // Instructor earnings & payouts access
+        $payoutRes = $this->actingAs($this->instructor)->get(route('instructor.payouts.index'));
+        $payoutRes->assertStatus(200);
+    }
+
+    public function test_scholar_can_browse_and_enroll_in_online_course(): void
+    {
+        // Public course catalog
+        $catalogRes = $this->actingAs($this->scholar)->get(route('courses.index'));
+        $catalogRes->assertStatus(200);
+        $catalogRes->assertSee($this->onlineCourse->title, false);
+
+        // Scholar enrolls in online course
+        $enrollment = Enrollment::create([
+            'user_id'      => $this->scholar->id,
+            'course_id'    => $this->onlineCourse->id,
+            'status'       => Enrollment::STATUS_APPROVED,
+            'requested_at' => now(),
+            'approved_at'  => now(),
+        ]);
+
+        // Scholar dashboard
+        $scholarDash = $this->actingAs($this->scholar)->get(route('student.dashboard'));
+        $scholarDash->assertStatus(200);
+
+        // Scholar my-courses
+        $myCourses = $this->actingAs($this->scholar)->get(route('student.my-courses'));
+        $myCourses->assertStatus(200);
+        $myCourses->assertSee($this->onlineCourse->title, false);
+    }
+
+    public function test_obsolete_campus_and_quiz_routes_are_inaccessible(): void
+    {
+        // Old campus apply endpoint is not accessible
+        $applyRes = $this->actingAs($this->scholar)->get('/courses/' . $this->onlineCourse->id . '/apply');
+        $this->assertTrue(in_array($applyRes->status(), [404, 405]));
+
+        // Old campus admin routes are not accessible
+        $campusRes = $this->actingAs($this->admin)->get('/admin/campus/branches');
+        $this->assertTrue(in_array($campusRes->status(), [404, 405]));
+
+        // Old certificate verification is not accessible
+        $verifyRes = $this->get('/verify-certificate');
+        $this->assertTrue(in_array($verifyRes->status(), [404, 405]));
+    }
+}

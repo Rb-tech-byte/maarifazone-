@@ -111,14 +111,14 @@
                     @endif
 
                     {{-- Only render video player if ended + has recording --}}
-                    @if ($lc['status'] === 'ended' && $videoData['url'])
-                        @if ($videoData['type'] === 'url' && $videoData['is_youtube'])
+                    @if ($lc['status'] === 'ended' && !empty($videoData['url']))
+                        @if ($videoData['type'] === 'url' && !empty($videoData['is_youtube']))
                             <div id="video-player-container">
                                 <iframe width="100%" height="500" src="{{ $videoData['embed_url'] }}" frameborder="0"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowfullscreen class="video-iframe"></iframe>
                             </div>
-                        @elseif($videoData['type'] === 'url' && $videoData['is_vimeo'])
+                        @elseif($videoData['type'] === 'url' && !empty($videoData['is_vimeo']))
                             <div id="video-player-container">
                                 <iframe src="{{ $videoData['embed_url'] }}" width="100%" height="500" frameborder="0"
                                     allow="autoplay; fullscreen; picture-in-picture" allowfullscreen
@@ -136,16 +136,16 @@
 
                 @else
                     {{-- Normal (non-live) lesson video --}}
-                    @if ($videoData && $videoData['type'] === 'url' && $videoData['url'])
-                        @if ($videoData['is_youtube'])
+                    @if ($videoData && ($videoData['type'] ?? null) === 'url' && !empty($videoData['url']))
+                        @if (!empty($videoData['is_youtube']))
                             <div id="video-player-container">
-                                <iframe width="100%" height="500" src="{{ $videoData['embed_url'] }}" frameborder="0"
+                                <iframe width="100%" height="500" src="{{ $videoData['embed_url'] ?? $videoData['url'] }}" frameborder="0"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowfullscreen class="video-iframe"></iframe>
                             </div>
-                        @elseif($videoData['is_vimeo'])
+                        @elseif(!empty($videoData['is_vimeo']))
                             <div id="video-player-container">
-                                <iframe src="{{ $videoData['embed_url'] }}" width="100%" height="500" frameborder="0"
+                                <iframe src="{{ $videoData['embed_url'] ?? $videoData['url'] }}" width="100%" height="500" frameborder="0"
                                     allow="autoplay; fullscreen; picture-in-picture" allowfullscreen
                                     class="video-iframe"></iframe>
                             </div>
@@ -157,7 +157,7 @@
                                 </video>
                             </div>
                         @endif
-                    @elseif($videoData && $videoData['type'] === 'upload' && $videoData['url'])
+                    @elseif($videoData && ($videoData['type'] ?? null) === 'upload' && !empty($videoData['url']))
                         <div id="video-player-container">
                             <video id="lesson-video-player" class="video-js vjs-default-skin" controls preload="auto"
                                 data-setup='{}'>

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Course Model
  *
- * This model represents a course.
+ * Represents an online course in Maarifazone.
  *
  * @package App\Models
  * @author Renatus Bernardo
@@ -20,12 +20,9 @@ class Course extends Model
     protected $fillable = [
         'instructor_id',
         'assistant_instructor_id',
-        'certificate_template_id',
         'title',
         'course_type',
         'delivery_mode',
-        'default_branch_id',
-        'default_venue_id',
         'duration_label',
         'description',
         'featured_image',
@@ -59,14 +56,10 @@ class Course extends Model
         'approval_reason',
         'rejection_reason',
         'is_live_course',
-        'attendance_threshold',
-        'allow_online_f2f_payment',
-        'f2f_commission_enabled',
-        'legacy_scms_id',
     ];
 
     protected $casts = [
-        'public_course' => 'boolean',
+        'public_course'   => 'boolean',
         'schedule_enabled' => 'boolean',
         'drip_enabled'     => 'boolean',
         'schedule_date'    => 'datetime',
@@ -77,12 +70,8 @@ class Course extends Model
         'max_students'     => 'integer',
         'deleted_date'     => 'datetime',
         'is_live_course'   => 'boolean',
-        'attendance_threshold' => 'integer',
-        'allow_online_f2f_payment' => 'boolean',
-        'f2f_commission_enabled'   => 'boolean',
         'marketing_copy'   => 'array',
     ];
-
 
     protected $appends = [
         'thumbnail',
@@ -104,7 +93,7 @@ class Course extends Model
     }
 
     /**
-     * Eloquent belongsTo relationship for Assistant instructor.
+     * Assistant instructor (optional co-instructor).
      */
     public function assistantInstructor(): BelongsTo
     {
@@ -112,88 +101,70 @@ class Course extends Model
     }
 
     /**
-     * Eloquent hasMany relationship for Co instructors.
+     * Co-instructors relation.
      */
     public function coInstructors(): HasMany
     {
-        return $this->hasMany(CourseCoInstructor::class)->with('user');
+        return $this->hasMany(CourseCoInstructor::class);
     }
 
     /**
-     * Eloquent hasMany relationship for Faqs.
+     * Course FAQs.
      */
     public function faqs(): HasMany
     {
-        return $this->hasMany(CourseFaq::class)->orderBy('order');
+        return $this->hasMany(CourseFaq::class);
     }
 
     /**
-     * Primary instructor share percent.
-     */
-    public function primaryInstructorSharePercent(): float
-    {
-        $coShare = $this->relationLoaded('coInstructors')
-            ? (float) $this->coInstructors->sum('revenue_share')
-            : (float) $this->coInstructors()->sum('revenue_share');
-        return max(0.0, round(100.0 - $coShare, 2));
-    }
-
-    /**
-     * Check condition: Can user manage curriculum.
+     * Check if a user can manage the course curriculum.
      */
     public function canUserManageCurriculum(?User $user): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
-        if ($user->role === 'admin' || (int) $this->instructor_id === (int) $user->id) {
-            return true;
-        }
-        if ((int) $this->assistant_instructor_id === (int) $user->id) {
+
+        if ($user->isAdmin() || $user->role === 'admin') {
             return true;
         }
 
-        if ($this->relationLoaded('coInstructors')) {
-            return $this->coInstructors->contains(fn ($co) => (int) $co->user_id === (int) $user->id && (bool) $co->can_edit);
-        }
-
-        return $this->coInstructors()
-            ->where('user_id', $user->id)
-            ->where('can_edit', true)
-            ->exists();
+        return (int) $this->instructor_id === (int) $user->id
+            || (int) $this->assistant_instructor_id === (int) $user->id;
     }
 
     /**
-     * Eloquent belongsTo relationship for Can user manage pricing and team.
+     * Check if a user can manage course pricing and team assignment.
      */
     public function canUserManagePricingAndTeam(?User $user): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
-        return $user->role === 'admin' || (int) $this->instructor_id === (int) $user->id;
+
+        return $user->isAdmin() || $user->role === 'admin';
     }
 
     /**
-     * Eloquent belongsTo relationship for Category.
+     * Course category.
      */
-    public function category(): BelongsTo
+    public function courseCategory(): BelongsTo
     {
         return $this->belongsTo(CourseCategory::class, 'course_category_id');
     }
 
     /**
-     * Eloquent belongsTo relationship for Category relation.
+     * Alias for course category relation.
      */
     public function categoryRelation(): BelongsTo
     {
-        return $this->category();
+        return $this->courseCategory();
     }
 
     /**
-     * Eloquent belongsTo relationship for Language.
+     * Course language.
      */
-    public function language(): BelongsTo
+    public function courseLanguage(): BelongsTo
     {
         return $this->belongsTo(CourseLanguage::class, 'course_language_id');
     }
@@ -223,7 +194,7 @@ class Course extends Model
     }
 
     /**
-     * Get the lessons for the course directly 
+     * Get the lessons for the course directly.
      */
     public function lessons()
     {
@@ -233,7 +204,7 @@ class Course extends Model
     /**
      * Get the bundles that include this course.
      */
-    public function bundles()
+    public function bundles(): BelongsToMany
     {
         return $this->belongsToMany(Bundle::class, 'bundle_courses');
     }
@@ -263,20 +234,11 @@ class Course extends Model
     }
 
     /**
-     * Get the certificate template associated with the course.
-     */
-    public function certificateTemplate(): BelongsTo
-    {
-        return $this->belongsTo(CertificateTemplate::class, 'certificate_template_id');
-    }
-
-
-    /**
      * Accessor for computed Thumbnail attribute.
      */
     public function getThumbnailAttribute()
     {
-        if (!$this->featured_image) {
+        if (! $this->featured_image) {
             return asset('storage/courses/images/maarifazone-campus-ict.jpg');
         }
         if (str_starts_with($this->featured_image, 'http://') || str_starts_with($this->featured_image, 'https://')) {
@@ -333,7 +295,6 @@ class Course extends Model
      */
     public function getRatingAttribute()
     {
-        // Calculate average rating from reviews if not cached
         return $this->reviews()->avg('rating') ?? 0.0;
     }
 
@@ -364,93 +325,41 @@ class Course extends Model
      */
     public function getStudentsCountAttribute()
     {
-        // Total students enrolled (approved or completed)
         return $this->enrollments()->whereIn('status', ['approved', 'completed'])->count();
     }
-
 
     /**
      * Accessor for computed Intro video url attribute.
      */
     public function getIntroVideoUrlAttribute()
     {
-        if (!$this->intro_video) {
+        if (! $this->intro_video) {
             return null;
         }
 
-        // Generate streaming URL with the video path
         return url('/api/video/stream?path=' . urlencode($this->intro_video));
     }
 
     /**
-     * Eloquent belongsTo relationship for Default branch.
-     */
-    public function defaultBranch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class, 'default_branch_id');
-    }
-
-    /**
-     * Eloquent belongsTo relationship for Default venue.
-     */
-    public function defaultVenue(): BelongsTo
-    {
-        return $this->belongsTo(Venue::class, 'default_venue_id');
-    }
-
-    /**
-     * Eloquent hasMany relationship for Course assignments.
-     */
-    public function courseAssignments(): HasMany
-    {
-        return $this->hasMany(CourseAssignment::class);
-    }
-
-    /**
-     * Eloquent hasMany relationship for Invoices.
-     */
-    public function invoices(): HasMany
-    {
-        return $this->hasMany(Invoice::class);
-    }
-
-    /**
-     * Eloquent hasMany relationship for Attendance records.
-     */
-    public function attendanceRecords(): HasMany
-    {
-        return $this->hasMany(AttendanceRecord::class);
-    }
-
-    /**
-     * Check condition: Is online.
+     * Maarifazone is 100% online.
      */
     public function isOnline(): bool
     {
-        return ($this->delivery_mode ?? 'online') === 'online';
+        return true;
     }
 
-    /**
-     * Check condition: Is face to face.
-     */
     public function isFaceToFace(): bool
     {
-        return $this->delivery_mode === 'face_to_face';
+        return false;
     }
 
-    /**
-     * Check condition: Is hybrid.
-     */
     public function isHybrid(): bool
     {
-        return $this->delivery_mode === 'hybrid';
+        return false;
     }
 
-    /**
-     * Requires applicant form.
-     */
     public function requiresApplicantForm(): bool
     {
-        return in_array($this->delivery_mode ?? 'online', ['face_to_face', 'hybrid'], true);
+        return false;
     }
 }

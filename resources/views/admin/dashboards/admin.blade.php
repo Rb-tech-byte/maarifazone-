@@ -201,7 +201,7 @@
                 @forelse($analytics['recent_activity'] as $activity)
                     <div class="activity-item-v2">
                         <div class="activity-icon-v2"><i class="fas {{ $activity['icon'] }}"></i></div>
-                        <div class="activity-content-v2"><p>{{ $activity['message'] }}</p><span>{{ $activity['time'] }}</span></div>
+                        <div class="activity-content-v2"><p>{{ $activity['message'] ?? $activity['description'] ?? 'System event' }}</p><span>{{ $activity['time'] ?? '' }}</span></div>
                     </div>
                 @empty
                     <p class="text-center py-4">No recent activity.</p>
@@ -218,7 +218,10 @@
     <script>
         $(document).ready(function () {
             new WOW().init();
-            const analyticsData = @json($analytics['charts']);
+            const analyticsData = @json($analytics['charts'] ?? null) || {
+                thirty_days: { labels: [], revenue: [] },
+                last_12_months: { labels: [], enrollments: [], completions: [] }
+            };
 
             const revCtx = document.getElementById('revenueChart').getContext('2d');
             let revenueChart = new Chart(revCtx, {

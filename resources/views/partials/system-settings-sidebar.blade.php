@@ -98,12 +98,6 @@
                             <i class="fas fa-envelope mr-2"></i> Newsletter
                         </a>
                     </li>
-                    <li class="nav-item mb-1">
-                        <a href="{{ route('admin.campus.templates.index') }}"
-                           class="nav-link {{ request()->routeIs('admin.campus.templates.*') ? 'active' : '' }}">
-                            <i class="fas fa-file-alt mr-2"></i> Reminder Templates
-                        </a>
-                    </li>
                 @endif
             @endif
 

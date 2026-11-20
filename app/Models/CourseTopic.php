@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Course Topic Model
  *
- * This model represents a topic for a course.
+ * Represents an online learning module/topic within a course.
  *
  * @package App\Models
  * @author Renatus Bernardo
@@ -48,45 +48,16 @@ class CourseTopic extends Model
     }
 
     /**
-     * Get the quizzes for the topic.
+     * Calculate progress statistics for a user.
      */
-    public function quizzes(): HasMany
-    {
-        return $this->hasMany(Quiz::class)->orderBy('order');
-    }
-
-    /**
-     * Get the assignments for the topic.
-     */
-    public function assignments(): HasMany
-    {
-        return $this->hasMany(Assignment::class)->orderBy('order');
-    }
-
-    /**
-     * Calculate progress statistics for a user
-     */
-    public function getProgressStats($userProgress, $userQuizAttempts, $userAssignmentSubmissions): array
+    public function getProgressStats($userProgress = []): array
     {
         $lessons = $this->lessons;
-        $quizzes = $this->quizzes;
-        $assignments = $this->assignments;
+        $totalItems = $lessons->count();
 
-        $totalItems = $lessons->count() + $quizzes->count() + $assignments->count();
-
-        $completedLessons = $lessons->filter(function($lesson) use ($userProgress) {
+        $completedItems = $lessons->filter(function ($lesson) use ($userProgress) {
             return isset($userProgress[$lesson->id]) && $userProgress[$lesson->id]->is_completed;
         })->count();
-
-        $completedQuizzes = $quizzes->filter(function($quiz) use ($userQuizAttempts) {
-            return isset($userQuizAttempts[$quiz->id]) && $userQuizAttempts[$quiz->id]->passed;
-        })->count();
-
-        $completedAssignments = $assignments->filter(function($assignment) use ($userAssignmentSubmissions) {
-            return isset($userAssignmentSubmissions[$assignment->id]);
-        })->count();
-
-        $completedItems = $completedLessons + $completedQuizzes + $completedAssignments;
 
         return [
             'total_items' => $totalItems,

@@ -846,7 +846,7 @@
                         }
                         overlay.style.display = 'flex';
 
-                        fetch('{{ route('instructor.courses.generate-description') }}', {
+                        fetch('{{ !empty($isAdminBuilder) ? route('admin.courses.generate-description') : (Route::has('instructor.courses.generate-description') ? route('instructor.courses.generate-description') : route('admin.courses.generate-description')) }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',

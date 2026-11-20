@@ -583,31 +583,15 @@ if (!function_exists('validatePhoneNumber')) {
     }
 }
 
-if (!function_exists('generateInvoicePrefix')) {
-    /**
-     * Generate a readable campus invoice number prefix.
-     */
-    function generateInvoicePrefix(): string
-    {
-        return 'INV-' . date('Ym') . '-';
-    }
-}
-
 if (!function_exists('getEducationLevelLabel')) {
     /**
-     * Human-readable education level labels matching the SCMS Applicants Form.
+     * Human-readable education level labels.
      */
     function getEducationLevelLabel(?string $level): string
     {
-        $scmsLevels = \App\Models\Applicant::educationLevels();
-        if ($level !== null && isset($scmsLevels[(string) $level])) {
-            return $scmsLevels[(string) $level];
-        }
-
         return match ($level) {
             'primary' => 'Primary School',
             'secondary' => 'Secondary School (O-Level / A-Level)',
-            'certificate' => 'Certificate',
             'diploma' => 'Diploma',
             'bachelor', 'degree' => 'Bachelor\'s Degree',
             'master', 'masters' => 'Master\'s Degree',

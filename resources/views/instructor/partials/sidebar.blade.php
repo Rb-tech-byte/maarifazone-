@@ -14,9 +14,6 @@
 
     $inTeachingGroup = request()->routeIs([
         'instructor.live-classes.*',
-        'instructor.campus.*',
-        'instructor.assignments*',
-        'instructor.quizzes*',
         'instructor.students*',
     ]);
 
@@ -44,7 +41,7 @@
             </a>
         </li>
 
-        {{-- Courses & Catalog --}}
+        {{-- Assigned Courses --}}
         <li class="out-nav-item">
             <button type="button"
                 class="out-nav-link out-nav-toggle {{ $inCoursesGroup ? 'group-active' : '' }}"
@@ -52,7 +49,7 @@
                 data-bs-target="#instructorCoursesMenu"
                 aria-expanded="{{ $inCoursesGroup ? 'true' : 'false' }}">
                 <i class="fa-solid fa-book-open"></i>
-                <span>Courses &amp; Catalog</span>
+                <span>Assigned Courses</span>
                 <i class="fa-solid fa-chevron-right out-nav-chevron"></i>
             </button>
             <div class="collapse {{ $inCoursesGroup ? 'show' : '' }}" id="instructorCoursesMenu">
@@ -60,7 +57,7 @@
                     <li>
                         <a href="{{ route('instructor.courses') }}" class="out-nav-link {{ request()->routeIs('instructor.courses*') ? 'active' : '' }}">
                             <i class="fa-solid fa-book-bookmark"></i>
-                            <span>My Courses</span>
+                            <span>My Assigned Courses</span>
                         </a>
                     </li>
                     <li>
@@ -69,17 +66,11 @@
                             <span>Course Bundles</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="{{ route('instructor.coupons.index') }}" class="out-nav-link {{ request()->routeIs('instructor.coupons.*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-tags"></i>
-                            <span>Discount Coupons</span>
-                        </a>
-                    </li>
                 </ul>
             </div>
         </li>
 
-        {{-- Teaching & Learners --}}
+        {{-- Teaching & Scholars --}}
         <li class="out-nav-item">
             <button type="button"
                 class="out-nav-link out-nav-toggle {{ $inTeachingGroup ? 'group-active' : '' }}"
@@ -87,7 +78,7 @@
                 data-bs-target="#instructorTeachingMenu"
                 aria-expanded="{{ $inTeachingGroup ? 'true' : 'false' }}">
                 <i class="fa-solid fa-chalkboard-user"></i>
-                <span>Teaching &amp; Classes</span>
+                <span>Teaching &amp; Scholars</span>
                 <i class="fa-solid fa-chevron-right out-nav-chevron"></i>
             </button>
             <div class="collapse {{ $inTeachingGroup ? 'show' : '' }}" id="instructorTeachingMenu">
@@ -99,35 +90,9 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('instructor.campus.index') }}" class="out-nav-link {{ request()->routeIs('instructor.campus.*') && request('scope') !== 'branch' ? 'active' : '' }}">
-                            <i class="fa-solid fa-building-columns"></i>
-                            <span>Campus Classes &amp; Attendance</span>
-                        </a>
-                    </li>
-                    @if ($user && $user->branch_id)
-                        <li>
-                            <a href="{{ route('instructor.campus.index', ['scope' => 'branch']) }}" class="out-nav-link {{ request()->routeIs('instructor.campus.index') && request('scope') === 'branch' ? 'active' : '' }}">
-                                <i class="fa-solid fa-calendar-days"></i>
-                                <span>Branch Timetable</span>
-                            </a>
-                        </li>
-                    @endif
-                    <li>
-                        <a href="{{ route('instructor.assignments.index') }}" class="out-nav-link {{ request()->routeIs('instructor.assignments*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-clipboard-check"></i>
-                            <span>Assignments</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('instructor.quizzes.index') }}" class="out-nav-link {{ request()->routeIs('instructor.quizzes*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-circle-question"></i>
-                            <span>Quiz Attempts</span>
-                        </a>
-                    </li>
-                    <li>
                         <a href="{{ route('instructor.students') }}" class="out-nav-link {{ request()->routeIs('instructor.students*') ? 'active' : '' }}">
                             <i class="fa-solid fa-users"></i>
-                            <span>Enrolled Students</span>
+                            <span>Enrolled Scholars</span>
                         </a>
                     </li>
                 </ul>
@@ -142,7 +107,7 @@
                 data-bs-target="#instructorCommMenu"
                 aria-expanded="{{ $inCommGroup ? 'true' : 'false' }}">
                 <i class="fa-solid fa-comments"></i>
-                <span>Communication</span>
+                <span>Discussions &amp; Help</span>
                 <i class="fa-solid fa-chevron-right out-nav-chevron"></i>
             </button>
             <div class="collapse {{ $inCommGroup ? 'show' : '' }}" id="instructorCommMenu">
@@ -166,45 +131,39 @@
                             <span>Support Tickets</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="{{ route('instructor.help.index') }}" class="out-nav-link {{ request()->routeIs('instructor.help.*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-circle-question"></i>
-                            <span>Online Help</span>
-                        </a>
-                    </li>
                 </ul>
             </div>
         </li>
 
-        {{-- Reports & Finance --}}
+        {{-- Earnings & Payouts --}}
         <li class="out-nav-item">
             <button type="button"
                 class="out-nav-link out-nav-toggle {{ $inFinanceGroup ? 'group-active' : '' }}"
                 data-bs-toggle="collapse"
                 data-bs-target="#instructorReportsMenu"
                 aria-expanded="{{ $inFinanceGroup ? 'true' : 'false' }}">
-                <i class="fa-solid fa-chart-line"></i>
-                <span>Reports &amp; Payouts</span>
+                <i class="fa-solid fa-wallet"></i>
+                <span>Earnings &amp; Payouts</span>
                 <i class="fa-solid fa-chevron-right out-nav-chevron"></i>
             </button>
             <div class="collapse {{ $inFinanceGroup ? 'show' : '' }}" id="instructorReportsMenu">
                 <ul class="out-nav-submenu">
                     <li>
-                        <a href="{{ route('instructor.analytics') }}" class="out-nav-link {{ request()->routeIs('instructor.analytics') ? 'active' : '' }}">
-                            <i class="fa-solid fa-chart-pie"></i>
-                            <span>Analytics</span>
+                        <a href="{{ route('instructor.earnings') }}" class="out-nav-link {{ request()->routeIs('instructor.earnings') ? 'active' : '' }}">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>Course Earnings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('instructor.withdrawals') }}" class="out-nav-link {{ request()->routeIs('instructor.withdrawals') ? 'active' : '' }}">
+                            <i class="fa-solid fa-money-bill-transfer"></i>
+                            <span>Request Payout</span>
                         </a>
                     </li>
                     <li>
                         <a href="{{ route('instructor.reviews') }}" class="out-nav-link {{ request()->routeIs('instructor.reviews') ? 'active' : '' }}">
                             <i class="fa-solid fa-star"></i>
-                            <span>Reviews &amp; Ratings</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('instructor.earnings') }}" class="out-nav-link {{ request()->routeIs('instructor.earnings') || request()->routeIs('instructor.withdrawals') ? 'active' : '' }}">
-                            <i class="fa-solid fa-wallet"></i>
-                            <span>Earnings &amp; Payouts</span>
+                            <span>Scholar Reviews</span>
                         </a>
                     </li>
                 </ul>

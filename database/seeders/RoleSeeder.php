@@ -4,35 +4,36 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 /**
- * Role seeder — seeds baseline institutional, RBAC, or reference records.
+ * Role seeder — seeds Maarifazone 3-role matrix (Admin, Instructor, Scholar/Student).
  *
  * @author Renatus Bernardo
  */
 class RoleSeeder extends Seeder
 {
     /**
-     * Granular permission groups for Admin, Super Admin & Staff (v2.2.0).
+     * Permission groups for Maarifazone.
      */
     public static function permissionGroups(): array
     {
         return [
             'Courses & Curriculum' => [
-                'view-course'       => 'View courses',
-                'create-course'     => 'Create courses',
-                'edit-course'       => 'Edit & approve courses',
-                'delete-course'     => 'Delete courses',
-                'manage-courses'    => 'Manage all courses, categories & languages',
-                'manage-bundles'    => 'Manage course bundles',
+                'view-course'    => 'View courses',
+                'create-course'  => 'Create courses (Admin only)',
+                'edit-course'    => 'Edit & publish courses',
+                'delete-course'  => 'Delete courses',
+                'manage-courses' => 'Manage all courses, categories & languages',
+                'manage-bundles' => 'Manage course bundles',
             ],
-            'Students & Instructors' => [
-                'view-users'         => 'View students & instructors',
-                'student:create'     => 'Create students directly',
-                'student:update'     => 'Edit student accounts',
-                'student:delete'     => 'Delete students',
+            'Scholars & Instructors' => [
+                'view-users'         => 'View scholars & instructors',
+                'student:create'     => 'Create scholars directly',
+                'student:update'     => 'Edit scholar accounts',
+                'student:delete'     => 'Delete scholars',
                 'instructor:create'  => 'Create instructors directly',
                 'instructor:update'  => 'Edit instructor accounts',
                 'instructor:delete'  => 'Delete instructors',
@@ -40,42 +41,37 @@ class RoleSeeder extends Seeder
                 'reject-instructor'  => 'Reject instructor applications',
                 'delete-users'       => 'Delete user accounts',
             ],
-            'Finance & Billing' => [
-                'manage-payments'      => 'Manage payments & offline approvals',
-                'manage-withdrawals'   => 'Manage instructor payout requests',
-                'manage-coupons'       => 'Manage discount coupons',
-                'manage-invoices'      => 'Manage campus invoices & control numbers',
-                'manage-installments'  => 'Manage payment schedules & overdue reminders',
+            'Finance & Payouts' => [
+                'manage-payments'    => 'Manage payments & offline approvals',
+                'manage-withdrawals' => 'Manage instructor payout requests',
+                'manage-coupons'     => 'Manage discount coupons',
+                'view-earnings'      => 'View assigned course earnings',
+                'request-payout'     => 'Request instructor earnings withdrawal',
             ],
-            'Campus & Short Courses' => [
-                'manage-branches'      => 'Manage regional branches & centers',
-                'manage-venues'        => 'Manage physical rooms & labs',
-                'manage-countries'     => 'Manage countries & nationality lookup',
-                'manage-applicants'    => 'Register & manage F2F/Hybrid applicants',
-                'manage-timetables'    => 'Assign tutors, venues & cohorts',
-                'manage-attendance'    => 'Mark & verify QR/manual attendance',
+            'Live Classes & Community' => [
+                'manage-live-classes' => 'Schedule and host live classes',
+                'manage-discussions'  => 'Participate in course discussions and Q&A',
+                'manage-reviews'      => 'Moderate and reply to reviews',
             ],
             'Reports & Analytics' => [
-                'view-reports'         => 'View executive, applicant & center course reports',
-                'export-reports'       => 'Export applicant & center reports (PDF/Excel/CSV)',
-                'view-analytics'       => 'View active classes, branch, discount & tutor workload analytics',
+                'view-reports'   => 'View platform enrollment and financial reports',
+                'export-reports' => 'Export platform reports (PDF/Excel/CSV)',
+                'view-analytics' => 'View platform learning analytics',
             ],
-            'CMS, Certificates & Marketing' => [
-                'manage-certificates'  => 'Manage certificates & drag-and-drop builder',
+            'CMS & Marketing' => [
                 'manage-frontend'      => 'Manage homepage, about page, menus & SEO',
                 'manage-notifications' => 'Send push & broadcast notifications',
             ],
             'Support & Administration' => [
-                'manage-tickets'  => 'Manage student & instructor support tickets',
-                'manage-staff'    => 'Manage staff members & admin restrictions',
-                'manage-roles'    => 'Manage roles & granular permissions',
-                'view-audit-logs' => 'View security & activity audit logs',
-                'manage-settings' => 'Manage platform, tax, live class & gateway settings',
-                'manage-backups'  => 'Create, download & delete system backups',
-                'manage-all'      => 'Full Super Admin unrestricted access',
+                'manage-tickets'  => 'Manage support tickets',
+                'manage-roles'    => 'Manage roles & permissions',
+                'view-audit-logs' => 'View activity audit logs',
+                'manage-settings' => 'Manage platform, gateway & system settings',
+                'manage-backups'  => 'Create and download system backups',
+                'manage-all'      => 'Full Administrator unrestricted access',
             ],
-            'Learner Actions' => [
-                'enroll-course'   => 'Enroll in courses',
+            'Scholar Actions' => [
+                'enroll-course'   => 'Enroll in online courses',
                 'unenroll-course' => 'Unenroll from courses',
             ],
         ];
@@ -88,166 +84,75 @@ class RoleSeeder extends Seeder
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
+        // 1. Sync permissions
+        $validPermissionNames = [];
         foreach (static::permissionGroups() as $group => $items) {
             foreach (array_keys($items) as $permissionName) {
                 Permission::firstOrCreate(['name' => $permissionName, 'guard_name' => 'web']);
+                $validPermissionNames[] = $permissionName;
             }
         }
 
-        // Create core & campus roles
-        $superAdminRole     = Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
-        $adminRole          = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $sysAdminRole       = Role::firstOrCreate(['name' => 'system-administrator', 'guard_name' => 'web']);
-        $directorRole       = Role::firstOrCreate(['name' => 'director', 'guard_name' => 'web']);
-        $deputyDirectorRole = Role::firstOrCreate(['name' => 'deputy-director', 'guard_name' => 'web']);
-        $branchRegistrar    = Role::firstOrCreate(['name' => 'branch-registrar', 'guard_name' => 'web']);
-        $coordinatorRole    = Role::firstOrCreate(['name' => 'coordinator', 'guard_name' => 'web']);
-        $marketingRole      = Role::firstOrCreate(['name' => 'marketing-officer', 'guard_name' => 'web']);
-        $accountantRole     = Role::firstOrCreate(['name' => 'accountant', 'guard_name' => 'web']);
-        $staffRole          = Role::firstOrCreate(['name' => 'staff', 'guard_name' => 'web']);
-        $instructorRole     = Role::firstOrCreate(['name' => 'instructor', 'guard_name' => 'web']);
-        $studentRole        = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
+        // Remove obsolete permissions not in the current list
+        Permission::where('guard_name', 'web')
+            ->whereNotIn('name', $validPermissionNames)
+            ->delete();
 
-        // Super Admin, Admin & System Administrator get all permissions
-        $allPermissions = Permission::all();
-        $superAdminRole->syncPermissions($allPermissions);
-        $adminRole->syncPermissions($allPermissions);
-        $sysAdminRole->syncPermissions($allPermissions);
-
-        // Director & Deputy Director: institutional multi-branch academic, finance & certificate oversight
-        $directorPermissions = [
-            'view-course',
-            'manage-courses',
-            'view-users',
-            'approve-instructor',
-            'reject-instructor',
-            'manage-branches',
-            'manage-venues',
-            'manage-countries',
-            'manage-applicants',
-            'manage-timetables',
-            'manage-attendance',
-            'manage-invoices',
-            'manage-installments',
-            'manage-payments',
-            'manage-certificates',
-            'manage-notifications',
-            'manage-tickets',
-            'view-reports',
-            'export-reports',
-            'view-analytics',
-            'view-audit-logs',
+        // 2. Remove obsolete institutional roles from Spatie
+        $obsoleteRoles = [
+            'super-admin',
+            'system-administrator',
+            'director',
+            'deputy-director',
+            'branch-registrar',
+            'coordinator',
+            'marketing-officer',
+            'accountant',
+            'staff',
         ];
-        $directorRole->syncPermissions($directorPermissions);
-        $deputyDirectorRole->syncPermissions($directorPermissions);
 
-        // Staff gets default operational permissions (without destructive system/settings access)
-        $staffRole->syncPermissions([
-            'view-course',
-            'edit-course',
-            'manage-courses',
-            'view-users',
-            'student:create',
-            'student:update',
-            'approve-instructor',
-            'manage-certificates',
-            'manage-tickets',
-            'manage-applicants',
-            'manage-attendance',
-            'manage-timetables',
-            'view-reports',
-            'view-analytics',
-        ]);
+        foreach ($obsoleteRoles as $oldRole) {
+            $r = Role::where('name', $oldRole)->first();
+            if ($r) {
+                // Reassign users with this role to 'admin'
+                $users = $r->users;
+                foreach ($users as $u) {
+                    $u->update(['role' => 'admin']);
+                    $u->assignRole('admin');
+                }
+                $r->delete();
+            }
+        }
 
-        // Branch Manager / Registrar: branch-scoped operations across registration, classes, invoices & reports
-        $branchRegistrar->syncPermissions([
-            'view-course',
-            'view-users',
-            'student:create',
-            'student:update',
-            'manage-applicants',
-            'manage-venues',
-            'manage-invoices',
-            'manage-installments',
-            'manage-payments',
-            'manage-attendance',
-            'manage-timetables',
-            'manage-certificates',
-            'manage-tickets',
-            'view-reports',
-            'export-reports',
-            'view-analytics',
-        ]);
+        // 3. Ensure the 3 canonical roles
+        $adminRole      = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $instructorRole = Role::firstOrCreate(['name' => 'instructor', 'guard_name' => 'web']);
+        $studentRole    = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
 
-        // Training Coordinator: academic coordination, timetables, venues, applicants & center reports
-        $coordinatorRole->syncPermissions([
-            'view-course',
-            'manage-courses',
-            'view-users',
-            'manage-applicants',
-            'manage-venues',
-            'manage-countries',
-            'manage-timetables',
-            'manage-attendance',
-            'manage-certificates',
-            'manage-notifications',
-            'view-reports',
-            'export-reports',
-            'view-analytics',
-        ]);
+        // Admin gets all permissions
+        $adminRole->syncPermissions(Permission::all());
 
-        // Marketing Officer: courses, student outreach, coupons, notifications, payments & reports
-        $marketingRole->syncPermissions([
-            'view-course',
-            'manage-courses',
-            'manage-bundles',
-            'view-users',
-            'student:create',
-            'student:update',
-            'manage-applicants',
-            'manage-payments',
-            'manage-invoices',
-            'manage-coupons',
-            'manage-frontend',
-            'manage-notifications',
-            'view-reports',
-            'export-reports',
-            'view-analytics',
-        ]);
-
-        // Accountant: finance, invoices, control numbers, installments & financial reports
-        $accountantRole->syncPermissions([
-            'view-users',
-            'manage-payments',
-            'manage-withdrawals',
-            'manage-coupons',
-            'manage-invoices',
-            'manage-installments',
-            'view-reports',
-            'export-reports',
-            'view-analytics',
-        ]);
-
-        // Instructor permissions
+        // Instructor gets assigned-course management, live classes, discussions, reviews, earnings & payouts
+        // (NOTE: create-course and delete-course are explicitly excluded; admin creates and assigns courses)
         $instructorRole->syncPermissions([
-            'create-course',
-            'edit-course',
-            'delete-course',
             'view-course',
+            'manage-live-classes',
+            'manage-discussions',
+            'manage-reviews',
+            'view-earnings',
+            'request-payout',
+            'manage-tickets',
         ]);
 
-        // Student permissions
+        // Scholar (Student) gets learning permissions
         $studentRole->syncPermissions([
             'view-course',
             'enroll-course',
             'unenroll-course',
+            'manage-discussions',
+            'manage-tickets',
         ]);
 
-        // Ensure existing admin users without a role get super-admin
-        User::where('role', 'admin')->get()->each(function (User $user) {
-            if ($user->roles()->count() === 0) {
-                $user->assignRole('super-admin');
-            }
-        });
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
 }

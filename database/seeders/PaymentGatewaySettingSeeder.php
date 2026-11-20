@@ -51,8 +51,8 @@ class PaymentGatewaySettingSeeder extends Seeder
                 'name' => 'Pesapal',
                 'type' => 'online',
                 'credentials' => [
-                    'consumer_key' => env('PESAPAL_CONSUMER_KEY', 'ngW+UEcnDhltUc5fxPfrCD987xMh3Lx8'),
-                    'consumer_secret' => env('PESAPAL_CONSUMER_SECRET', 'q27RChYs5UkypdcNYKzuUw460Dg='),
+                    'consumer_key' => env('PESAPAL_CONSUMER_KEY') ?: 'ngW+UEcnDhltUc5fxPfrCD987xMh3Lx8',
+                    'consumer_secret' => env('PESAPAL_CONSUMER_SECRET') ?: 'q27RChYs5UkypdcNYKzuUw460Dg=',
                     'ipn_id' => env('PESAPAL_IPN_ID', ''),
                     'mode' => env('PESAPAL_MODE', 'sandbox'),
                 ],

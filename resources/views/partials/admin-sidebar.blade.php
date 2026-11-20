@@ -14,31 +14,17 @@
         || request()->routeIs('admin.bundles.*')
         || request()->routeIs('admin.course-categories.*')
         || request()->routeIs('admin.course-languages.*')
-        || request()->routeIs('admin.quiz-attempts.*')
-        || request()->routeIs('admin.assignment-submissions.*')
         || request()->routeIs('admin.reviews.*');
 
     $inUsersGroup = request()->routeIs('admin.instructors.*')
         || request()->routeIs('admin.students.*')
-        || request()->routeIs('admin.campus.applicants.*')
         || request()->routeIs('admin.enrollments.*');
 
-    $inCampusGroup = (
-        request()->routeIs('admin.campus.*')
-        && ! request()->routeIs('admin.campus.applicants.*')
-        && ! request()->routeIs('admin.campus.invoices.*')
-        && ! request()->routeIs('admin.campus.installments.*')
-        && ! request()->routeIs('admin.campus.analytics.*')
-        && ! request()->routeIs('admin.campus.templates.*')
-    ) || request()->routeIs('admin.certificates.*') || request()->routeIs('admin.tickets.*');
-
-    $inFinanceGroup = request()->routeIs('admin.campus.invoices.*')
-        || request()->routeIs('admin.campus.installments.*')
-        || request()->routeIs('admin.payments.*')
+    $inFinanceGroup = request()->routeIs('admin.payments.*')
         || request()->routeIs('admin.withdrawals.*')
         || request()->routeIs('admin.coupons.*');
 
-    $inReportsGroup = request()->routeIs('admin.reports.*') || request()->routeIs('admin.campus.analytics.*');
+    $inReportsGroup = request()->routeIs('admin.reports.*');
 
     $inSystemSettings = request()->routeIs([
         'admin.settings.*',
@@ -50,7 +36,6 @@
         'admin.account-deletions.*',
         'admin.languages.*',
         'admin.notifications.*',
-        'admin.campus.templates.*',
         'admin.audit-logs.*',
         'admin.backups.*',
         'admin.updater.*',
@@ -87,7 +72,7 @@
                     <div class="rounded p-2 bg-light border small">
                         <div class="font-weight-bold text-primary">{{ $adminUser->primaryRoleLabel() }}</div>
                         <div class="text-muted" style="font-size: 11px;">
-                            <i class="fas fa-map-marker-alt mr-1"></i>{{ $adminUser->dashboardScopeDescription() }}
+                            <i class="fas fa-user-shield mr-1"></i>Maarifazone Administration
                         </div>
                     </div>
                 </li>
@@ -116,8 +101,6 @@
                             <li class="{{ request()->routeIs('admin.bundles.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.bundles.index') }}">Course Bundles</a></li>
                         @endif
                         @if ($can('manage-courses'))
-                            <li class="{{ request()->routeIs('admin.quiz-attempts.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.quiz-attempts.index') }}">Quiz Attempts</a></li>
-                            <li class="{{ request()->routeIs('admin.assignment-submissions.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.assignment-submissions.index') }}">Assignments</a></li>
                             <li class="{{ request()->routeIs('admin.reviews.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.reviews.index') }}">All Reviews</a></li>
                             <li class="{{ request()->routeIs('admin.reviews.pending') ? 'active' : '' }}">
                                 <a class="nav-link" href="{{ route('admin.reviews.pending') }}">
@@ -133,23 +116,20 @@
                 </li>
             @endif
 
-            @if ($canAny(['approve-instructor', 'reject-instructor', 'instructor:create', 'manage-courses', 'view-users', 'student:create', 'student:update', 'manage-applicants']))
+            @if ($canAny(['approve-instructor', 'reject-instructor', 'instructor:create', 'manage-courses', 'view-users', 'student:create', 'student:update']))
                 <li class="dropdown {{ $inUsersGroup ? 'active' : '' }}">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
-                        <i class="fas fa-users"></i> <span>Users &amp; Intake</span>
+                        <i class="fas fa-users"></i> <span>Scholars &amp; Instructors</span>
                     </a>
                     <ul class="dropdown-menu">
-                        @if ($can('manage-applicants'))
-                            <li class="{{ request()->routeIs('admin.campus.applicants.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.applicants.index') }}">F2F Applicants Form</a></li>
-                        @endif
                         @if ($canAny(['view-users', 'student:create', 'student:update']))
-                            <li class="{{ request()->routeIs('admin.students.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.students.index') }}">Students</a></li>
+                            <li class="{{ request()->routeIs('admin.students.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.students.index') }}">Scholars (Students)</a></li>
                         @endif
                         @if ($canAny(['approve-instructor', 'reject-instructor', 'instructor:create', 'manage-courses']))
                             <li class="{{ request()->routeIs('admin.instructors.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.instructors.index') }}">All Instructors</a></li>
                             <li class="{{ request()->routeIs('admin.instructors.pending') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.instructors.pending') }}">Pending Instructors</a></li>
                         @endif
-                        @if ($canAny(['manage-courses', 'manage-applicants']))
+                        @if ($can('manage-courses'))
                             <li class="{{ request()->routeIs('admin.enrollments.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.enrollments.index') }}">All Enrollments</a></li>
                             <li class="{{ request()->routeIs('admin.enrollments.pending') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.enrollments.pending') }}">Pending Enrollments</a></li>
                             <li class="{{ request()->routeIs('admin.enrollments.completed') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.enrollments.completed') }}">Completed Enrollments</a></li>
@@ -158,62 +138,12 @@
                 </li>
             @endif
 
-            @if ($canAny(['manage-branches', 'manage-venues', 'manage-countries', 'manage-timetables', 'manage-attendance', 'manage-certificates', 'manage-tickets', 'manage-applicants', 'manage-invoices', 'view-users', 'manage-courses']))
-                <li class="dropdown {{ $inCampusGroup ? 'active' : '' }}">
-                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
-                        <i class="fas fa-university"></i> <span>Campus Operations</span>
-                    </a>
-                    <ul class="dropdown-menu">
-                        @if ($can('manage-branches'))
-                            <li class="{{ request()->routeIs('admin.campus.branches.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.branches.index') }}">Regional Branches</a></li>
-                        @endif
-                        @if ($can('manage-venues'))
-                            <li class="{{ request()->routeIs('admin.campus.venues.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.venues.index') }}">Venues &amp; Labs</a></li>
-                        @endif
-                        @if ($can('manage-countries'))
-                            <li class="{{ request()->routeIs('admin.campus.countries.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.countries.index') }}">Countries Lookup</a></li>
-                        @endif
-                        @if ($can('manage-timetables'))
-                            <li class="{{ request()->routeIs('admin.campus.timetable.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.timetable.index') }}">Timetable &amp; Classes</a></li>
-                        @endif
-                        @if ($can('manage-attendance'))
-                            <li class="{{ request()->routeIs('admin.campus.attendance.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.attendance.index') }}">QR / Manual Attendance</a></li>
-                        @endif
-                        @if ($can('manage-certificates'))
-                            <li class="{{ request()->routeIs('admin.campus.certificates.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.certificates.index') }}">F2F Certificate Clearance</a></li>
-                            <li class="{{ request()->routeIs('admin.certificates.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.certificates.index') }}">Certificates (Online)</a></li>
-                        @endif
-                        @if ($can('manage-tickets'))
-                            <li class="{{ request()->routeIs('admin.tickets.*') ? 'active' : '' }}">
-                                <a class="nav-link" href="{{ route('admin.tickets.index') }}">
-                                    Support Tickets
-                                    @php($openTicketCount = \Illuminate\Support\Facades\Schema::hasTable('support_tickets') ? \App\Models\SupportTicket::whereIn('status', ['open', 'in_progress'])->count() : 0)
-                                    @if ($openTicketCount > 0)
-                                        <span class="badge badge-danger ml-1">{{ $openTicketCount }}</span>
-                                    @endif
-                                </a>
-                            </li>
-                        @endif
-                        @if ($canAny(['manage-applicants', 'manage-invoices', 'view-users', 'manage-courses']))
-                            <li class="{{ request()->routeIs('admin.campus.search') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.search') }}">Global Search</a></li>
-                        @endif
-                    </ul>
-                </li>
-            @endif
-
-            @if ($canAny(['manage-invoices', 'manage-installments', 'manage-payments', 'manage-withdrawals', 'manage-coupons']))
+            @if ($canAny(['manage-payments', 'manage-withdrawals', 'manage-coupons']))
                 <li class="dropdown {{ $inFinanceGroup ? 'active' : '' }}">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
-                        <i class="fas fa-wallet"></i> <span>Finance &amp; Billing</span>
+                        <i class="fas fa-wallet"></i> <span>Finance &amp; Earnings</span>
                     </a>
                     <ul class="dropdown-menu">
-                        @if ($can('manage-invoices'))
-                            <li class="{{ request()->routeIs('admin.campus.invoices.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.invoices.index') }}">Invoices &amp; Control Nos</a></li>
-                        @endif
-                        @if ($can('manage-installments'))
-                            <li class="{{ request()->routeIs('admin.campus.installments.index') || request()->routeIs('admin.campus.installments.create') || request()->routeIs('admin.campus.installments.show') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.installments.index') }}">Payment Schedules</a></li>
-                            <li class="{{ request()->routeIs('admin.campus.installments.reminders-list') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.installments.reminders-list') }}">Due Reminders Queue</a></li>
-                        @endif
                         @if ($can('manage-payments'))
                             <li class="{{ request()->routeIs('admin.payments.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.payments.index') }}">All Payments</a></li>
                             <li class="{{ request()->routeIs('admin.payments.pending') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.payments.pending') }}">Pending Payments</a></li>
@@ -228,7 +158,7 @@
                             </li>
                         @endif
                         @if ($can('manage-withdrawals'))
-                            <li class="{{ request()->routeIs('admin.withdrawals.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.withdrawals.index') }}">Payout Requests</a></li>
+                            <li class="{{ request()->routeIs('admin.withdrawals.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.withdrawals.index') }}">Instructor Payouts</a></li>
                         @endif
                         @if ($can('manage-coupons'))
                             <li class="{{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.coupons.index') }}">Coupons</a></li>
@@ -237,23 +167,25 @@
                 </li>
             @endif
 
-            @if ($canAny(['view-reports', 'view-analytics']))
+            @if ($can('manage-tickets'))
+                <li class="{{ request()->routeIs('admin.tickets.*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('admin.tickets.index') }}">
+                        <i class="fas fa-headset"></i> <span>Support Tickets</span>
+                        @php($openTicketCount = \Illuminate\Support\Facades\Schema::hasTable('support_tickets') ? \App\Models\SupportTicket::whereIn('status', ['open', 'in_progress'])->count() : 0)
+                        @if ($openTicketCount > 0)
+                            <span class="badge badge-danger ml-1">{{ $openTicketCount }}</span>
+                        @endif
+                    </a>
+                </li>
+            @endif
+
+            @if ($can('view-reports'))
                 <li class="dropdown {{ $inReportsGroup ? 'active' : '' }}">
                     <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
                         <i class="fas fa-chart-pie"></i> <span>Reports &amp; Analytics</span>
                     </a>
                     <ul class="dropdown-menu">
-                        @if ($can('view-reports'))
-                            <li class="{{ request()->routeIs('admin.reports.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.reports.index') }}">Executive Overview</a></li>
-                            <li class="{{ request()->routeIs('admin.reports.center-courses') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.reports.center-courses') }}">Center Course Report</a></li>
-                            <li class="{{ request()->routeIs('admin.reports.applicants') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.reports.applicants') }}">Applicant Report</a></li>
-                        @endif
-                        @if ($can('view-analytics'))
-                            <li class="{{ request()->routeIs('admin.campus.analytics.active-classes') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.analytics.active-classes') }}">Active Classes</a></li>
-                            <li class="{{ request()->routeIs('admin.campus.analytics.branches') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.analytics.branches') }}">Branch Analytics</a></li>
-                            <li class="{{ request()->routeIs('admin.campus.analytics.discounts') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.analytics.discounts') }}">Discount Waivers</a></li>
-                            <li class="{{ request()->routeIs('admin.campus.analytics.tutor-workload') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.campus.analytics.tutor-workload') }}">Tutor Workload</a></li>
-                        @endif
+                        <li class="{{ request()->routeIs('admin.reports.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.reports.index') }}">Executive Overview</a></li>
                     </ul>
                 </li>
             @endif

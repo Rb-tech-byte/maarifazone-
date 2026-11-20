@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Traits\BranchScoped;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,38 +10,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Enrollment Model
  *
- * This model represents an enrollment for a course.
+ * Represents an online course enrollment for a scholar in Maarifazone.
  *
  * @package App\Models
  * @author Renatus Bernardo
  */
 class Enrollment extends Model
 {
-    use BranchScoped;
-
     protected $fillable = [
         'user_id',
         'course_id',
-        'applicant_id',
-        'branch_id',
-        'venue_id',
-        'course_assignment_id',
         'payment_id',
         'status',
-        'delivery_mode',
-        'session',
         'start_date',
         'end_date',
-        'duration_weeks',
-        'agreed_fee',
-        'attendance_percentage',
-        'certificate_status',
-        'certificate_serial',
-        'certificate_ready_at',
-        'certificate_issued_at',
-        'certificate_issued_by',
         'enrolled_at',
-        'legacy_scms_id',
     ];
 
     /**
@@ -67,8 +49,6 @@ class Enrollment extends Model
 
                     // Wrap in withoutEvents to prevent infinite recursion
                     static::withoutEvents(function () use ($userId, $courseIds, $paymentId, $enrollment, $bundleId) {
-                        // Activate ALL pending enrollments for this user and bundle
-                        // Crucially, we also link them to the same payment_id
                         self::where('user_id', $userId)
                             ->whereIn('course_id', $courseIds)
                             ->where('status', self::STATUS_PENDING)
@@ -98,10 +78,6 @@ class Enrollment extends Model
         'enrolled_at' => 'datetime',
         'start_date' => 'date',
         'end_date' => 'date',
-        'agreed_fee' => 'decimal:2',
-        'attendance_percentage' => 'decimal:2',
-        'certificate_ready_at' => 'datetime',
-        'certificate_issued_at' => 'datetime',
     ];
 
     /**
@@ -110,22 +86,6 @@ class Enrollment extends Model
     public function scopeCompleted(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_COMPLETED);
-    }
-
-    /**
-     * Accessor for computed Certificate number attribute.
-     */
-    public function getCertificateNumberAttribute(): ?string
-    {
-        if (! $this->id || ! $this->user_id || ! $this->course_id) {
-            return null;
-        }
-
-        return sprintf(
-            'CERT-%06d-%s',
-            $this->id,
-            strtoupper(substr(md5($this->user_id . $this->course_id), 0, 6))
-        );
     }
 
     /**
@@ -174,7 +134,7 @@ class Enrollment extends Model
     }
 
     /**
-     * Eloquent hasMany relationship for Is approved.
+     * Check condition: Is approved.
      */
     public function isApproved(): bool
     {
@@ -182,7 +142,7 @@ class Enrollment extends Model
     }
 
     /**
-     * Eloquent hasMany relationship for Is completed.
+     * Check condition: Is completed.
      */
     public function isCompleted(): bool
     {
@@ -195,105 +155,5 @@ class Enrollment extends Model
     public function lessonProgress(): HasMany
     {
         return $this->hasMany(LessonProgress::class);
-    }
-
-    /**
-     * Eloquent hasMany relationship for Quiz attempts.
-     */
-    public function quizAttempts(): HasMany
-    {
-        return $this->hasMany(QuizAttempt::class);
-    }
-
-    /**
-     * Eloquent belongsTo relationship for Assignment submissions.
-     */
-    public function assignmentSubmissions(): HasMany
-    {
-        return $this->hasMany(AssignmentSubmission::class);
-    }
-
-    /**
-     * Eloquent belongsTo relationship for Applicant.
-     */
-    public function applicant(): BelongsTo
-    {
-        return $this->belongsTo(Applicant::class);
-    }
-
-    /**
-     * Eloquent belongsTo relationship for Branch.
-     */
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
-    }
-
-    /**
-     * Eloquent belongsTo relationship for Venue.
-     */
-    public function venue(): BelongsTo
-    {
-        return $this->belongsTo(Venue::class);
-    }
-
-    /**
-     * Eloquent belongsTo relationship for Course assignment.
-     */
-    public function courseAssignment(): BelongsTo
-    {
-        return $this->belongsTo(CourseAssignment::class);
-    }
-
-    /**
-     * Eloquent hasMany relationship for Invoice.
-     */
-    public function invoice(): \Illuminate\Database\Eloquent\Relations\HasOne
-    {
-        return $this->hasOne(Invoice::class);
-    }
-
-    /**
-     * Eloquent belongsTo relationship for Attendance records.
-     */
-    public function attendanceRecords(): HasMany
-    {
-        return $this->hasMany(AttendanceRecord::class);
-    }
-
-    /**
-     * Eloquent belongsTo relationship for Certificate issuer.
-     */
-    public function certificateIssuer(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'certificate_issued_by');
-    }
-
-    /**
-     * Check condition: Is face to face or hybrid.
-     */
-    public function isFaceToFaceOrHybrid(): bool
-    {
-        return in_array($this->delivery_mode ?? $this->course?->delivery_mode ?? 'online', ['face_to_face', 'hybrid'], true);
-    }
-
-    /**
-     * Restrict branch-isolated staff to enrollments belonging to their center.
-     */
-    public function applyBranchScope(Builder $builder, int $branchId): void
-    {
-        $builder->where($this->getTable() . '.branch_id', $branchId);
-    }
-
-    /**
-     * Explicitly scope enrollments to a regional branch when provided.
-     */
-    public function scopeForBranch(Builder $query, ?int $branchId): Builder
-    {
-        if (! $branchId) {
-            return $query;
-        }
-
-        return $query->where($this->getTable() . '.branch_id', $branchId);
     }
 }

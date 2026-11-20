@@ -330,94 +330,6 @@ class PesapalIntegrationTest extends TestCase
             ->assertDontSee('Pay securely with Stripe');
     }
 
-    public function test_checkout_redirects_mismatched_course_invoice_url_instead_of_returning_404(): void
-    {
-        $f2fCourseA = Course::create([
-            'title'                    => 'Campus Basic Skills ' . Str::random(4),
-            'course_type'              => 'course',
-            'delivery_mode'            => 'face_to_face',
-            'allow_online_f2f_payment' => true,
-            'description'              => 'F2F course A',
-            'instructor_id'            => $this->instructor->id,
-            'pricing_model'            => 'paid',
-            'regular_price'            => 172000.00,
-            'status'                   => 'published',
-            'visibility'               => 'public',
-        ]);
-
-        $f2fCourseB = Course::create([
-            'title'                    => 'Campus Repair Skills ' . Str::random(4),
-            'course_type'              => 'course',
-            'delivery_mode'            => 'face_to_face',
-            'allow_online_f2f_payment' => true,
-            'description'              => 'F2F course B',
-            'instructor_id'            => $this->instructor->id,
-            'pricing_model'            => 'paid',
-            'regular_price'            => 390000.00,
-            'status'                   => 'published',
-            'visibility'               => 'public',
-        ]);
-
-        $branch = \App\Models\Branch::create([
-            'name'      => 'Test Branch ' . Str::random(4),
-            'code'      => 'TB-' . Str::random(4),
-            'is_active' => true,
-        ]);
-
-        $country = \App\Models\Country::first() ?? \App\Models\Country::create([
-            'iso'      => 'TZ',
-            'name'     => 'TANZANIA',
-            'nicename' => 'Tanzania',
-            'iso3'     => 'TZA',
-        ]);
-
-        $applicant = \App\Models\Applicant::create([
-            'user_id'         => $this->student->id,
-            'branch_id'       => $branch->id,
-            'country_id'      => $country->id,
-            'full_name'       => $this->student->name,
-            'phone'           => '0712345678',
-            'email'           => $this->student->email,
-            'education_level' => '4',
-        ]);
-
-        $invoice = \App\Models\Invoice::withoutGlobalScope('branch')->create([
-            'invoice_number'   => 'INV-TEST-' . Str::random(6),
-            'control_number'   => '9910' . random_int(10000000, 99999999),
-            'applicant_id'     => $applicant->id,
-            'user_id'          => $this->student->id,
-            'course_id'        => $f2fCourseA->id,
-            'branch_id'        => $branch->id,
-            'total_amount'     => 172000.00,
-            'discount_amount'  => 0.00,
-            'net_amount'       => 172000.00,
-            'paid_amount'      => 0.00,
-            'balance'          => 172000.00,
-            'payment_status'   => 'unpaid',
-            'installment_plan' => 'full',
-            'issued_at'        => now(),
-        ]);
-
-        // Visiting course B checkout with invoice belonging to course A redirects cleanly (not 404)
-        $res = $this->actingAs($this->student)->get(route('courses.checkout', [
-            'id'         => $f2fCourseB->id,
-            'invoice_id' => $invoice->id,
-        ]));
-
-        $res->assertRedirect(route('courses.checkout', [
-            'id'         => $f2fCourseA->id,
-            'invoice_id' => $invoice->id,
-        ]));
-
-        // Resolved checkout page renders 200 OK with BOTH Pesapal iframe and Offline Payment
-        $this->actingAs($this->student)
-            ->get(route('courses.checkout', ['id' => $f2fCourseA->id, 'invoice_id' => $invoice->id]))
-            ->assertOk()
-            ->assertSee($invoice->invoice_number)
-            ->assertSee('id="pesapalCheckoutIframe"', false)
-            ->assertSee('Offline');
-    }
-
     public function test_public_ipn_registers_directly_without_get_ipn_list_and_sanitizes_billing_address(): void
     {
         $setting = PaymentGatewaySetting::where('identifier', 'pesapal')->firstOrFail();
@@ -549,24 +461,17 @@ class PesapalIntegrationTest extends TestCase
         $this->assertSame('verified', $manualPayment->verification_status);
         $this->assertSame(Enrollment::STATUS_APPROVED, $enrollment2->status);
 
-        // 4. Pesapal status poll + callback complete invoice-linked payments even when enrollment_id is initially null
-        $invoice = \App\Models\Invoice::withoutGlobalScope('branch')->create([
-            'invoice_number'   => 'INV-PSP-' . Str::random(5),
-            'user_id'          => $this->student->id,
-            'course_id'        => $course2->id,
-            'total_amount'     => 30000.00,
-            'discount_amount'  => 0,
-            'net_amount'       => 30000.00,
-            'paid_amount'      => 0,
-            'balance'          => 30000.00,
-            'payment_status'   => 'unpaid',
-            'installment_plan' => 'full',
-            'issued_at'        => now()->toDateString(),
+        // 4. Pesapal status poll + callback complete payments and promote enrollment
+        $enrollment3 = Enrollment::create([
+            'user_id'      => $this->student->id,
+            'course_id'    => $course2->id,
+            'status'       => Enrollment::STATUS_PENDING,
+            'requested_at' => now(),
         ]);
 
         $pspPayment = Payment::create([
             'user_id'                    => $this->student->id,
-            'invoice_id'                 => $invoice->id,
+            'enrollment_id'              => $enrollment3->id,
             'payment_method'             => Payment::PAYMENT_METHOD_PESAPAL,
             'amount'                     => 30000.00,
             'status'                     => Payment::STATUS_PENDING,
@@ -598,11 +503,10 @@ class PesapalIntegrationTest extends TestCase
             ->assertJsonPath('status', 'completed');
 
         $pspPayment->refresh();
-        $invoice->refresh();
+        $enrollment3->refresh();
         $this->assertSame(Payment::STATUS_COMPLETED, $pspPayment->status);
         $this->assertSame('verified', $pspPayment->verification_status);
         $this->assertSame('MPESA888POLL', $pspPayment->pesapal_confirmation_code);
-        $this->assertSame('paid', $invoice->payment_status);
-        $this->assertEquals(0.0, (float) $invoice->balance);
+        $this->assertSame(Enrollment::STATUS_APPROVED, $enrollment3->status);
     }
 }

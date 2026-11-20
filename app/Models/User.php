@@ -16,20 +16,17 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 /**
  * User Model
  *
- * This model represents a user.
+ * Represents an authenticated user (Admin, Instructor, Scholar) in Maarifazone.
  *
  * @package App\Models
  * @author Renatus Bernardo
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens, HasRoles;
 
     /**
      * Send the email verification notification.
-     *
-     * @return void
      */
     public function sendEmailVerificationNotification()
     {
@@ -55,7 +52,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
-        'branch_id',
         'is_approved',
         'is_blocked',
         'blocked_at',
@@ -70,8 +66,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'bio',
         'phone',
         'address',
-        'registration_number',
-        'national_id',
         'specialization',
         'years_experience',
         'previous_experience',
@@ -89,7 +83,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'balance',
         'stripe_connect_account_id',
         'stripe_connect_onboarded',
-        'legacy_scms_id',
     ];
 
     /**
@@ -115,198 +108,119 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_approved' => 'boolean',
             'is_blocked' => 'boolean',
             'blocked_at' => 'datetime',
-            'force_password_reset' => 'boolean',
             'password_changed_at' => 'datetime',
             'locked_until' => 'datetime',
             'last_activity_at' => 'datetime',
+            'force_password_reset' => 'boolean',
             'balance' => 'decimal:2',
             'stripe_connect_onboarded' => 'boolean',
         ];
     }
 
-    protected $appends = [
-        'courses_count',
-        'average_rating',
-    ];
-
     /**
-     * Accessor for computed Courses count attribute.
+     * Scope a query to only include pending instructors.
      */
-    public function getCoursesCountAttribute()
+    public function scopePendingInstructors($query)
     {
-        return $this->courses()->where('status', 'published')->count();
+        return $query->where('role', 'instructor')->where('is_approved', false);
     }
 
     /**
-     * Accessor for computed Average rating attribute.
+     * Scope a query to only include approved instructors.
      */
-    public function getAverageRatingAttribute()
+    public function scopeApprovedInstructors($query)
     {
-        return round($this->courses()->withAvg('reviews', 'rating')->get()->avg('reviews_avg_rating') ?? 0.0, 1);
+        return $query->where('role', 'instructor')->where('is_approved', true);
     }
 
     /**
-     * Check if user is admin (includes super-admin and staff)
+     * Scope a query to only include students / scholars.
+     */
+    public function scopeStudents($query)
+    {
+        return $query->where('role', 'student');
+    }
+
+    /**
+     * Scope a query to only include active accounts.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_blocked', false);
+    }
+
+    /**
+     * Check if user is an Administrator.
      */
     public function isAdmin(): bool
+    {
+        return $this->role === 'admin' || $this->hasRole('admin');
+    }
+
+    /**
+     * Check condition: Is super admin / full admin.
+     */
+    public function isSuperAdmin(): bool
     {
         return $this->role === 'admin';
     }
 
     /**
-     * Check if user is unrestricted Super Admin / System Administrator.
-     */
-    public function isSuperAdmin(): bool
-    {
-        if ($this->role !== 'admin') {
-            return false;
-        }
-
-        if ($this->hasRole(['super-admin', 'admin', 'system-administrator'])) {
-            return true;
-        }
-
-        try {
-            if ($this->hasPermissionTo('manage-all')) {
-                return true;
-            }
-        } catch (\Throwable) {
-            // Ignore missing permission cache in fresh installs
-        }
-
-        // Legacy initial admin rows with no Spatie role assigned yet remain unrestricted
-        return $this->roles()->count() === 0;
-    }
-
-    /**
-     * Check if user is a role/permission-restricted admin or campus staff account.
-     */
-    public function isStaff(): bool
-    {
-        return $this->role === 'admin' && ! $this->isSuperAdmin();
-    }
-
-    /**
-     * Whether an admin/staff user can view all regional branches without restriction.
+     * All admins in Maarifazone have full global system oversight.
      */
     public function isMultiBranchAdmin(): bool
     {
-        if ($this->isSuperAdmin()) {
-            return true;
-        }
-
-        return $this->hasRole(['director', 'deputy-director', 'marketing-officer'])
-            || $this->hasAdminPermission('manage-branches');
+        return $this->role === 'admin';
     }
 
-    /**
-     * Effective branch filter: branch-scoped staff are pinned to their own branch.
-     */
     public function effectiveBranchId(?int $requestedBranchId = null): ?int
     {
-        if ($this->isMultiBranchAdmin()) {
-            return $requestedBranchId ?: null;
-        }
-
-        if ($this->branch_id) {
-            return (int) $this->branch_id;
-        }
-
-        return $requestedBranchId ?: null;
+        return null;
     }
 
     /**
-     * Human-friendly label for the user's active Spatie / portal role.
+     * Human-friendly label for the user's role.
      */
     public function primaryRoleLabel(): string
     {
-        $roleName = $this->roles()->value('name');
-        $map = [
-            'super-admin'          => 'Super Admin',
-            'system-administrator' => 'System Administrator',
-            'admin'                => 'Administrator',
-            'director'             => 'Director',
-            'deputy-director'      => 'Deputy Director',
-            'branch-registrar'     => 'Branch Manager',
-            'coordinator'          => 'Training Coordinator',
-            'marketing-officer'    => 'Marketing Officer',
-            'accountant'           => 'Accountant',
-            'staff'                => 'Staff',
-            'instructor'           => 'Tutor / Instructor',
-            'student'              => 'Student',
-        ];
-
-        if ($roleName && isset($map[$roleName])) {
-            return $map[$roleName];
-        }
-
-        if ($roleName) {
-            return \Illuminate\Support\Str::title(str_replace('-', ' ', $roleName));
-        }
-
         return match ($this->role) {
             'admin'      => 'Administrator',
-            'instructor' => 'Tutor / Instructor',
-            default      => 'Student',
+            'instructor' => 'Instructor',
+            'student'    => 'Scholar',
+            default      => ucfirst($this->role ?? 'User'),
         };
     }
 
     /**
-     * Resolve the dedicated dashboard profile key for the authenticated user's primary role.
+     * Dedicated dashboard profile key.
      */
     public function primaryDashboardProfile(): string
     {
-        if ($this->role === 'instructor') {
-            return 'instructor';
-        }
-
-        if ($this->role === 'student') {
-            return 'student';
-        }
-
-        if ($this->isSuperAdmin()) {
-            return 'admin';
-        }
-
-        $roleName = (string) ($this->roles()->value('name') ?? '');
-
-        return match ($roleName) {
-            'director', 'deputy-director' => 'director',
-            'marketing-officer'           => 'marketing',
-            'branch-registrar'            => 'branch_manager',
-            'coordinator'                 => 'coordinator',
-            'accountant'                  => 'accountant',
-            'staff'                       => 'staff',
-            default                       => 'custom',
+        return match ($this->role) {
+            'instructor' => 'instructor',
+            'student'    => 'student',
+            default      => 'admin',
         };
     }
 
     /**
-     * Human-readable isolation scope summary for the user's current role & branch.
+     * Human-readable scope summary.
      */
     public function dashboardScopeDescription(): string
     {
-        if ($this->role === 'instructor') {
-            return 'Tutor Portal (/instructor/*)';
-        }
-
-        if ($this->role === 'student') {
-            return 'Student Portal (/student/*)';
-        }
-
-        if ($this->isMultiBranchAdmin()) {
-            return 'All Regional Centers';
-        }
-
-        return $this->branch?->name ?? 'Assigned Center';
+        return match ($this->role) {
+            'instructor' => 'Instructor Portal',
+            'student'    => 'Scholar Portal',
+            default      => 'Full System Administration',
+        };
     }
 
     /**
-     * Check if an admin/staff user has a specific granular permission
+     * Check if an admin user has a specific granular permission.
      */
     public function hasAdminPermission(string $permission): bool
     {
-        if ($this->isSuperAdmin()) {
+        if ($this->role === 'admin') {
             return true;
         }
 
@@ -317,25 +231,16 @@ class User extends Authenticatable implements MustVerifyEmail
         }
     }
 
-    /**
-     * Check if user is instructor
-     */
     public function isInstructor(): bool
     {
         return $this->role === 'instructor';
     }
 
-    /**
-     * Check if user is student
-     */
     public function isStudent(): bool
     {
         return $this->role === 'student';
     }
 
-    /**
-     * Check if instructor is approved
-     */
     public function isApprovedInstructor(): bool
     {
         return $this->isInstructor() && $this->is_approved;
@@ -350,7 +255,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the enrollments for the user.
+     * Get the enrollments for the scholar.
      */
     public function enrollments(): HasMany
     {
@@ -358,7 +263,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the lesson progress records for the user.
+     * Get the lesson progress records for the scholar.
      */
     public function lessonProgress(): HasMany
     {
@@ -366,23 +271,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the quiz attempts for the user.
-     */
-    public function quizAttempts(): HasMany
-    {
-        return $this->hasMany(QuizAttempt::class);
-    }
-
-    /**
-     * Get the assignment submissions for the user.
-     */
-    public function assignmentSubmissions(): HasMany
-    {
-        return $this->hasMany(AssignmentSubmission::class);
-    }
-
-    /**
-     * Get the reviews written by the user.
+     * Get the reviews written by the scholar.
      */
     public function reviews(): HasMany
     {
@@ -398,7 +287,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Eloquent hasMany relationship for Notification settings.
+     * Eloquent hasOne relationship for Notification settings.
      */
     public function notificationSettings(): HasOne
     {
@@ -444,45 +333,4 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Conversation::class, 'instructor_id');
     }
-
-    /**
-     * Eloquent belongsTo relationship for Branch.
-     */
-    public function branch(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
-    }
-
-    /**
-     * Eloquent hasMany relationship for Applicant.
-     */
-    public function applicant(): HasOne
-    {
-        return $this->hasOne(Applicant::class);
-    }
-
-    /**
-     * Eloquent hasMany relationship for Invoices.
-     */
-    public function invoices(): HasMany
-    {
-        return $this->hasMany(Invoice::class);
-    }
-
-    /**
-     * Eloquent hasMany relationship for Course assignments.
-     */
-    public function courseAssignments(): HasMany
-    {
-        return $this->hasMany(CourseAssignment::class, 'instructor_id');
-    }
-
-    /**
-     * Eloquent hasMany relationship for Attendance records.
-     */
-    public function attendanceRecords(): HasMany
-    {
-        return $this->hasMany(AttendanceRecord::class);
-    }
-
 }

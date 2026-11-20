@@ -107,8 +107,6 @@
                                 <div class="col-md-6">
                                     <p class="mb-2"><strong>Enrollments:</strong> {{ $course->enrollments->count() }}</p>
                                     <p class="mb-2"><strong>Lessons:</strong> {{ $lessonCount }}</p>
-                                    <p class="mb-2"><strong>Quizzes:</strong> {{ $quizCount }}</p>
-                                    <p class="mb-2"><strong>Assignments:</strong> {{ $assignmentCount }}</p>
                                     @if ($totalDuration > 0)
                                         <p class="mb-2"><strong>Duration:</strong> {{ round($totalDuration / 60, 1) }}
                                             hours</p>
@@ -283,9 +281,7 @@
                                                                 class="fas fa-chevron-{{ $index === 0 ? 'down' : 'right' }} mr-2"></i>
                                                             {{ $topic->title }}
                                                             <span class="badge badge-info ml-2">
-                                                                {{ $topic->lessons->count() }} Lessons,
-                                                                {{ $topic->quizzes->count() }} Quizzes,
-                                                                {{ $topic->assignments->count() }} Assignments
+                                                                {{ $topic->lessons->count() }} Lessons
                                                             </span>
                                                         </button>
                                                     </h6>
@@ -307,24 +303,6 @@
                                                                             class="text-muted ml-2">({{ $lesson->duration }}
                                                                             min)</span>
                                                                     @endif
-                                                                </li>
-                                                            @endforeach
-                                                            @foreach ($topic->quizzes as $quiz)
-                                                                <li class="mb-2">
-                                                                    <i
-                                                                        class="fas fa-question-circle text-warning mr-2"></i>
-                                                                    <strong>Quiz:</strong> {{ $quiz->title }}
-                                                                    @if ($quiz->time_limit)
-                                                                        <span
-                                                                            class="text-muted ml-2">({{ $quiz->time_limit }}
-                                                                            min)</span>
-                                                                    @endif
-                                                                </li>
-                                                            @endforeach
-                                                            @foreach ($topic->assignments as $assignment)
-                                                                <li class="mb-2">
-                                                                    <i class="fas fa-tasks text-success mr-2"></i>
-                                                                    <strong>Assignment:</strong> {{ $assignment->title }}
                                                                 </li>
                                                             @endforeach
                                                         </ul>

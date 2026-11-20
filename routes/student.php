@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Student Campus Portal Routes
+ * Scholar (Student) Portal Routes
  *
- * Defines student registration and authenticated learner portal routes for
- * course player, quizzes, assignments, campus invoices, QR check-in, and AI chat.
+ * Defines scholar registration, online course player, lesson progress,
+ * discussions, live classes, community Q&A, and support tickets in Maarifazone.
  *
  * @author Renatus Bernardo
  */
@@ -13,68 +13,50 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Student\RegisterController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\MyCoursesController;
-use App\Http\Controllers\Student\CertificatesController;
 use App\Http\Controllers\Student\StudentCourseController;
 use App\Http\Controllers\Student\SettingsController;
-use App\Http\Controllers\Student\AssignmentsController;
-use App\Http\Controllers\Student\QuizAttemptsController;
 use App\Http\Controllers\Student\PaymentsController;
 use App\Http\Controllers\Student\NotificationController;
 use App\Http\Controllers\Student\CommunityController;
 use App\Http\Controllers\Student\AiChatController;
-
 use App\Http\Controllers\Student\CourseDiscussionController;
 use App\Http\Controllers\Student\ChatController;
 use App\Http\Controllers\Student\LiveClassController;
 
 // Guest student routes
 Route::middleware('guest')->group(function () {
-    // Register routes
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
 });
 
-// Authenticated student routes
+// Authenticated scholar routes
 Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
     // Dashboard routes
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/live-summary', [DashboardController::class, 'liveSummary'])->name('dashboard.live');
     Route::get('/my-courses', [MyCoursesController::class, 'index'])->name('my-courses');
 
-    // Assignments routes
-    Route::get('/assignments', [AssignmentsController::class, 'index'])->name('assignments');
-
-    // Quizzes routes
-    Route::get('/quiz-attempts', [QuizAttemptsController::class, 'index'])->name('quiz-attempts');
-
     // Payments routes
     Route::get('/payments', [PaymentsController::class, 'index'])->name('payments');
     Route::get('/payments/live-status', [PaymentsController::class, 'liveStatus'])->name('payments.live');
 
-    // Certificates routes
-    Route::get('/certificates', [CertificatesController::class, 'index'])->name('certificates');
+    // Profile & Settings
     Route::get('/settings', [SettingsController::class, 'show'])->name('settings');
     Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
     Route::put('/settings/notifications', [SettingsController::class, 'updateNotifications'])->name('settings.notifications.update');
     Route::delete('/settings/account', [SettingsController::class, 'destroy'])->name('settings.account.destroy');
 
-    // Course access routes
+    // Course Learning Player routes (Pure Maarifa Lessons & Progress)
+    Route::get('/courses/{courseId}', [StudentCourseController::class, 'show'])->name('courses.show');
     Route::get('/courses/{courseId}/access', [StudentCourseController::class, 'show'])->name('courses.access');
     Route::post('/courses/{courseId}/lesson/load', [StudentCourseController::class, 'loadLesson'])->name('courses.lesson.load');
     Route::post('/courses/{courseId}/lesson/complete', [StudentCourseController::class, 'markComplete'])->name('courses.lesson.complete');
     Route::post('/courses/{courseId}/lesson/progress', [StudentCourseController::class, 'updateProgress'])->name('courses.lesson.progress');
-    Route::post('/courses/{courseId}/quiz/{quizId}/load', [StudentCourseController::class, 'loadQuiz'])->name('courses.quiz.load');
-    Route::post('/courses/{courseId}/quiz/{quizId}/submit', [StudentCourseController::class, 'submitQuiz'])->name('courses.quiz.submit');
-    Route::get('/courses/{courseId}/quiz/attempt/{attemptId}/results', [StudentCourseController::class, 'viewQuizResults'])->name('courses.quiz.results');
-    Route::post('/courses/{courseId}/assignment/{assignmentId}/load', [StudentCourseController::class, 'loadAssignment'])->name('courses.assignment.load');
-    Route::post('/courses/{courseId}/assignment/{assignmentId}/submit', [StudentCourseController::class, 'submitAssignment'])->name('courses.assignment.submit');
-    Route::get('/courses/{courseId}/assignment/submission/{submissionId}', [StudentCourseController::class, 'viewAssignmentSubmission'])->name('courses.assignment.submission');
     Route::get('/courses/{courseId}/item/{itemId}/next', [StudentCourseController::class, 'getNextItem'])->name('courses.item.next');
     Route::get('/courses/{courseId}/item/{itemId}/previous', [StudentCourseController::class, 'getPreviousItem'])->name('courses.item.previous');
     Route::post('/courses/{courseId}/search', [StudentCourseController::class, 'searchContent'])->name('courses.search');
     Route::get('/courses/{courseId}/sidebar/refresh', [StudentCourseController::class, 'refreshSidebar'])->name('courses.sidebar.refresh');
     Route::get('/courses/{courseId}/completion', [StudentCourseController::class, 'showCompletionPage'])->name('courses.completion');
-    Route::get('/courses/{courseId}/certificate/download', [StudentCourseController::class, 'downloadCertificate'])->name('courses.certificate.download');
 
     // Course Discussions routes
     Route::prefix('courses/{courseId}/discussions')->name('courses.discussions.')->group(function () {
@@ -90,6 +72,8 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
 
     // Live classes routes
     Route::get('/live-classes', [LiveClassController::class, 'index'])->name('live-classes.index');
+    Route::get('/live-classes/{liveClass}', fn () => redirect()->route('student.live-classes.index'))->name('live-classes.show');
+    Route::get('/help', fn () => redirect()->route('contact'))->name('help.index');
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
@@ -123,7 +107,7 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
         Route::get('/{conversation}/poll', [ChatController::class, 'poll'])->name('poll');
     });
 
-    // Support Tickets (v3.0.0)
+    // Support Tickets
     Route::prefix('tickets')->name('tickets.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Student\SupportTicketController::class, 'index'])->name('index');
         Route::get('/create', [\App\Http\Controllers\Student\SupportTicketController::class, 'create'])->name('create');
@@ -132,22 +116,4 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
         Route::post('/{ticket}/reply', [\App\Http\Controllers\Student\SupportTicketController::class, 'reply'])->name('reply');
         Route::post('/{ticket}/close', [\App\Http\Controllers\Student\SupportTicketController::class, 'close'])->name('close');
     });
-
-    // Campus Invoices, Installments, Receipts, Timetable, Attendance & QR Check-In
-    Route::prefix('campus')->name('campus.')->group(function () {
-        Route::get('/invoices', [\App\Http\Controllers\Student\CampusController::class, 'invoices'])->name('invoices.index');
-        Route::get('/invoices/live-status', [\App\Http\Controllers\Student\CampusController::class, 'liveInvoices'])->name('invoices.live');
-        Route::get('/payments/{payment}/receipt', [\App\Http\Controllers\Student\CampusController::class, 'receipt'])->name('invoices.receipt.show');
-        Route::post('/invoices/{invoice}/control-number', [\App\Http\Controllers\Student\CampusController::class, 'generateControlNumber'])->name('invoices.control-number');
-        Route::post('/invoices/{invoice}/receipt', [\App\Http\Controllers\Student\CampusController::class, 'uploadReceipt'])->name('invoices.receipt');
-        Route::delete('/enrollments/{enrollment}', [\App\Http\Controllers\Student\CampusController::class, 'unenroll'])->name('enrollments.destroy');
-        Route::get('/timetable', [\App\Http\Controllers\Student\CampusController::class, 'timetable'])->name('timetable');
-        Route::get('/timetable/live-status', [\App\Http\Controllers\Student\CampusController::class, 'liveTimetable'])->name('timetable.live');
-        Route::get('/attendance', [\App\Http\Controllers\Student\CampusController::class, 'attendance'])->name('attendance');
-        Route::get('/checkin/{token}', [\App\Http\Controllers\Student\CampusController::class, 'checkIn'])->name('checkin');
-        Route::get('/certificates/{enrollment}/pdf', [\App\Http\Controllers\Student\CampusController::class, 'downloadCertificatePdf'])->name('certificates.pdf');
-    });
-
-    Route::get('/help', [\App\Http\Controllers\HelpController::class, 'index'])->name('help.index');
-
 });

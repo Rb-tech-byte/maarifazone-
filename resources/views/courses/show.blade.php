@@ -1488,21 +1488,12 @@
 
                             <div class="maarifazone-cd-sidebar__subnote">
                                 <i class="fa-solid fa-shield-halved"></i>
-                                @if ($course->requiresApplicantForm())
-                                    <span>{{ $course->isHybrid() ? 'Hybrid' : 'Face-to-Face' }} Campus &bull; Offline Control No. or Online Pay</span>
-                                @else
-                                    <span>Full lifetime access &bull; Instant online enrollment</span>
-                                @endif
+                                <span>Full lifetime access &bull; Instant online enrollment</span>
                             </div>
 
                             @if($isEnrolled)
                                 <a href="{{ route('student.courses.access', $course->id) }}" class="maarifazone-cd-sidebar__btn-primary" style="background: #10b981;">
                                     <i class="fa-solid fa-circle-check"></i> {{ __('frontend.already_enrolled') }}
-                                </a>
-                            @elseif($course->requiresApplicantForm())
-                                <a href="{{ route('courses.apply', $course->id) }}" class="maarifazone-cd-sidebar__btn-primary">
-                                    <i class="fa-solid fa-file-signature"></i>
-                                    Apply Now (Campus Form)
                                 </a>
                             @elseif(auth()->check())
                                 <a href="{{ route('courses.checkout', $course->id) }}" class="maarifazone-cd-sidebar__btn-primary">

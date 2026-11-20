@@ -255,47 +255,6 @@ class FileUploadService
         return $path;
     }
 
-    /**
-     * Upload assignment submission file
-     */
-    public function uploadAssignmentSubmissionFile(UploadedFile $file): array
-    {
-        $allowedTypes = [
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/vnd.ms-powerpoint',
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-            'application/zip',
-            'application/x-zip-compressed',
-            'text/plain',
-            'image/jpeg',
-            'image/jpg',
-            'image/png',
-            'image/gif',
-        ];
-        $allowedExtensions = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'zip', 'txt', 'jpg', 'jpeg', 'png', 'gif'];
-        
-        if (!in_array($file->getMimeType(), $allowedTypes) && 
-            !in_array(strtolower($file->getClientOriginalExtension()), $allowedExtensions)) {
-            throw new \Exception('Invalid file type. Allowed types: PDF, DOC, DOCX, PPT, PPTX, ZIP, TXT, JPG, JPEG, PNG, GIF');
-        }
-
-        $maxSize = 10 * 1024 * 1024;
-        if ($file->getSize() > $maxSize) {
-            throw new \Exception('File size must be less than 10MB');
-        }
-
-        $filename = time() . '_' . Str::random(10) . '_' . $file->getClientOriginalName();
-        $path = $file->storeAs('assignment-submissions', $filename, 'public');
-        
-        return [
-            'file_path' => $path,
-            'original_filename' => $file->getClientOriginalName(),
-            'file_size' => (string) $file->getSize(),
-            'mime_type' => $file->getMimeType(),
-        ];
-    }
 
     /**
      * Delete old file if exists

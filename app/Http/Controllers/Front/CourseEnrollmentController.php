@@ -91,7 +91,6 @@ class CourseEnrollmentController extends Controller
         }
 
         $isBundle = request()->input('type') === 'bundle';
-        $campusInvoice = null;
 
         if ($isBundle) {
             $course = \App\Models\Bundle::with('vendor', 'courses')->findOrFail($id);
@@ -111,91 +110,42 @@ class CourseEnrollmentController extends Controller
             }
             $price = (float) $course->price;
         } else {
-            if (request()->filled('invoice_id')) {
-                $campusInvoice = \App\Models\Invoice::withoutGlobalScope('branch')
-                    ->with('paymentSchedules')
-                    ->find(request()->integer('invoice_id'));
+            $course = Course::with('instructor')->findOrFail($id);
 
-                if (! $campusInvoice) {
-                    ToastMagic::error('The requested invoice could not be found.');
-                    return redirect()->route('student.campus.invoices.index');
-                }
+            if ($course->status !== 'published' || $course->visibility !== 'public') {
+                ToastMagic::error('This course is not available for enrollment.');
+                return redirect()->route('courses.show', $course->id);
+            }
 
-                if ((int) $campusInvoice->user_id !== (int) $user->id) {
-                    ToastMagic::error('You do not have permission to pay this invoice.');
-                    return redirect()->route('student.campus.invoices.index');
-                }
+            $existingEnrollment = Enrollment::with('payment')
+                ->where('user_id', $user->id)
+                ->where('course_id', $course->id)
+                ->first();
 
-                if ($campusInvoice->course_id && (int) $campusInvoice->course_id !== (int) $id) {
-                    return redirect()->route('courses.checkout', array_filter([
-                        'id'         => $campusInvoice->course_id,
-                        'invoice_id' => $campusInvoice->id,
-                        'pay'        => request()->input('pay'),
-                    ]));
-                }
-
-                $course = Course::with('instructor')->findOrFail($campusInvoice->course_id ?? $id);
-
-                if ($course->status !== 'published' || $course->visibility !== 'public') {
-                    ToastMagic::error('This course is not available for enrollment.');
+            if ($existingEnrollment) {
+                if (in_array($existingEnrollment->status, [Enrollment::STATUS_APPROVED, Enrollment::STATUS_COMPLETED], true)) {
+                    ToastMagic::info('You are already enrolled in this course.');
                     return redirect()->route('courses.show', $course->id);
                 }
 
-                if ($campusInvoice->balance <= 0) {
-                    ToastMagic::info('This invoice is already fully paid.');
-                    return redirect()->route('student.campus.invoices.index');
-                }
-                if (! $course->allow_online_f2f_payment) {
-                    ToastMagic::warning('Online payment is disabled for this course. Please pay using Control Number ' . $campusInvoice->control_number);
-                    return redirect()->route('courses.apply.confirmation', $campusInvoice->id);
-                }
-
-                $nextSched = $campusInvoice->paymentSchedules->where('status', '!=', 'paid')->sortBy('installment_number')->first();
-                $price = (request()->input('pay') === 'balance' || ! $nextSched)
-                    ? (float) $campusInvoice->balance
-                    : round((float) $nextSched->amount_due - (float) $nextSched->amount_paid, 2);
-            } else {
-                $course = Course::with('instructor')->findOrFail($id);
-
-                if ($course->status !== 'published' || $course->visibility !== 'public') {
-                    ToastMagic::error('This course is not available for enrollment.');
+                if ($existingEnrollment->payment && $existingEnrollment->payment->payment_method === Payment::PAYMENT_METHOD_OFFLINE) {
+                    ToastMagic::warning('You have a pending offline payment request. Please wait for admin approval.');
                     return redirect()->route('courses.show', $course->id);
                 }
+            }
 
-                if ($course->requiresApplicantForm()) {
-                    return redirect()->route('courses.apply', $course->id);
-                }
+            $price = $this->calculatePrice($course);
 
-                $existingEnrollment = Enrollment::with('payment')
-                    ->where('user_id', $user->id)
-                    ->where('course_id', $course->id)
-                    ->first();
+            if ($price <= 0) {
+                $enrollment = Enrollment::create([
+                    'user_id' => $user->id,
+                    'course_id' => $course->id,
+                    'status' => Enrollment::STATUS_APPROVED,
+                    'enrolled_at' => now(),
+                ]);
 
-                if ($existingEnrollment) {
-                    if (in_array($existingEnrollment->status, [Enrollment::STATUS_APPROVED, Enrollment::STATUS_COMPLETED], true)) {
-                        ToastMagic::info('You are already enrolled in this course.');
-                        return redirect()->route('courses.show', $course->id);
-                    }
-
-                    if ($existingEnrollment->payment && $existingEnrollment->payment->payment_method === Payment::PAYMENT_METHOD_OFFLINE) {
-                        ToastMagic::warning('You have a pending offline payment request. Please wait for admin approval.');
-                        return redirect()->route('courses.show', $course->id);
-                    }
-                }
-
-                $price = $this->calculatePrice($course);
-
-                if ($price <= 0) {
-                    $enrollment = Enrollment::create([
-                        'user_id' => $user->id,
-                        'course_id' => $course->id,
-                        'status' => Enrollment::STATUS_APPROVED,
-                        'enrolled_at' => now(),
-                    ]);
-
-                    ToastMagic::success('Congratulations! You have successfully enrolled in this free course.');
-                    return redirect()->route('student.courses.show', $course->id);
-                }
+                ToastMagic::success('Congratulations! You have successfully enrolled in this free course.');
+                return redirect()->route('student.courses.show', $course->id);
             }
         }
 
@@ -211,7 +161,7 @@ class CourseEnrollmentController extends Controller
             'pesapal'     => 'Pay securely with M-Pesa, Tigo Pesa, Airtel Money, HaloPesa, or card via Pesapal.',
         ];
 
-        return view('checkout', compact('course', 'price', 'onlineGateways', 'offlineGateway', 'offlineInstructions', 'gatewayDescriptions', 'isBundle', 'campusInvoice'));
+        return view('checkout', compact('course', 'price', 'onlineGateways', 'offlineGateway', 'offlineInstructions', 'gatewayDescriptions', 'isBundle'));
     }
 
     /**
@@ -257,94 +207,42 @@ class CourseEnrollmentController extends Controller
                 return redirect()->route('courses.show', $course->id);
             }
 
-            if ($request->filled('invoice_id')) {
-                $campusInvoice = \App\Models\Invoice::withoutGlobalScope('branch')
-                    ->with('paymentSchedules')
-                    ->find($request->integer('invoice_id'));
+            $existingEnrollment = Enrollment::where('user_id', $user->id)
+                ->where('course_id', $course->id)
+                ->first();
 
-                if (! $campusInvoice || (int) $campusInvoice->user_id !== (int) $user->id || ($campusInvoice->course_id && (int) $campusInvoice->course_id !== (int) $course->id)) {
-                    if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
-                        return response()->json(['success' => false, 'message' => 'Invoice could not be matched to this course.'], 422);
-                    }
-                    ToastMagic::error('Invoice could not be matched to this course.');
-                    return redirect()->route('student.campus.invoices.index');
+            if ($existingEnrollment) {
+                if (
+                    $existingEnrollment->status === Enrollment::STATUS_APPROVED ||
+                    $existingEnrollment->status === Enrollment::STATUS_COMPLETED
+                ) {
+                    ToastMagic::info('You are already enrolled in this course.');
+                    return redirect()->route('courses.show', $course->id);
                 }
 
-                if ($campusInvoice->balance <= 0) {
-                    if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
-                        return response()->json(['success' => false, 'message' => 'This invoice is already fully paid.'], 422);
-                    }
-                    ToastMagic::info('This invoice is already fully paid.');
-                    return redirect()->route('student.campus.invoices.index');
+                $payment = $existingEnrollment->payment;
+                if ($payment && $payment->payment_method === Payment::PAYMENT_METHOD_OFFLINE) {
+                    ToastMagic::warning('You have a pending offline payment request. Please wait for admin approval.');
+                    return redirect()->route('courses.show', $course->id);
                 }
 
-                if (strtolower((string) $request->payment_method) !== Payment::PAYMENT_METHOD_OFFLINE && ! $course->allow_online_f2f_payment) {
-                    if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
-                        return response()->json(['success' => false, 'message' => 'Online payment is disabled for this course. Please use Control Number ' . $campusInvoice->control_number . '.'], 422);
-                    }
-                    ToastMagic::warning('Online payment is disabled for this course.');
-                    return redirect()->route('courses.apply.confirmation', $campusInvoice->id);
-                }
-
-                $nextSched = $campusInvoice->paymentSchedules->where('status', '!=', 'paid')->sortBy('installment_number')->first();
-                $price = ($request->input('pay') === 'balance' || ! $nextSched)
-                    ? (float) $campusInvoice->balance
-                    : round((float) $nextSched->amount_due - (float) $nextSched->amount_paid, 2);
-
-                Payment::creating(function (Payment $payment) use ($campusInvoice): void {
-                    if (! $payment->invoice_id && (int) $payment->user_id === (int) $campusInvoice->user_id) {
-                        $payment->invoice_id = $campusInvoice->id;
-                        $payment->applicant_id = $campusInvoice->applicant_id;
-                        $payment->installment_type = $campusInvoice->installment_plan;
-                        if ($campusInvoice->enrollment_id) {
-                            $payment->enrollment_id = $campusInvoice->enrollment_id;
-                        }
-                    }
-                });
-            } elseif ($course->requiresApplicantForm()) {
-                return redirect()->route('courses.apply', $course->id);
-            } else {
-                if (strtolower($request->payment_method) === Payment::PAYMENT_METHOD_OFFLINE && $course->isOnline()) {
-                    ToastMagic::error('Online courses require direct online payment.');
-                    return redirect()->back()->withInput();
-                }
-
-                $existingEnrollment = Enrollment::where('user_id', $user->id)
-                    ->where('course_id', $course->id)
-                    ->first();
-
-                if ($existingEnrollment) {
-                    if (
-                        $existingEnrollment->status === Enrollment::STATUS_APPROVED ||
-                        $existingEnrollment->status === Enrollment::STATUS_COMPLETED
-                    ) {
-                        ToastMagic::info('You are already enrolled in this course.');
-                        return redirect()->route('courses.show', $course->id);
-                    }
-
-                    $payment = $existingEnrollment->payment;
-                    if ($payment && $payment->payment_method === Payment::PAYMENT_METHOD_OFFLINE) {
-                        ToastMagic::warning('You have a pending offline payment request. Please wait for admin approval.');
-                        return redirect()->route('courses.show', $course->id);
-                    }
-
-                    $existingEnrollment->delete();
-                }
-
-                $price = $this->calculatePrice($course);
-
-                if ($price <= 0) {
-                    $enrollment = Enrollment::create([
-                        'user_id' => $user->id,
-                        'course_id' => $course->id,
-                        'status' => Enrollment::STATUS_APPROVED,
-                        'enrolled_at' => now(),
-                    ]);
-
-                    ToastMagic::success('Congratulations! You have successfully enrolled in this free course.');
-                    return redirect()->route('student.courses.show', $course->id);
-                }
+                $existingEnrollment->delete();
             }
+
+            $price = $this->calculatePrice($course);
+
+            if ($price <= 0) {
+                $enrollment = Enrollment::create([
+                    'user_id' => $user->id,
+                    'course_id' => $course->id,
+                    'status' => Enrollment::STATUS_APPROVED,
+                    'enrolled_at' => now(),
+                ]);
+
+                ToastMagic::success('Congratulations! You have successfully enrolled in this free course.');
+                return redirect()->route('student.courses.show', $course->id);
+            }
+
             $courseIdToUse = $course->id;
         }
         $paymentMethod = strtolower($request->payment_method);
@@ -427,7 +325,6 @@ class CourseEnrollmentController extends Controller
                 ]);
 
                 $enrollment->update(['payment_id' => $payment->id]);
-                app(\App\Services\SrsWorkflowService::class)->ensureInvoiceForPayment($payment);
 
                 DB::commit();
 
@@ -460,7 +357,6 @@ class CourseEnrollmentController extends Controller
                 ]);
 
                 $enrollment->update(['payment_id' => $payment->id]);
-                app(\App\Services\SrsWorkflowService::class)->ensureInvoiceForPayment($payment);
 
                 DB::commit();
 
@@ -493,7 +389,6 @@ class CourseEnrollmentController extends Controller
                 ]);
 
                 $enrollment->update(['payment_id' => $payment->id]);
-                app(\App\Services\SrsWorkflowService::class)->ensureInvoiceForPayment($payment);
 
                 DB::commit();
 
@@ -540,7 +435,6 @@ class CourseEnrollmentController extends Controller
                 ]);
 
                 $enrollment->update(['payment_id' => $payment->id]);
-                app(\App\Services\SrsWorkflowService::class)->ensureInvoiceForPayment($payment);
 
                 DB::commit();
 
@@ -580,7 +474,6 @@ class CourseEnrollmentController extends Controller
                 ]);
 
                 $enrollment->update(['payment_id' => $payment->id]);
-                app(\App\Services\SrsWorkflowService::class)->ensureInvoiceForPayment($payment);
 
                 DB::commit();
 
@@ -1389,7 +1282,7 @@ class CourseEnrollmentController extends Controller
                 'status' => 'completed',
                 'redirect_url' => $enrollment
                     ? route('enrollment.success', $enrollment->id)
-                    : route('student.campus.invoices.index'),
+                    : route('student.payments'),
             ]);
         }
 
@@ -1406,7 +1299,7 @@ class CourseEnrollmentController extends Controller
                         'status' => 'completed',
                         'redirect_url' => $enrollment
                             ? route('enrollment.success', $enrollment->id)
-                            : route('student.campus.invoices.index'),
+                            : route('student.payments'),
                     ]);
                 }
             } elseif ($pesapalService->isFailedStatus($statusData)) {
@@ -1496,7 +1389,7 @@ class CourseEnrollmentController extends Controller
     }
 
     /**
-     * Finalize a Pesapal payment and approve associated course, invoice, or bundle enrollments idempotently.
+     * Finalize a Pesapal payment and approve associated course or bundle enrollments idempotently.
      *
      * @param array<string, mixed> $statusData
      */
@@ -1520,20 +1413,22 @@ class CourseEnrollmentController extends Controller
                 'status'                    => Payment::STATUS_COMPLETED,
             ]);
 
-            $invoice = $lockedPayment->invoice_id
-                ? \App\Models\Invoice::withoutGlobalScope('branch')->with('enrollment')->find($lockedPayment->invoice_id)
-                : null;
-            $enrollment = $lockedPayment->enrollment ?? $invoice?->enrollment;
-
-            if ($enrollment && ! $lockedPayment->enrollment_id) {
-                $lockedPayment->forceFill(['enrollment_id' => $enrollment->id])->saveQuietly();
+            $enrollment = $lockedPayment->enrollment;
+            if ($enrollment) {
+                $enrollment->update([
+                    'status' => Enrollment::STATUS_APPROVED,
+                    'enrolled_at' => $enrollment->enrolled_at ?? now(),
+                ]);
             }
 
             if (! $alreadyCompleted) {
                 $newlyCompleted = true;
+                try {
+                    app(\App\Services\RevenueShareService::class)->settlePaymentCommission($lockedPayment->fresh());
+                } catch (\Throwable $e) {
+                    \Log::warning('Commission settlement skipped or failed: ' . $e->getMessage());
+                }
             }
-
-            app(\App\Services\SrsWorkflowService::class)->finalizeCompletedPayment($lockedPayment->fresh());
 
             return $enrollment?->fresh();
         });
@@ -1583,7 +1478,7 @@ class CourseEnrollmentController extends Controller
             return redirect()->route('enrollment.success', $enrollment->id);
         }
 
-        return redirect()->route('student.campus.invoices.index');
+        return redirect()->route('student.payments');
     }
 
     /**

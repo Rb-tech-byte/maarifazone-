@@ -16,14 +16,14 @@
                 </p>
             </div>
             <div class="out-hero-actions">
-                <a href="{{ route('instructor.courses.create') }}" class="out-pill-btn out-pill-yellow">
-                    <i class="fa-solid fa-plus"></i> New Course
+                <a href="{{ route('instructor.courses') }}" class="out-pill-btn out-pill-yellow">
+                    <i class="fa-solid fa-book-bookmark"></i> Assigned Courses
                 </a>
                 <a href="{{ route('instructor.live-classes.create') }}" class="out-pill-btn out-pill-outline">
                     <i class="fa-solid fa-video"></i> Schedule Class
                 </a>
-                <a href="{{ route('instructor.tickets.index') }}" class="out-pill-btn out-pill-outline">
-                    <i class="fa-solid fa-headset"></i> Support Desk
+                <a href="{{ route('instructor.earnings') }}" class="out-pill-btn out-pill-outline">
+                    <i class="fa-solid fa-wallet"></i> Earnings &amp; Payouts
                 </a>
             </div>
         </div>
@@ -108,12 +108,12 @@
                             <img src="{{ $courseImage }}" alt="{{ $course->title }}" class="out-course-thumb" onerror="this.src='{{ asset('assets/front/img/home-1/courses/courses-01.jpg') }}'">
                             <div class="out-course-meta">
                                 <h4 class="out-course-title">
-                                    <a href="{{ route('instructor.courses.edit', $course->id) }}">{{ $course->title }}</a>
+                                    <a href="{{ route('courses.show', $course->id) }}" target="_blank">{{ $course->title }}</a>
                                 </h4>
                                 <div class="out-course-badges">
                                     <span class="badge bg-light text-dark border">{{ $difficulty }}</span>
                                     <span><i class="fa-solid fa-circle-play text-muted me-1"></i> {{ $lessonsCount }} Lessons</span>
-                                    <span><i class="fa-solid fa-user text-muted me-1"></i> {{ $course->students_count }} Students</span>
+                                    <span><i class="fa-solid fa-user text-muted me-1"></i> {{ $course->students_count }} Scholars</span>
                                     @if($course->average_rating)
                                         <span class="text-warning"><i class="fa-solid fa-star me-1"></i> {{ number_format($course->average_rating, 1) }}</span>
                                     @endif
@@ -123,8 +123,8 @@
                                 <span class="fw-bold text-dark d-none d-sm-inline" style="font-size: 14px;">
                                     {{ $course->pricing_model === 'free' ? 'Free' : currency_format($price) }}
                                 </span>
-                                <a href="{{ route('instructor.courses.edit', $course->id) }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1" style="font-size: 12.5px; font-weight: 600;">
-                                    Manage
+                                <a href="{{ route('courses.show', $course->id) }}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-3 py-1" style="font-size: 12.5px; font-weight: 600;">
+                                    View Course
                                 </a>
                             </div>
                         </div>
@@ -133,10 +133,10 @@
                             <div class="out-empty-state-icon">
                                 <i class="fa-solid fa-book-open"></i>
                             </div>
-                            <div class="out-empty-state-title">No Matching Courses</div>
-                            <p class="out-empty-state-text mb-3">Try adjusting your filters or create a new academic course.</p>
-                            <a href="{{ route('instructor.courses.create') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-2 fw-semibold">
-                                <i class="fa-solid fa-plus me-1"></i> Create Your First Course
+                            <div class="out-empty-state-title">No Assigned Courses Found</div>
+                            <p class="out-empty-state-text mb-3">Courses are created and assigned to instructors by the Maarifazone Administration. Once a course is assigned to you, it will appear here.</p>
+                            <a href="{{ route('instructor.courses') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-2 fw-semibold">
+                                <i class="fa-solid fa-rotate me-1"></i> Refresh Assigned Courses
                             </a>
                         </div>
                     @endforelse
@@ -193,17 +193,17 @@
                     </h3>
                 </div>
                 <div class="out-card-body p-3">
-                    <a href="{{ route('instructor.courses.create') }}" class="out-action-tile">
-                        <i class="fa-solid fa-circle-plus"></i>
-                        <span>Create New Course</span>
+                    <a href="{{ route('instructor.courses') }}" class="out-action-tile">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                        <span>My Assigned Courses</span>
                     </a>
                     <a href="{{ route('instructor.live-classes.create') }}" class="out-action-tile">
                         <i class="fa-solid fa-video"></i>
                         <span>Schedule Live Class</span>
                     </a>
-                    <a href="{{ route('instructor.analytics') }}" class="out-action-tile">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <span>View Analytics & Insights</span>
+                    <a href="{{ route('instructor.earnings') }}" class="out-action-tile">
+                        <i class="fa-solid fa-wallet"></i>
+                        <span>Course Earnings &amp; Payouts</span>
                     </a>
                     <a href="{{ route('instructor.tickets.create') }}" class="out-action-tile">
                         <i class="fa-solid fa-headset"></i>

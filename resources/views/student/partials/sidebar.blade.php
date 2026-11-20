@@ -9,19 +9,10 @@
     $inLearningGroup = request()->routeIs([
         'student.my-courses*',
         'student.live-classes.*',
-        'student.assignments*',
-        'student.quiz-attempts*',
-        'student.certificates*',
-    ]);
-
-    $inCampusGroup = request()->routeIs([
-        'student.campus.timetable',
-        'student.campus.attendance*',
         'student.community.*',
     ]);
 
     $inBillingGroup = request()->routeIs([
-        'student.campus.invoices*',
         'student.payments*',
     ]);
 
@@ -43,7 +34,7 @@
             </a>
         </li>
 
-        {{-- My Learning --}}
+        {{-- My Maarifa Learning --}}
         <li class="out-nav-item">
             <button type="button"
                 class="out-nav-link out-nav-toggle {{ $inLearningGroup ? 'group-active' : '' }}"
@@ -59,7 +50,7 @@
                     <li>
                         <a href="{{ route('student.my-courses') }}" class="out-nav-link {{ request()->routeIs('student.my-courses*') ? 'active' : '' }}">
                             <i class="fa-solid fa-graduation-cap"></i>
-                            <span>My Courses</span>
+                            <span>My Online Courses</span>
                         </a>
                     </li>
                     <li>
@@ -69,92 +60,24 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('student.assignments') }}" class="out-nav-link {{ request()->routeIs('student.assignments*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-clipboard-check"></i>
-                            <span>Assignments</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('student.quiz-attempts') }}" class="out-nav-link {{ request()->routeIs('student.quiz-attempts*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-circle-question"></i>
-                            <span>Quiz Attempts</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('student.certificates') }}" class="out-nav-link {{ request()->routeIs('student.certificates*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-certificate"></i>
-                            <span>Certificates</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </li>
-
-        {{-- Campus & Timetable --}}
-        <li class="out-nav-item">
-            <button type="button"
-                class="out-nav-link out-nav-toggle {{ $inCampusGroup ? 'group-active' : '' }}"
-                data-bs-toggle="collapse"
-                data-bs-target="#studentCampusMenu"
-                aria-expanded="{{ $inCampusGroup ? 'true' : 'false' }}">
-                <i class="fa-solid fa-building-columns"></i>
-                <span>Campus Life</span>
-                <i class="fa-solid fa-chevron-right out-nav-chevron"></i>
-            </button>
-            <div class="collapse {{ $inCampusGroup ? 'show' : '' }}" id="studentCampusMenu">
-                <ul class="out-nav-submenu">
-                    <li>
-                        <a href="{{ route('student.campus.timetable') }}" class="out-nav-link {{ request()->routeIs('student.campus.timetable') ? 'active' : '' }}">
-                            <i class="fa-solid fa-calendar-days"></i>
-                            <span>Campus Timetable</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('student.campus.attendance') }}" class="out-nav-link {{ request()->routeIs('student.campus.attendance*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-calendar-check"></i>
-                            <span>Campus Attendance</span>
-                        </a>
-                    </li>
-                    <li>
                         <a href="{{ route('student.community.index') }}" class="out-nav-link {{ request()->routeIs('student.community.*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-users"></i>
-                            <span>Campus Community</span>
+                            <i class="fa-solid fa-comments"></i>
+                            <span>Learner Discussions</span>
                         </a>
                     </li>
                 </ul>
             </div>
         </li>
 
-        {{-- Billing & GePG --}}
+        {{-- Payments --}}
         <li class="out-nav-item">
-            <button type="button"
-                class="out-nav-link out-nav-toggle {{ $inBillingGroup ? 'group-active' : '' }}"
-                data-bs-toggle="collapse"
-                data-bs-target="#studentBillingMenu"
-                aria-expanded="{{ $inBillingGroup ? 'true' : 'false' }}">
-                <i class="fa-solid fa-file-invoice-dollar"></i>
-                <span>Billing &amp; Fees</span>
-                <i class="fa-solid fa-chevron-right out-nav-chevron"></i>
-            </button>
-            <div class="collapse {{ $inBillingGroup ? 'show' : '' }}" id="studentBillingMenu">
-                <ul class="out-nav-submenu">
-                    <li>
-                        <a href="{{ route('student.campus.invoices.index') }}" class="out-nav-link {{ request()->routeIs('student.campus.invoices*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-barcode"></i>
-                            <span>Invoices &amp; Control Nos</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('student.payments') }}" class="out-nav-link {{ request()->routeIs('student.payments*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-receipt"></i>
-                            <span>Payment History</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            <a href="{{ route('student.payments') }}" class="out-nav-link {{ $inBillingGroup ? 'active' : '' }}">
+                <i class="fa-solid fa-receipt"></i>
+                <span>Payment History</span>
+            </a>
         </li>
 
-        {{-- Tools & Support --}}
+        {{-- Support & Tools --}}
         <li class="out-nav-item">
             <button type="button"
                 class="out-nav-link out-nav-toggle {{ $inSupportGroup ? 'group-active' : '' }}"
