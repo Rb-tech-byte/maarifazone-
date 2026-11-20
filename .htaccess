@@ -1,0 +1,30 @@
+DirectoryIndex public/index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block direct HTTP access to hidden files/dirs (.env, .git, etc.) while allowing ACME .well-known
+    RewriteCond %{REQUEST_URI} (^|/)\. [NC]
+    RewriteCond %{REQUEST_URI} !^/\.well-known/ [NC]
+    RewriteRule ^ - [F,L]
+
+    # Dynamically detect the base URI prefix ("/" on vHost root, or "/<subdir>/" in any subfolder)
+    RewriteCond %{REQUEST_URI}::$1 ^(.*?/)(.*)::\2$
+    RewriteRule ^(.*)$ - [E=APP_BASE:%1]
+
+    # Never expose /public/ in browser URLs (supports both vHost root and any subdirectory)
+    RewriteCond %{THE_REQUEST} \s/[^\s?]*/public(?:/|\s|\?) [NC,OR]
+    RewriteCond %{THE_REQUEST} \s/+public(?:/|\s|\?) [NC]
+    RewriteCond %{ENV:APP_BASE}public::%{REQUEST_URI} ^([^:]+)::\1(?:/(.*))?$ [NC]
+    RewriteRule ^ %{ENV:APP_BASE}%2 [R=301,L,NE]
+
+    # Serve existing static/storage/build/package files from public/ silently (vHost root & any subdirectory)
+    RewriteCond %{REQUEST_URI} !/public/ [NC]
+    RewriteCond %{DOCUMENT_ROOT}%{ENV:APP_BASE}public/$1 -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}%{ENV:APP_BASE}public/$1 -l
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # Route all application paths (including "/") straight to Laravel front controller
+    RewriteCond %{REQUEST_URI} !/public/index\.php$ [NC]
+    RewriteRule ^ public/index.php [L]
+</IfModule>
