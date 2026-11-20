@@ -79,19 +79,11 @@
                                             class="fab fa-youtube"></i></a>
                                 @endif
                             </div>
-                            @auth
-                                <a href="{{ route('student.messages.show', $instructor->id) }}" class="theme-btn mt-5 wow fadeInUp" data-wow-delay=".7s">
-                                    <i class="fa-solid fa-comment-dots me-1"></i>
-                                    {{ __('frontend.message') }} {{ Str::before($instructor->name, ' ') }}
-                                    <i class="fa-solid fa-arrow-up-right"></i>
-                                </a>
-                            @else
-                                <a href="{{ route('login') }}" class="theme-btn mt-5 wow fadeInUp" data-wow-delay=".7s">
-                                    <i class="fa-solid fa-comment-dots me-1"></i>
-                                    {{ __('frontend.message') }} {{ Str::before($instructor->name, ' ') }}
-                                    <i class="fa-solid fa-arrow-up-right"></i>
-                                </a>
-                            @endauth
+                            <a href="#courses-section" class="theme-btn mt-5 wow fadeInUp" data-wow-delay=".7s">
+                                <i class="fa-solid fa-book-open me-1"></i>
+                                View Courses by {{ Str::before($instructor->name, ' ') }}
+                                <i class="fa-solid fa-arrow-down ms-1"></i>
+                            </a>
                         </div>
                     </div>
                 </div>

@@ -20,7 +20,6 @@ use App\Http\Controllers\Student\NotificationController;
 use App\Http\Controllers\Student\CommunityController;
 use App\Http\Controllers\Student\AiChatController;
 use App\Http\Controllers\Student\CourseDiscussionController;
-use App\Http\Controllers\Student\ChatController;
 use App\Http\Controllers\Student\LiveClassController;
 
 // Guest student routes
@@ -95,19 +94,7 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
     Route::get('/ai-chat', [AiChatController::class, 'index'])->name('ai-chat.index');
     Route::post('/ai-chat/send', [AiChatController::class, 'sendMessage'])->name('ai-chat.send');
 
-    // Chat / Messages routes
-    Route::prefix('messages')->name('messages.')->group(function () {
-        Route::get('/', [ChatController::class, 'index'])->name('index');
-        Route::get('/requests', [ChatController::class, 'requests'])->name('requests');
-        Route::get('/unread-count', [ChatController::class, 'unreadCount'])->name('unread-count');
-        Route::get('/instructors/search', [ChatController::class, 'searchInstructors'])->name('instructors.search');
-        Route::post('/start', [ChatController::class, 'startConversation'])->name('start');
-        Route::get('/{conversation}', [ChatController::class, 'show'])->name('show');
-        Route::post('/{conversation}/send', [ChatController::class, 'sendMessage'])->name('send');
-        Route::get('/{conversation}/poll', [ChatController::class, 'poll'])->name('poll');
-    });
-
-    // Support Tickets
+    // Support Tickets (Official Support with Platform Administration)
     Route::prefix('tickets')->name('tickets.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Student\SupportTicketController::class, 'index'])->name('index');
         Route::get('/create', [\App\Http\Controllers\Student\SupportTicketController::class, 'create'])->name('create');

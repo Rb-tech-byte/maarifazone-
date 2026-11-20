@@ -26,7 +26,6 @@ use App\Http\Controllers\Api\StudentCourseController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\CustomPageController;
 use App\Http\Controllers\Api\CommunityController;
-use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Student\AiChatController;
 use App\Http\Controllers\Api\ValidateCouponController;
 use App\Http\Controllers\Api\CourseDiscussionController;
@@ -108,18 +107,6 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/ai-chat', [AiChatController::class, 'index']);
     Route::post('/ai-chat/send', [AiChatController::class, 'sendMessage']);
 
-    // Student ↔ Instructor Messages
-    Route::prefix('messages')->group(function () {
-        Route::get('/', [ChatController::class, 'index']);
-        Route::get('/requests', [ChatController::class, 'requests']);
-        Route::get('/unread-count', [ChatController::class, 'unreadCount']);
-        Route::get('/instructors/search', [ChatController::class, 'searchInstructors']);
-        Route::post('/start', [ChatController::class, 'startConversation']);
-        Route::get('/{id}', [ChatController::class, 'show']);
-        Route::post('/{id}/send', [ChatController::class, 'sendMessage']);
-        Route::get('/{id}/poll', [ChatController::class, 'poll']);
-    });
-
     // Coupon Validation
     Route::post('/coupons/validate', [ValidateCouponController::class, 'validateCoupon']);
 
@@ -182,17 +169,6 @@ Route::prefix('instructor')->group(function () {
         Route::get('/bundles', [\App\Http\Controllers\Api\Instructor\BundleController::class, 'index']);
         Route::get('/bundles/{id}', [\App\Http\Controllers\Api\Instructor\BundleController::class, 'show']);
 
-        // Chat Routes
-        Route::get('/chat', [\App\Http\Controllers\Api\Instructor\ChatController::class, 'index']);
-        Route::get('/chat/requests', [\App\Http\Controllers\Api\Instructor\ChatController::class, 'requests']);
-        Route::post('/chat/accept/{id}', [\App\Http\Controllers\Api\Instructor\ChatController::class, 'accept']);
-        Route::post('/chat/decline/{id}', [\App\Http\Controllers\Api\Instructor\ChatController::class, 'decline']);
-        Route::get('/chat/unread-count', [\App\Http\Controllers\Api\Instructor\ChatController::class, 'unreadCount']);
-        Route::post('/chat/start', [\App\Http\Controllers\Api\Instructor\ChatController::class, 'startConversation']);
-        Route::get('/chat/{id}', [\App\Http\Controllers\Api\Instructor\ChatController::class, 'show']);
-        Route::post('/chat/{id}/send', [\App\Http\Controllers\Api\Instructor\ChatController::class, 'sendMessage']);
-        Route::get('/chat/{id}/poll', [\App\Http\Controllers\Api\Instructor\ChatController::class, 'poll']);
-
         // Students (Scholars)
         Route::get('/students', [\App\Http\Controllers\Api\Instructor\StudentsController::class, 'index']);
         Route::get('/students/{id}', [\App\Http\Controllers\Api\Instructor\StudentsController::class, 'show']);
@@ -238,14 +214,5 @@ Route::prefix('instructor')->group(function () {
         Route::delete('/live-classes/{id}', [\App\Http\Controllers\Api\Instructor\LiveClassController::class, 'destroy']);
         Route::post('/live-classes/{id}/start', [\App\Http\Controllers\Api\Instructor\LiveClassController::class, 'start']);
         Route::post('/live-classes/{id}/end', [\App\Http\Controllers\Api\Instructor\LiveClassController::class, 'end']);
-
-        // Support Tickets (Instructor)
-        Route::prefix('tickets')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Api\SupportTicketController::class, 'index']);
-            Route::post('/', [\App\Http\Controllers\Api\SupportTicketController::class, 'store']);
-            Route::get('/{id}', [\App\Http\Controllers\Api\SupportTicketController::class, 'show']);
-            Route::post('/{id}/reply', [\App\Http\Controllers\Api\SupportTicketController::class, 'reply']);
-            Route::post('/{id}/close', [\App\Http\Controllers\Api\SupportTicketController::class, 'close']);
-        });
     });
 });

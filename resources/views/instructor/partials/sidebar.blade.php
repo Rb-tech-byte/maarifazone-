@@ -18,10 +18,7 @@
     ]);
 
     $inCommGroup = request()->routeIs([
-        'instructor.messages.*',
         'instructor.discussions.*',
-        'instructor.tickets.*',
-        'instructor.help.*',
     ]);
 
     $inFinanceGroup = request()->routeIs([
@@ -99,40 +96,12 @@
             </div>
         </li>
 
-        {{-- Communication & Support --}}
+        {{-- Course Discussions (Public Forum Monitored by Admin) --}}
         <li class="out-nav-item">
-            <button type="button"
-                class="out-nav-link out-nav-toggle {{ $inCommGroup ? 'group-active' : '' }}"
-                data-bs-toggle="collapse"
-                data-bs-target="#instructorCommMenu"
-                aria-expanded="{{ $inCommGroup ? 'true' : 'false' }}">
+            <a href="{{ route('instructor.discussions.index') }}" class="out-nav-link {{ request()->routeIs('instructor.discussions.*') ? 'active' : '' }}">
                 <i class="fa-solid fa-comments"></i>
-                <span>Discussions &amp; Help</span>
-                <i class="fa-solid fa-chevron-right out-nav-chevron"></i>
-            </button>
-            <div class="collapse {{ $inCommGroup ? 'show' : '' }}" id="instructorCommMenu">
-                <ul class="out-nav-submenu">
-                    <li>
-                        <a href="{{ route('instructor.messages.index') }}" class="out-nav-link {{ request()->routeIs('instructor.messages.*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-envelope"></i>
-                            <span>Messages</span>
-                            <span class="badge bg-danger rounded-pill out-nav-badge instructor-chat-badge" style="display: none;"></span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('instructor.discussions.index') }}" class="out-nav-link {{ request()->routeIs('instructor.discussions.*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-comment-dots"></i>
-                            <span>Course Forums</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('instructor.tickets.index') }}" class="out-nav-link {{ request()->routeIs('instructor.tickets.*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-headset"></i>
-                            <span>Support Tickets</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+                <span>Course Discussions</span>
+            </a>
         </li>
 
         {{-- Earnings & Payouts --}}

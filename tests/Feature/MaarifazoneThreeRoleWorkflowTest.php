@@ -94,6 +94,11 @@ class MaarifazoneThreeRoleWorkflowTest extends TestCase
         $courseRes = $this->actingAs($this->admin)->get(route('admin.courses.index'));
         $courseRes->assertStatus(200);
         $courseRes->assertSee($this->onlineCourse->title, false);
+
+        // Admin students directory
+        $studentsRes = $this->actingAs($this->admin)->get(route('admin.students.index'));
+        $studentsRes->assertStatus(200);
+        $studentsRes->assertSee('Students Directory', false);
     }
 
     public function test_instructor_can_access_assigned_courses_but_cannot_create_courses(): void
@@ -203,5 +208,50 @@ class MaarifazoneThreeRoleWorkflowTest extends TestCase
         $studentLogin->assertRedirect(route('student.dashboard'));
         $this->assertAuthenticatedAs(User::where('email', 'student@maarifazone.com')->first());
         auth()->logout();
+    }
+
+    public function test_direct_messaging_is_removed_and_communication_is_centralized_through_admin(): void
+    {
+        // 1. Direct 1-on-1 messaging routes are completely removed (404)
+        $instructorMessages = $this->actingAs($this->instructor)->get('/instructor/messages');
+        $instructorMessages->assertStatus(404);
+
+        $studentMessages = $this->actingAs($this->scholar)->get('/student/messages');
+        $studentMessages->assertStatus(404);
+
+        // 2. Instructor support desk route is removed (404)
+        $instructorTickets = $this->actingAs($this->instructor)->get('/instructor/tickets');
+        $instructorTickets->assertStatus(404);
+
+        // 3. Scholar communicates with Central Administration via student tickets
+        $scholarTicketsIndex = $this->actingAs($this->scholar)->get(route('student.tickets.index'));
+        $scholarTicketsIndex->assertStatus(200);
+
+        $ticketStore = $this->actingAs($this->scholar)->post(route('student.tickets.store'), [
+            'subject'    => 'Inquiry regarding Online Curriculum',
+            'department' => 'general',
+            'priority'   => 'medium',
+            'message'    => 'Hello Administration, I have an inquiry about the Laravel online course pacing.',
+        ]);
+        $ticketStore->assertRedirect();
+
+        // 4. Admin accesses centralized support desk and manages scholar tickets
+        $adminTicketsIndex = $this->actingAs($this->admin)->get(route('admin.tickets.index'));
+        $adminTicketsIndex->assertStatus(200);
+        $adminTicketsIndex->assertSee('Inquiry regarding Online Curriculum', false);
+
+        $ticket = \App\Models\SupportTicket::where('subject', 'Inquiry regarding Online Curriculum')->first();
+        $this->assertNotNull($ticket);
+        $this->assertEquals('student', $ticket->sender_role);
+
+        $adminReply = $this->actingAs($this->admin)->post(route('admin.tickets.reply', $ticket), [
+            'message' => 'Hello Scholar, our curriculum is self-paced with live classes every weekend.',
+            'status'  => 'answered',
+        ]);
+        $adminReply->assertRedirect();
+        $this->assertDatabaseHas('support_ticket_messages', [
+            'ticket_id'      => $ticket->id,
+            'is_admin_reply' => true,
+        ]);
     }
 }

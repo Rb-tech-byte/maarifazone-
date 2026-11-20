@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\Conversation;
 use App\Models\Enrollment;
+use App\Models\SupportTicket;
 use App\Models\User;
-use App\Services\ChatService;
 use App\Services\LiveClassService;
 use App\Support\DashboardFilters;
 use Illuminate\Http\JsonResponse;
@@ -28,8 +27,7 @@ class DashboardController extends Controller
      * Initialize dependencies for this class.
      */
     public function __construct(
-        protected LiveClassService $liveClassService,
-        protected ChatService $chatService
+        protected LiveClassService $liveClassService
     ) {}
 
     /**
@@ -71,18 +69,12 @@ class DashboardController extends Controller
 
         $recentNotifications = $user->notifications()->latest()->limit(6)->get();
 
-        $recentConversations = Conversation::query()
-            ->with(['instructor:id,name,profile_photo', 'latestMessage'])
-            ->where('student_id', $user->id)
-            ->where('is_closed', false)
-            ->orderByDesc('last_message_at')
+        $recentTickets = SupportTicket::query()
+            ->where('user_id', $user->id)
+            ->withCount('messages')
+            ->orderByDesc('last_reply_at')
             ->limit(4)
-            ->get()
-            ->map(function (Conversation $conv) use ($user) {
-                $conv->unread_count = $conv->unreadCountFor($user->id);
-
-                return $conv;
-            });
+            ->get();
 
         $stats = $kpis;
 
@@ -101,7 +93,7 @@ class DashboardController extends Controller
             'stats',
             'recentEnrollments',
             'recentNotifications',
-            'recentConversations',
+            'recentTickets',
             'firstName',
             'upcomingLiveClass',
             'filters',
@@ -144,7 +136,7 @@ class DashboardController extends Controller
                 'pending_enrollments' => $kpis['pending_enrollments'],
                 'total_lessons' => $kpis['total_lessons'],
                 'unread_notifications' => $kpis['unread_notifications'],
-                'unread_messages' => $kpis['unread_messages'],
+                'open_tickets' => $kpis['open_tickets'],
             ],
             'notifications' => $notifications,
             'synced_at' => now()->toIso8601String(),
@@ -184,7 +176,7 @@ class DashboardController extends Controller
             'pending_enrollments' => $pendingEnrollments,
             'total_lessons' => $totalLessons,
             'unread_notifications' => $user->unreadNotifications()->count(),
-            'unread_messages' => $this->chatService->getUnreadCount($user->id, 'student'),
+            'open_tickets' => SupportTicket::where('user_id', $user->id)->where('status', '!=', 'closed')->count(),
         ];
     }
 

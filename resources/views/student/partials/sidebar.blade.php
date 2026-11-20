@@ -17,7 +17,6 @@
     ]);
 
     $inSupportGroup = request()->routeIs([
-        'student.messages.*',
         'student.ai-chat.*',
         'student.notifications.*',
         'student.tickets.*',
@@ -91,10 +90,9 @@
             <div class="collapse {{ $inSupportGroup ? 'show' : '' }}" id="studentSupportMenu">
                 <ul class="out-nav-submenu">
                     <li>
-                        <a href="{{ route('student.messages.index') }}" class="out-nav-link {{ request()->routeIs('student.messages.*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-envelope"></i>
-                            <span>Messages</span>
-                            <span class="badge bg-danger rounded-pill out-nav-badge student-chat-badge" style="display: none;"></span>
+                        <a href="{{ route('student.tickets.index') }}" class="out-nav-link {{ request()->routeIs('student.tickets.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-headset"></i>
+                            <span>Admin Support Desk</span>
                         </a>
                     </li>
                     <li>

@@ -20,7 +20,6 @@ use App\Http\Controllers\Instructor\AnalyticsController;
 use App\Http\Controllers\Instructor\ReviewsController;
 use App\Http\Controllers\Instructor\EarningsController;
 use App\Http\Controllers\Instructor\SettingsController;
-use App\Http\Controllers\Instructor\ChatController;
 use App\Http\Controllers\Instructor\NotificationController;
 use App\Http\Controllers\Instructor\BundleController;
 use App\Http\Controllers\Instructor\CouponController as InstructorCouponController;
@@ -88,23 +87,10 @@ Route::middleware(['auth', 'role:instructor'])->prefix('instructor')->name('inst
     // Bundles routes
     Route::resource('bundles', BundleController::class);
 
-    // Chat / Messages routes
-    Route::get('messages/start', [ChatController::class, 'startConversation'])->name('messages');
-    Route::prefix('messages')->name('messages.')->group(function () {
-        Route::get('/', [ChatController::class, 'index'])->name('index');
-        Route::get('/requests', [ChatController::class, 'requests'])->name('requests');
-        Route::get('/unread-count', [ChatController::class, 'unreadCount'])->name('unread-count');
-        Route::get('/{conversation}', [ChatController::class, 'show'])->name('show');
-        Route::post('/{conversation}/send', [ChatController::class, 'sendMessage'])->name('send');
-        Route::get('/{conversation}/poll', [ChatController::class, 'poll'])->name('poll');
-        Route::post('/{conversation}/accept', [ChatController::class, 'accept'])->name('accept');
-        Route::post('/{conversation}/decline', [ChatController::class, 'decline'])->name('decline');
-    });
-
     // Coupons
     Route::resource('coupons', InstructorCouponController::class);
 
-    // Course Discussions
+    // Course Discussions (Public & Monitored)
     Route::prefix('discussions')->name('discussions.')->group(function () {
         Route::get('/', [InstructorCourseDiscussionController::class, 'index'])->name('index');
         Route::post('/course/{courseId}', [InstructorCourseDiscussionController::class, 'store'])->name('store');
@@ -121,16 +107,6 @@ Route::middleware(['auth', 'role:instructor'])->prefix('instructor')->name('inst
     Route::post('live-classes/{id}/start', [LiveClassController::class, 'startSession'])->name('live-classes.start');
     Route::post('live-classes/{id}/end', [LiveClassController::class, 'endSession'])->name('live-classes.end');
     Route::resource('live-classes', LiveClassController::class);
-
-    // Support Tickets
-    Route::prefix('tickets')->name('tickets.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Instructor\SupportTicketController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\Instructor\SupportTicketController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Instructor\SupportTicketController::class, 'store'])->name('store');
-        Route::get('/{ticket}', [\App\Http\Controllers\Instructor\SupportTicketController::class, 'show'])->name('show');
-        Route::post('/{ticket}/reply', [\App\Http\Controllers\Instructor\SupportTicketController::class, 'reply'])->name('reply');
-        Route::post('/{ticket}/close', [\App\Http\Controllers\Instructor\SupportTicketController::class, 'close'])->name('close');
-    });
 
     Route::get('/help', [\App\Http\Controllers\HelpController::class, 'index'])->name('help.index');
 });

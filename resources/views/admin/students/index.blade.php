@@ -82,7 +82,7 @@
                 <div class="card-body border-bottom bg-light py-3">
                     <form id="students-filter-form" method="GET" action="{{ route('admin.students.index') }}">
                         <div class="form-row align-items-end">
-                            <div class="col-lg-3 col-md-6 mb-2">
+                            <div class="col-lg-4 col-md-6 mb-2">
                                 <label for="student-search-input" class="small text-muted mb-1">Real-Time Search</label>
                                 <div class="input-group input-group-sm">
                                     <div class="input-group-prepend">
@@ -100,21 +100,7 @@
                                 </div>
                             </div>
 
-                            @if (auth()->user()->isMultiBranchAdmin())
-                                <div class="col-lg-2 col-md-4 mb-2">
-                                    <label for="filter-branch" class="small text-muted mb-1">Branch</label>
-                                    <select id="filter-branch" name="branch_id" class="form-control form-control-sm js-student-filter">
-                                        <option value="">All Branches</option>
-                                        @foreach ($branches as $branch)
-                                            <option value="{{ $branch->id }}" {{ (string) ($effectiveBranch ?? '') === (string) $branch->id ? 'selected' : '' }}>
-                                                {{ $branch->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            @endif
-
-                            <div class="col-lg-2 col-md-4 mb-2">
+                            <div class="col-lg-3 col-md-6 mb-2">
                                 <label for="filter-course" class="small text-muted mb-1">Enrolled Course</label>
                                 <select id="filter-course" name="course_id" class="form-control form-control-sm js-student-filter">
                                     <option value="">All Courses</option>

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Branch;
 use App\Models\User;
 use App\Rules\StrongPassword;
 use Database\Seeders\RoleSeeder;
@@ -19,7 +18,7 @@ use Spatie\Permission\Models\Role;
 /**
  * Staff & Role Management Controller (v2.2.0)
  *
- * Manages Super Admins, Branch Managers, Coordinators, Marketing Officers, Directors, Staff & Role Permissions.
+ * Manages Maarifazone Administrators, Staff & Role Permissions.
  * @author Renatus Bernardo
  */
 class StaffController extends Controller
@@ -31,14 +30,12 @@ class StaffController extends Controller
     {
         $activeTab = $request->query('tab', 'staff');
         $roleFilter = $request->query('role');
-        $branchFilter = $request->query('branch_id');
         $statusFilter = $request->query('status');
         $search = trim((string) $request->query('q', ''));
 
         $staffQuery = User::where('role', 'admin')
-            ->with(['roles', 'permissions', 'branch:id,name'])
+            ->with(['roles', 'permissions'])
             ->when($roleFilter, fn ($q) => $q->whereHas('roles', fn ($r) => $r->where('name', $roleFilter)))
-            ->when($branchFilter, fn ($q) => $q->where('branch_id', $branchFilter))
             ->when($statusFilter === 'blocked', fn ($q) => $q->where('is_blocked', true))
             ->when($statusFilter === 'active', fn ($q) => $q->where('is_blocked', false))
             ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
@@ -52,14 +49,12 @@ class StaffController extends Controller
             ->orderBy('id')
             ->get();
 
-        $branches = Branch::orderBy('name')->get(['id', 'name']);
         $permissionGroups = RoleSeeder::permissionGroups();
 
         return view('admin.staff.index', compact(
             'activeTab',
             'staffMembers',
             'roles',
-            'branches',
             'permissionGroups'
         ));
     }
@@ -70,10 +65,9 @@ class StaffController extends Controller
     public function create(): View
     {
         $roles = Role::whereNotIn('name', ['student', 'instructor'])->orderBy('id')->get();
-        $branches = Branch::orderBy('name')->get(['id', 'name']);
         $permissionGroups = RoleSeeder::permissionGroups();
 
-        return view('admin.staff.create', compact('roles', 'branches', 'permissionGroups'));
+        return view('admin.staff.create', compact('roles', 'permissionGroups'));
     }
 
     /**
@@ -85,7 +79,6 @@ class StaffController extends Controller
             'name'                 => ['required', 'string', 'max:255'],
             'email'                => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone'                => ['nullable', 'string', 'max:30'],
-            'branch_id'            => ['nullable', 'integer', 'exists:branches,id'],
             'password'             => ['required', 'confirmed', new StrongPassword()],
             'spatie_role'          => ['required', 'string', 'exists:roles,name'],
             'force_password_reset' => ['nullable', 'boolean'],
@@ -97,7 +90,6 @@ class StaffController extends Controller
             'name'                 => $validated['name'],
             'email'                => $validated['email'],
             'phone'                => $validated['phone'] ?? null,
-            'branch_id'            => $validated['branch_id'] ?? null,
             'password'             => Hash::make($validated['password']),
             'role'                 => 'admin',
             'is_approved'          => true,
@@ -131,7 +123,6 @@ class StaffController extends Controller
         abort_unless($staff->role === 'admin', 404);
 
         $roles = Role::whereNotIn('name', ['student', 'instructor'])->orderBy('id')->get();
-        $branches = Branch::orderBy('name')->get(['id', 'name']);
         $permissionGroups = RoleSeeder::permissionGroups();
         $assignedPermissions = $staff->permissions->pluck('name')->toArray();
         $currentRole = $staff->roles->first()?->name ?? 'super-admin';
@@ -139,7 +130,6 @@ class StaffController extends Controller
         return view('admin.staff.edit', compact(
             'staff',
             'roles',
-            'branches',
             'permissionGroups',
             'assignedPermissions',
             'currentRole'
@@ -157,7 +147,6 @@ class StaffController extends Controller
             'name'                 => ['required', 'string', 'max:255'],
             'email'                => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($staff->id)],
             'phone'                => ['nullable', 'string', 'max:30'],
-            'branch_id'            => ['nullable', 'integer', 'exists:branches,id'],
             'password'             => ['nullable', 'confirmed', new StrongPassword()],
             'spatie_role'          => ['required', 'string', 'exists:roles,name'],
             'force_password_reset' => ['nullable', 'boolean'],
@@ -169,7 +158,6 @@ class StaffController extends Controller
             'name'                 => $validated['name'],
             'email'                => $validated['email'],
             'phone'                => $validated['phone'] ?? null,
-            'branch_id'            => $validated['branch_id'] ?? null,
             'force_password_reset' => (bool) ($validated['force_password_reset'] ?? false),
         ];
 

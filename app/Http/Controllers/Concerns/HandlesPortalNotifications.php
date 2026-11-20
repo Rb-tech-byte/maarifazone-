@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Concerns;
 
-use App\Services\ChatService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,7 +15,7 @@ trait HandlesPortalNotifications
     /**
      * Return JSON notification feed + unread counts for header bell and inbox polling.
      */
-    public function feed(Request $request, ChatService $chatService): JsonResponse
+    public function feed(Request $request): JsonResponse
     {
         $user = $request->user();
         $role = $this->portalNotificationRole();
@@ -48,7 +47,7 @@ trait HandlesPortalNotifications
 
         return response()->json([
             'unread_count' => $user->unreadNotifications()->count(),
-            'unread_messages' => $chatService->getUnreadCount($user->id, $role),
+            'unread_messages' => 0,
             'read_all_url' => route($readAllRouteName),
             'index_url' => route($indexRouteName),
             'notifications' => $items,

@@ -16,7 +16,7 @@
         <thead>
             <tr>
                 <th>Student</th>
-                <th>Branch &amp; Status</th>
+                <th>Status</th>
                 <th>Enrollments</th>
                 <th>Completed</th>
                 <th>Total Spent</th>
@@ -66,7 +66,7 @@
                             </span>
                         </div>
                         <small class="text-muted">
-                            <i class="fas fa-code-branch mr-1"></i>{{ $student->branch?->name ?? 'Online / Unassigned' }}
+                            <i class="fas fa-globe mr-1 text-primary"></i>Online Scholar
                         </small>
                     </td>
                     <td>

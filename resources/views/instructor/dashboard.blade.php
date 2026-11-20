@@ -205,35 +205,32 @@
                         <i class="fa-solid fa-wallet"></i>
                         <span>Course Earnings &amp; Payouts</span>
                     </a>
-                    <a href="{{ route('instructor.tickets.create') }}" class="out-action-tile">
-                        <i class="fa-solid fa-headset"></i>
-                        <span>Submit Faculty Ticket</span>
+                    <a href="{{ route('instructor.discussions.index') }}" class="out-action-tile">
+                        <i class="fa-solid fa-comments"></i>
+                        <span>Course Discussions</span>
                     </a>
                 </div>
             </div>
 
-            <!-- Instructor Support & Guidelines Card -->
+            <!-- Instructor Academic & Platform Guidelines Card -->
             <div class="out-card">
                 <div class="out-card-header">
                     <h3 class="out-card-title">
-                        <i class="fa-solid fa-circle-info text-info"></i> Maarifazone Faculty Support
+                        <i class="fa-solid fa-shield-halved text-primary"></i> Academic &amp; Platform Guidelines
                     </h3>
                 </div>
                 <div class="out-card-body p-3">
                     <div class="p-3 rounded-3 mb-3" style="background: rgba(249, 159, 30, 0.05); border: 1px solid rgba(249, 159, 30, 0.12);">
-                        <h6 class="fw-bold mb-1" style="color: #f99f1e; font-size: 13.5px;">Curriculum & Quality Standards</h6>
+                        <h6 class="fw-bold mb-1" style="color: #f99f1e; font-size: 13.5px;">Curriculum &amp; Quality Standards</h6>
                         <p class="text-muted mb-0" style="font-size: 12.5px;">
-                            Ensure all learning outcomes comply with Maarifazone Academic Board standards and assessment criteria.
+                            Ensure all live classes and discussion replies adhere to Maarifazone Academic Board standards.
                         </p>
                     </div>
                     <div class="p-3 rounded-3" style="background: rgba(249, 159, 30, 0.06); border: 1px solid rgba(249, 159, 30, 0.15);">
-                        <h6 class="fw-bold mb-1" style="color: #c97406; font-size: 13.5px;">Need Technical Assistance?</h6>
-                        <p class="text-muted mb-2" style="font-size: 12.5px;">
-                            Our dedicated LMS Technical Support team is ready to assist you.
+                        <h6 class="fw-bold mb-1" style="color: #c97406; font-size: 13.5px;">Centralized Communication</h6>
+                        <p class="text-muted mb-0" style="font-size: 12.5px;">
+                            All scholar inquiries and support requests are centrally routed through System Administration to maintain safety and institutional compliance.
                         </p>
-                        <a href="{{ route('instructor.tickets.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 12px; font-weight: 600;">
-                            Open Support Desk
-                        </a>
                     </div>
                 </div>
             </div>

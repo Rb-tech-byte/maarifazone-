@@ -27,7 +27,6 @@
                 <th>#</th>
                 <th>Student / Reg #</th>
                 <th>Email &amp; Phone</th>
-                <th>Branch</th>
                 <th>Status</th>
                 <th class="num">Enrollments</th>
                 <th class="num">Completed</th>
@@ -51,7 +50,6 @@
                             <br>{{ $student->phone }}
                         @endif
                     </td>
-                    <td>{{ $student->branch?->name ?? 'Online / Unassigned' }}</td>
                     <td>{{ $student->account_status_label ?? 'Active' }}</td>
                     <td class="num">{{ (int) ($student->total_enrollments ?? 0) }}</td>
                     <td class="num">{{ (int) ($student->completed_courses ?? 0) }}</td>
@@ -60,7 +58,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" style="text-align:center;">No matching students found.</td>
+                    <td colspan="8" style="text-align:center;">No matching students found.</td>
                 </tr>
             @endforelse
         </tbody>

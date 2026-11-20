@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\StudentsExport;
 use App\Http\Controllers\Controller;
-use App\Models\Branch;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Payment;
@@ -24,8 +23,8 @@ use Maatwebsite\Excel\Facades\Excel;
 /**
  * Student Controller
  *
- * Manages student records with real-time search, multi-criteria filtering,
- * branch isolation, configurable pagination (>= 6 per page), and exports.
+ * Manages scholar (student) records with real-time search, multi-criteria filtering,
+ * configurable pagination (>= 6 per page), and exports.
  *
  * @package App\Http\Controllers\Admin
  * @author Renatus Bernardo
@@ -43,7 +42,7 @@ class StudentController extends Controller
             return $this->export($request);
         }
 
-        [$query, $filters, $effectiveBranch] = $this->buildStudentsQuery($request);
+        [$query, $filters] = $this->buildStudentsQuery($request);
 
         $requestedPerPage = (int) ($filters['per_page'] ?: 6);
         $perPage = in_array($requestedPerPage, self::PER_PAGE_OPTIONS, true)
@@ -53,21 +52,19 @@ class StudentController extends Controller
         $matchingIds = (clone $query)->pluck('users.id');
         $totalMatching = $matchingIds->count();
         $activeCount = (clone $query)->where('is_approved', true)->where('is_blocked', false)->count();
-        $enrolledCount = (clone $query)->whereHas('enrollments', fn ($q) => $q->withoutGlobalScope('branch'))->count();
+        $enrolledCount = (clone $query)->whereHas('enrollments')->count();
         $totalSpent = $matchingIds->isEmpty()
             ? 0.0
-            : (float) Payment::withoutGlobalScope('branch')
-                ->where('status', Payment::STATUS_COMPLETED)
+            : (float) Payment::where('status', Payment::STATUS_COMPLETED)
                 ->where(function (Builder $pq) use ($matchingIds): void {
                     $pq->whereIn('user_id', $matchingIds)
-                        ->orWhereHas('enrollment', fn (Builder $eq) => $eq->withoutGlobalScope('branch')->whereIn('user_id', $matchingIds));
+                        ->orWhereHas('enrollment', fn (Builder $eq) => $eq->whereIn('user_id', $matchingIds));
                 })
                 ->sum('amount');
 
         $students = (clone $query)
             ->with([
-                'branch:id,name',
-                'enrollments' => fn ($q) => $q->withoutGlobalScope('branch')->with(['course:id,title', 'payment:id,amount,status']),
+                'enrollments' => fn ($q) => $q->with(['course:id,title', 'payment:id,amount,status']),
             ])
             ->paginate($perPage)
             ->appends($request->except('ajax'))
@@ -75,14 +72,7 @@ class StudentController extends Controller
 
         $this->enrichStudents($students->getCollection());
 
-        $totalStudents = User::where('role', 'student')
-            ->when($effectiveBranch, function (Builder $q) use ($effectiveBranch): void {
-                $q->where(function (Builder $bq) use ($effectiveBranch): void {
-                    $bq->where('branch_id', $effectiveBranch)
-                        ->orWhereHas('enrollments', fn (Builder $eq) => $eq->withoutGlobalScope('branch')->where('branch_id', $effectiveBranch));
-                });
-            })
-            ->count();
+        $totalStudents = User::where('role', 'student')->count();
 
         $summary = [
             'total_matching' => $totalMatching,
@@ -109,20 +99,17 @@ class StudentController extends Controller
             ]);
         }
 
-        $branches = Branch::orderBy('name')->get(['id', 'name']);
         $courses = Course::orderBy('title')->get(['id', 'title']);
         $perPageOptions = self::PER_PAGE_OPTIONS;
 
         return view('admin.students.index', compact(
             'students',
             'totalStudents',
-            'branches',
             'courses',
             'filters',
             'summary',
             'perPage',
-            'perPageOptions',
-            'effectiveBranch'
+            'perPageOptions'
         ));
     }
 
@@ -139,8 +126,7 @@ class StudentController extends Controller
         [$query, $filters] = $this->buildStudentsQuery($request);
 
         $students = $query->with([
-            'branch:id,name',
-            'enrollments' => fn ($q) => $q->withoutGlobalScope('branch')->with(['course:id,title', 'payment:id,amount,status']),
+            'enrollments' => fn ($q) => $q->with(['course:id,title', 'payment:id,amount,status']),
         ])->get();
 
         $this->enrichStudents($students);
@@ -173,18 +159,12 @@ class StudentController extends Controller
     /**
      * Build filtered, sorted query for student directory listings and exports.
      *
-     * @return array{0: Builder, 1: array<string, mixed>, 2: ?int}
+     * @return array{0: Builder, 1: array<string, mixed>}
      */
     private function buildStudentsQuery(Request $request): array
     {
-        /** @var User|null $actor */
-        $actor = Auth::user();
-        $requestedBranchId = $request->integer('branch_id') ?: null;
-        $effectiveBranch = $actor ? $actor->effectiveBranchId($requestedBranchId) : $requestedBranchId;
-
         $filters = [
             'search' => trim((string) $request->input('search', '')),
-            'branch_id' => $effectiveBranch,
             'course_id' => $request->integer('course_id') ?: null,
             'enrollment_status' => trim((string) $request->input('enrollment_status', '')),
             'account_status' => trim((string) $request->input('account_status', '')),
@@ -196,22 +176,15 @@ class StudentController extends Controller
 
         $query = User::query()
             ->where('role', 'student')
-            ->withCount(['enrollments as total_enrollments_count' => fn (Builder $q) => $q->withoutGlobalScope('branch')])
+            ->withCount(['enrollments as total_enrollments_count'])
             ->select('users.*')
             ->selectSub(
-                Payment::withoutGlobalScope('branch')
+                Payment::query()
                     ->selectRaw('COALESCE(SUM(amount), 0)')
                     ->whereColumn('payments.user_id', 'users.id')
                     ->where('payments.status', Payment::STATUS_COMPLETED),
                 'completed_spent_sum'
             );
-
-        if ($effectiveBranch) {
-            $query->where(function (Builder $q) use ($effectiveBranch): void {
-                $q->where('users.branch_id', $effectiveBranch)
-                    ->orWhereHas('enrollments', fn (Builder $eq) => $eq->withoutGlobalScope('branch')->where('branch_id', $effectiveBranch));
-            });
-        }
 
         if ($filters['search'] !== '') {
             $term = $filters['search'];
@@ -220,24 +193,24 @@ class StudentController extends Controller
                     ->orWhere('users.email', 'like', "%{$term}%")
                     ->orWhere('users.phone', 'like', "%{$term}%")
                     ->orWhere('users.registration_number', 'like', "%{$term}%")
-                    ->orWhereHas('enrollments', fn (Builder $eq) => $eq->withoutGlobalScope('branch')
+                    ->orWhereHas('enrollments', fn (Builder $eq) => $eq
                         ->whereHas('course', fn (Builder $cq) => $cq->where('title', 'like', "%{$term}%")));
             });
         }
 
         if ($filters['course_id']) {
             $courseId = $filters['course_id'];
-            $query->whereHas('enrollments', fn (Builder $eq) => $eq->withoutGlobalScope('branch')->where('course_id', $courseId));
+            $query->whereHas('enrollments', fn (Builder $eq) => $eq->where('course_id', $courseId));
         }
 
         if ($filters['enrollment_status'] === 'enrolled') {
-            $query->whereHas('enrollments', fn (Builder $eq) => $eq->withoutGlobalScope('branch'));
+            $query->whereHas('enrollments');
         } elseif ($filters['enrollment_status'] === 'active') {
-            $query->whereHas('enrollments', fn (Builder $eq) => $eq->withoutGlobalScope('branch')->where('status', Enrollment::STATUS_APPROVED));
+            $query->whereHas('enrollments', fn (Builder $eq) => $eq->where('status', Enrollment::STATUS_APPROVED));
         } elseif ($filters['enrollment_status'] === 'completed') {
-            $query->whereHas('enrollments', fn (Builder $eq) => $eq->withoutGlobalScope('branch')->where('status', Enrollment::STATUS_COMPLETED));
+            $query->whereHas('enrollments', fn (Builder $eq) => $eq->where('status', Enrollment::STATUS_COMPLETED));
         } elseif ($filters['enrollment_status'] === 'unenrolled') {
-            $query->whereDoesntHave('enrollments', fn (Builder $eq) => $eq->withoutGlobalScope('branch'));
+            $query->whereDoesntHave('enrollments');
         }
 
         if ($filters['account_status'] === 'active') {
@@ -264,7 +237,7 @@ class StudentController extends Controller
             default => $query->orderByDesc('users.created_at')->orderByDesc('users.id'),
         };
 
-        return [$query, $filters, $effectiveBranch];
+        return [$query, $filters];
     }
 
     /**
@@ -283,7 +256,7 @@ class StudentController extends Controller
             ->values()
             ->all();
 
-        $completedPayments = Payment::withoutGlobalScope('branch')
+        $completedPayments = Payment::query()
             ->where('status', Payment::STATUS_COMPLETED)
             ->where(function (Builder $q) use ($studentIds, $enrollmentPaymentIds): void {
                 $q->whereIn('user_id', $studentIds);

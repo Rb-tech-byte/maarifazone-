@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Conversation;
+use App\Models\SupportTicket;
 use App\Models\User;
 use App\Notifications\GeneralNotification;
 use Illuminate\Support\Facades\Route;
@@ -74,27 +74,22 @@ class PortalNotificationService
             720
         );
 
-        // Remind student or instructor if unread messages are waiting in inbox
-        $role = $user->isInstructor() ? 'instructor' : (! $user->isAdmin() ? 'student' : null);
-        if ($role && Schema::hasTable('conversations') && Schema::hasTable('chat_messages')) {
+        // Remind student if unresolved support ticket updates exist
+        if (! $user->isAdmin() && ! $user->isInstructor() && Schema::hasTable('support_tickets')) {
             try {
-                $column = $role === 'instructor' ? 'instructor_id' : 'student_id';
-                $unreadMsgs = Conversation::where($column, $user->id)
-                    ->where('is_closed', false)
-                    ->whereHas('messages', fn ($q) => $q->where('sender_id', '!=', $user->id)->where('is_read', false))
+                $openTickets = \App\Models\SupportTicket::where('user_id', $user->id)
+                    ->whereIn('status', ['open', 'in_progress'])
                     ->count();
 
-                $inboxRoute = $role === 'instructor' ? 'instructor.messages.index' : 'student.messages.index';
-
-                if ($unreadMsgs > 0 && Route::has($inboxRoute)) {
+                if ($openTickets > 0 && Route::has('student.tickets.index')) {
                     $this->notifyUser(
                         $user,
-                        'Unread Portal Messages',
-                        "You have unread messages waiting across {$unreadMsgs} active conversation(s).",
+                        'Active Support Tickets',
+                        "You have {$openTickets} active support inquiry ticket(s) with Central Administration.",
                         'info',
-                        route($inboxRoute),
-                        'Unread Portal Messages',
-                        360
+                        route('student.tickets.index'),
+                        'Active Support Tickets',
+                        720
                     );
                 }
             } catch (\Throwable) {

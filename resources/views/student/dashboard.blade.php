@@ -91,18 +91,18 @@
             </a>
         </div>
         <div class="col-md-4">
-            <a href="{{ route('student.messages.index') }}" class="out-card text-decoration-none d-flex align-items-center justify-content-between p-3 h-100">
+            <a href="{{ route('student.tickets.index') }}" class="out-card text-decoration-none d-flex align-items-center justify-content-between p-3 h-100">
                 <div class="d-flex align-items-center gap-3">
                     <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: rgba(249, 159, 30, 0.12); color: #c97406;">
-                        <i class="fa-solid fa-envelope-open-text"></i>
+                        <i class="fa-solid fa-headset"></i>
                     </span>
                     <div>
-                        <div class="fw-bold text-dark" style="font-size: 13.5px;">Instructor Messages</div>
-                        <div class="text-muted" style="font-size: 12px;">Direct tutor discussions</div>
+                        <div class="fw-bold text-dark" style="font-size: 13.5px;">Admin Support Desk</div>
+                        <div class="text-muted" style="font-size: 12px;">Assistance &amp; help tickets</div>
                     </div>
                 </div>
-                <span id="summaryUnreadMsgs" class="badge rounded-pill {{ ($stats['unread_messages'] ?? 0) > 0 ? 'bg-primary' : 'bg-light text-muted border' }} px-3 py-2">
-                    {{ $stats['unread_messages'] ?? 0 }}
+                <span id="summaryOpenTickets" class="badge rounded-pill {{ ($stats['open_tickets'] ?? 0) > 0 ? 'bg-primary' : 'bg-light text-muted border' }} px-3 py-2">
+                    {{ $stats['open_tickets'] ?? 0 }} Open
                 </span>
             </a>
         </div>
@@ -312,37 +312,33 @@
 
         <!-- Right Column: Messages, Shortcuts & Support -->
         <div class="col-xl-4 col-lg-5">
-            <!-- Direct Messages / Instructor Inbox -->
+            <!-- Platform Support Desk -->
             <div class="out-card mb-4">
                 <div class="out-card-header">
                     <h3 class="out-card-title">
-                        <i class="fa-solid fa-comments text-primary"></i> Direct Messages
+                        <i class="fa-solid fa-headset text-primary"></i> Support Tickets
                     </h3>
-                    <a href="{{ route('student.messages.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 12px; font-weight: 600;">
-                        Open Inbox
+                    <a href="{{ route('student.tickets.create') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 12px; font-weight: 600;">
+                        New Ticket
                     </a>
                 </div>
                 <div class="out-card-body p-3">
-                    @forelse($recentConversations ?? [] as $conv)
-                        @php
-                            $instructorName = $conv->instructor?->name ?? 'Maarifazone Instructor';
-                            $lastBody = $conv->latestMessage?->body ?: ($conv->latestMessage ? 'Sent attachment' : 'Start chatting');
-                        @endphp
-                        <a href="{{ route('student.messages.show', $conv->id) }}"
-                           class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-3 text-decoration-none border mb-2 {{ ($conv->unread_count ?? 0) > 0 ? 'bg-light border-primary-subtle' : 'bg-white' }}">
+                    @forelse($recentTickets ?? [] as $ticket)
+                        <a href="{{ route('student.tickets.show', $ticket) }}"
+                           class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-3 text-decoration-none border mb-2 {{ $ticket->status === 'open' ? 'bg-light border-primary-subtle' : 'bg-white' }}">
                             <div style="min-width: 0;">
-                                <div class="fw-semibold text-dark text-truncate" style="font-size: 13px;">{{ $instructorName }}</div>
-                                <div class="text-muted text-truncate" style="font-size: 11.5px;">{{ \Illuminate\Support\Str::limit($lastBody, 45) }}</div>
+                                <div class="fw-semibold text-dark text-truncate" style="font-size: 13px;">{{ $ticket->subject }}</div>
+                                <div class="text-muted text-truncate" style="font-size: 11.5px;">
+                                    #{{ $ticket->ticket_number }} &middot; {{ ucfirst($ticket->department) }} &middot; {{ $ticket->messages_count }} {{ \Illuminate\Support\Str::plural('reply', $ticket->messages_count) }}
+                                </div>
                             </div>
-                            @if(($conv->unread_count ?? 0) > 0)
-                                <span class="badge bg-primary rounded-pill">{{ $conv->unread_count }}</span>
-                            @else
-                                <i class="fa-solid fa-chevron-right text-muted" style="font-size: 11px;"></i>
-                            @endif
+                            <span class="badge {{ $ticket->status === 'closed' ? 'bg-secondary' : ($ticket->status === 'in_progress' ? 'bg-info' : 'bg-warning text-dark') }} rounded-pill" style="font-size: 11px;">
+                                {{ ucfirst($ticket->status) }}
+                            </span>
                         </a>
                     @empty
                         <div class="text-center text-muted py-2" style="font-size: 12.5px;">
-                            No active instructor conversations yet.
+                            No support tickets filed yet.
                         </div>
                     @endforelse
                 </div>
@@ -436,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 setText('kpiPending', s.pending_enrollments);
                 setText('kpiLessons', s.total_lessons);
                 setText('summaryUnreadNotifs', s.unread_notifications);
-                setText('summaryUnreadMsgs', s.unread_messages);
+                setText('summaryOpenTickets', (s.open_tickets ?? 0) + ' Open');
 
                 const notifBadge = document.getElementById('dashboardNotifBadge');
                 if (notifBadge) {

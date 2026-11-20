@@ -317,20 +317,4 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(CommunityAnswer::class);
     }
-
-    /**
-     * Get conversations where user is the student.
-     */
-    public function studentConversations(): HasMany
-    {
-        return $this->hasMany(Conversation::class, 'student_id');
-    }
-
-    /**
-     * Get conversations where user is the instructor.
-     */
-    public function instructorConversations(): HasMany
-    {
-        return $this->hasMany(Conversation::class, 'instructor_id');
-    }
 }

@@ -12,27 +12,17 @@
         ? route($portalType . '.notifications.readAll')
         : '#';
     $readRouteName = $portalType . '.notifications.read';
-    $messagesRoute = $portalType === 'instructor' && \Illuminate\Support\Facades\Route::has('instructor.messages.index')
-        ? route('instructor.messages.index')
-        : (\Illuminate\Support\Facades\Route::has('student.messages.index') ? route('student.messages.index') : '#');
     $settingsRoute = $portalType === 'instructor' ? route('instructor.settings') : route('student.settings');
-    $ticketsRoute = $portalType === 'instructor' ? route('instructor.tickets.index') : route('student.tickets.index');
+    $ticketsRoute = $portalType === 'student' && \Illuminate\Support\Facades\Route::has('student.tickets.index')
+        ? route('student.tickets.index')
+        : '#';
     $userPhoto = $user?->profile_photo ? asset('storage/' . $user->profile_photo) : asset('assets/front/img/home-1/courses/client-01.png');
     $unreadCount = $user ? $user->unreadNotifications()->count() : 0;
     $recentPortalNotifications = $user ? $user->notifications()->latest()->limit(8)->get() : collect();
-    $unreadMessagesCount = 0;
-    if ($user) {
-        try {
-            $unreadMessagesCount = app(\App\Services\ChatService::class)->getUnreadCount($user->id, $portalType);
-        } catch (\Throwable) {
-            $unreadMessagesCount = 0;
-        }
-    }
 @endphp
 
 <header class="maarifazone-portal-header"
-        data-feed-url="{{ $notificationsFeedRoute }}"
-        data-chat-indicator=".{{ $portalType }}-chat-indicator">
+        data-feed-url="{{ $notificationsFeedRoute }}">
     <div class="maarifazone-portal-header-left">
         <!-- Sidebar Drawer Toggle (Mobile & Desktop) -->
         <button type="button" class="maarifazone-portal-toggle-btn" id="maarifazonePortalSidebarToggle" aria-label="Toggle Navigation">
@@ -64,14 +54,6 @@
             <i class="fa-solid fa-globe"></i>
             <span class="d-none d-md-inline">Visit Website</span>
         </a>
-
-        <!-- Messages Shortcut with Live Unread Count -->
-        @if($messagesRoute !== '#')
-            <a href="{{ $messagesRoute }}" class="maarifazone-portal-icon-btn" title="Messages">
-                <i class="fa-solid fa-envelope"></i>
-                <span class="maarifazone-portal-icon-badge maarifazone-portal-count-badge {{ $portalType }}-chat-indicator {{ $unreadMessagesCount > 0 ? '' : 'd-none' }}">{{ $unreadMessagesCount > 99 ? '99+' : $unreadMessagesCount }}</span>
-            </a>
-        @endif
 
         <!-- Interactive Notifications Bell Dropdown -->
         @if($notificationsRoute !== '#')
@@ -178,11 +160,13 @@
                             <i class="fa-solid fa-gear text-secondary"></i> Profile & Settings
                         </a>
                     </li>
-                    <li>
-                        <a class="dropdown-item" href="{{ $ticketsRoute }}">
-                            <i class="fa-solid fa-headset text-info"></i> Support Desk
-                        </a>
-                    </li>
+                    @if($ticketsRoute !== '#')
+                        <li>
+                            <a class="dropdown-item" href="{{ $ticketsRoute }}">
+                                <i class="fa-solid fa-headset text-info"></i> Admin Support Desk
+                            </a>
+                        </li>
+                    @endif
                     <li><hr class="dropdown-divider my-1"></li>
                     <li>
                         <a class="dropdown-item text-danger" href="{{ route('logout') }}">
