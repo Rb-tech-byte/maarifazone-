@@ -21,10 +21,25 @@ class AdminSeeder extends Seeder
     {
         $accounts = config('demo_accounts.roles', []);
 
+        // Also ensure student@maarifazone.com exists alongside scholar@maarifazone.com
+        $hasStudentAccount = collect($accounts)->contains(fn ($acc) => ($acc['email'] ?? '') === 'student@maarifazone.com');
+        if (! $hasStudentAccount) {
+            $accounts[] = [
+                'spatie_role' => 'student',
+                'role'        => 'student',
+                'group'       => 'scholar',
+                'label'       => 'Scholar',
+                'name'        => 'Alex Rivera',
+                'email'       => 'student@maarifazone.com',
+                'password'    => 'password',
+            ];
+        }
+
         // Legacy email map
         $legacyDomainMap = [
             'admin@maarifazone.com'      => ['admin@lsmout.ac.tz', 'admin@out.ac.tz', 'admin@edux.com', 'admin@eduex.com', 'superadmin@maarifazone.com'],
             'instructor@maarifazone.com' => ['instructor@lsmout.ac.tz', 'instructor@out.ac.tz', 'instructor@edux.com', 'instructor@eduex.com'],
+            'scholar@maarifazone.com'    => ['scholar@lsmout.ac.tz', 'scholar@edux.com', 'scholar@eduex.com'],
             'student@maarifazone.com'    => ['student@lsmout.ac.tz', 'student@out.ac.tz', 'student@edux.com', 'student@eduex.com'],
         ];
 

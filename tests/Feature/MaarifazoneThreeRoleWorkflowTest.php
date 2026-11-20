@@ -156,4 +156,52 @@ class MaarifazoneThreeRoleWorkflowTest extends TestCase
         $verifyRes = $this->get('/verify-certificate');
         $this->assertTrue(in_array($verifyRes->status(), [404, 405]));
     }
+
+    public function test_login_page_renders_one_click_demo_accounts_and_authenticates_seamlessly(): void
+    {
+        // 1. Login page displays the 3-role Maarifazone demo accounts
+        $loginPage = $this->get(route('login'));
+        $loginPage->assertStatus(200);
+        $loginPage->assertSee('One-Click Demo Access', false);
+        $loginPage->assertSee('admin@maarifazone.com', false);
+        $loginPage->assertSee('instructor@maarifazone.com', false);
+        $loginPage->assertSee('scholar@maarifazone.com', false);
+        $loginPage->assertSee('100% Online Maarifa &amp; Knowledge', false);
+
+        // 2. Admin demo sign-in redirects to admin dashboard
+        $adminLogin = $this->post(route('login'), [
+            'email'    => 'admin@maarifazone.com',
+            'password' => 'password',
+        ]);
+        $adminLogin->assertRedirect(route('admin.dashboard'));
+        $this->assertAuthenticatedAs(User::where('email', 'admin@maarifazone.com')->first());
+        auth()->logout();
+
+        // 3. Instructor demo sign-in redirects to instructor dashboard
+        $instructorLogin = $this->post(route('login'), [
+            'email'    => 'instructor@maarifazone.com',
+            'password' => 'password',
+        ]);
+        $instructorLogin->assertRedirect(route('instructor.dashboard'));
+        $this->assertAuthenticatedAs(User::where('email', 'instructor@maarifazone.com')->first());
+        auth()->logout();
+
+        // 4. Scholar demo sign-in redirects to scholar (student) dashboard
+        $scholarLogin = $this->post(route('login'), [
+            'email'    => 'scholar@maarifazone.com',
+            'password' => 'password',
+        ]);
+        $scholarLogin->assertRedirect(route('student.dashboard'));
+        $this->assertAuthenticatedAs(User::where('email', 'scholar@maarifazone.com')->first());
+        auth()->logout();
+
+        // 5. Student alias demo sign-in also redirects to scholar (student) dashboard
+        $studentLogin = $this->post(route('login'), [
+            'email'    => 'student@maarifazone.com',
+            'password' => 'password',
+        ]);
+        $studentLogin->assertRedirect(route('student.dashboard'));
+        $this->assertAuthenticatedAs(User::where('email', 'student@maarifazone.com')->first());
+        auth()->logout();
+    }
 }

@@ -161,8 +161,14 @@ class DemoContentSeeder extends Seeder
             $instructors[] = $user;
         }
 
-        // 3. Students (4 active learners)
+        // 3. Students (5 active learners including scholar@maarifazone.com)
         $studentsData = [
+            [
+                'email' => 'scholar@maarifazone.com',
+                'legacy_emails' => ['scholar@maarifazone.com', 'scholar@edux.com'],
+                'name' => 'Alex Rivera',
+                'profile_photo' => 'assets/front/img/home-1/courses/client-01.png',
+            ],
             [
                 'email' => 'student@maarifazone.com',
                 'legacy_emails' => ['student@maarifazone.com', 'student@edux.com', 'student@eduex.com'],
