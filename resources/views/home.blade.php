@@ -12,127 +12,162 @@
         background-color: #ffffff;
     }
 
-    /* 1. Gradient Hero Section */
+    /* 1. Neutral Modern Hero Section (Brand Aligned: Deep Slate / Crisp Off-White with Refined Amber Accents) */
     .maarifazone-home-hero {
-        background: linear-gradient(135deg, #c97406 0%, var(--theme, #f99f1e) 58%, #fba936 100%);
-        padding: 56px 0 68px;
-        color: #ffffff;
+        background-color: #f8fafc;
+        background-image:
+            radial-gradient(ellipse 70% 60% at 85% 15%, rgba(249, 159, 30, 0.08) 0%, transparent 65%),
+            radial-gradient(ellipse 50% 50% at 10% 85%, rgba(15, 23, 42, 0.03) 0%, transparent 60%),
+            linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        padding: 64px 0 76px;
+        color: #0f172a;
         position: relative;
         overflow: hidden;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .maarifazone-home-hero::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(249, 159, 30, 0.25), transparent);
+        pointer-events: none;
     }
     .maarifazone-home-hero__eyebrow {
         display: inline-flex;
         align-items: center;
-        gap: 7px;
-        background: rgba(255, 255, 255, 0.16);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        color: #ffffff;
-        font-size: 11px;
+        gap: 8px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        color: #0f172a;
+        font-size: 11.5px;
         font-weight: 600;
-        padding: 4px 12px;
+        padding: 5px 14px;
         border-radius: 999px;
-        margin-bottom: 16px;
+        margin-bottom: 18px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
     }
     .maarifazone-home-hero__eyebrow-dot {
         width: 7px;
         height: 7px;
         border-radius: 50%;
-        background: #ffffff;
+        background: #f99f1e;
+        box-shadow: 0 0 0 3px rgba(249, 159, 30, 0.22);
     }
     .maarifazone-home-hero__title {
-        font-size: 38px;
+        font-size: 40px;
         font-weight: 800;
-        line-height: 1.16;
+        line-height: 1.15;
         letter-spacing: -0.025em;
-        color: #ffffff;
-        margin: 0 0 14px;
+        color: #0f172a;
+        margin: 0 0 16px;
     }
-    .maarifazone-home-hero__title span {
-        color: #111827;
+    .maarifazone-home-hero__title span,
+    .maarifazone-home-hero__highlight {
+        background: linear-gradient(135deg, #d97706 0%, #f99f1e 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         display: block;
     }
     .maarifazone-home-hero__desc {
-        font-size: 14px;
-        color: rgba(255, 255, 255, 0.86);
-        line-height: 1.6;
-        margin: 0 0 22px;
-        max-width: 500px;
+        font-size: 14.5px;
+        color: #475569;
+        line-height: 1.65;
+        margin: 0 0 24px;
+        max-width: 520px;
     }
     .maarifazone-home-hero__search {
         background: #ffffff;
+        border: 1px solid #e2e8f0;
         border-radius: 999px;
-        padding: 5px 5px 5px 18px;
+        padding: 6px 6px 6px 20px;
         display: flex;
         align-items: center;
-        gap: 8px;
-        max-width: 490px;
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
-        margin-bottom: 14px;
+        gap: 10px;
+        max-width: 500px;
+        box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.06), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+        margin-bottom: 16px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .maarifazone-home-hero__search:focus-within {
+        border-color: #f99f1e;
+        box-shadow: 0 12px 28px -4px rgba(249, 159, 30, 0.16), 0 0 0 3px rgba(249, 159, 30, 0.12);
     }
     .maarifazone-home-hero__search i {
         color: #94a3b8;
-        font-size: 13px;
+        font-size: 13.5px;
     }
     .maarifazone-home-hero__search input {
         flex: 1;
         border: 0;
         outline: none;
-        font-size: 13px;
+        font-size: 13.5px;
         color: #0f172a;
         background: transparent;
         min-width: 0;
     }
+    .maarifazone-home-hero__search input::placeholder {
+        color: #94a3b8;
+    }
     .maarifazone-home-hero__search button {
-        background: var(--theme);
+        background: linear-gradient(135deg, #f99f1e 0%, #ea580c 100%);
         color: #ffffff;
         border: 0;
         border-radius: 999px;
-        padding: 8px 20px;
-        font-size: 12.5px;
+        padding: 9px 22px;
+        font-size: 13px;
         font-weight: 700;
         cursor: pointer;
-        transition: opacity 0.15s ease;
+        box-shadow: 0 4px 12px rgba(249, 159, 30, 0.35);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
     }
     .maarifazone-home-hero__search button:hover {
-        opacity: 0.92;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(249, 159, 30, 0.45);
+        opacity: 0.96;
     }
     .maarifazone-home-hero__tags {
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        gap: 6px;
-        margin-bottom: 18px;
-        font-size: 11.5px;
-        color: rgba(255, 255, 255, 0.78);
+        gap: 7px;
+        margin-bottom: 22px;
+        font-size: 12px;
+        color: #64748b;
     }
     .maarifazone-home-hero__tag {
-        background: rgba(255, 255, 255, 0.14);
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        color: #ffffff;
-        padding: 3px 10px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        color: #334155;
+        padding: 3.5px 12px;
         border-radius: 999px;
-        font-size: 11px;
+        font-size: 11.5px;
         font-weight: 500;
         text-decoration: none;
-        transition: background-color 0.15s ease;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        transition: all 0.15s ease;
     }
     .maarifazone-home-hero__tag:hover {
-        background: rgba(255, 255, 255, 0.25);
-        color: #ffffff;
+        border-color: #f99f1e;
+        color: #ea580c;
+        background: #fffaf0;
+        transform: translateY(-1px);
     }
     .maarifazone-home-hero__trust {
         display: flex;
         align-items: center;
-        gap: 10px;
-        margin-bottom: 20px;
+        gap: 12px;
+        margin-bottom: 24px;
     }
     .maarifazone-home-hero__avatars {
         display: flex;
         align-items: center;
     }
     .maarifazone-home-hero__avatar-dot {
-        width: 26px;
-        height: 26px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         border: 2px solid #ffffff;
         color: #ffffff;
@@ -141,51 +176,63 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        margin-left: -7px;
+        margin-left: -8px;
+        box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
     }
     .maarifazone-home-hero__avatar-dot:first-child {
         margin-left: 0;
     }
     .maarifazone-home-hero__trust-text {
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.92);
+        color: #475569;
+    }
+    .maarifazone-home-hero__trust-text strong {
+        color: #0f172a;
     }
     .maarifazone-home-hero__trust-stars {
-        color: #fbbf24;
-        font-size: 11px;
+        color: #f59e0b;
+        font-size: 11.5px;
         margin-right: 4px;
     }
     .maarifazone-home-hero__mini-stats {
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        gap: 22px;
-        padding-top: 8px;
+        gap: 14px;
+        padding-top: 6px;
     }
     .maarifazone-home-hero__mini-stat {
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.85);
+        gap: 10px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 8px 14px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
     }
     .maarifazone-home-hero__mini-stat-icon {
-        width: 28px;
-        height: 28px;
+        width: 32px;
+        height: 32px;
         border-radius: 8px;
-        background: rgba(255, 255, 255, 0.16);
+        background: rgba(249, 159, 30, 0.1);
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
-        color: #ffffff;
+        font-size: 13px;
+        color: #ea580c;
     }
     .maarifazone-home-hero__mini-stat strong {
         display: block;
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 800;
-        color: #ffffff;
-        line-height: 1.1;
+        color: #0f172a;
+        line-height: 1.15;
+    }
+    .maarifazone-home-hero__mini-stat span {
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 500;
     }
 
     /* Right Hero Showcase Card */
@@ -194,13 +241,32 @@
         max-width: 440px;
         margin: 0 auto;
     }
+    .maarifazone-home-hero__visual::before {
+        content: '';
+        position: absolute;
+        top: -24px;
+        left: -24px;
+        right: -24px;
+        bottom: -24px;
+        background: radial-gradient(circle, rgba(249, 159, 30, 0.1) 0%, transparent 70%);
+        z-index: 0;
+        pointer-events: none;
+    }
     .maarifazone-home-hero__card {
+        position: relative;
         background: #ffffff;
+        border: 1px solid #e2e8f0;
         border-radius: 18px;
         padding: 12px;
-        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
-        transform: rotate(1.5deg);
+        box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.12), 0 0 1px 1px rgba(15, 23, 42, 0.04);
+        transform: rotate(1deg);
         color: #0f172a;
+        z-index: 1;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .maarifazone-home-hero__card:hover {
+        transform: rotate(0deg) translateY(-3px);
+        box-shadow: 0 24px 48px -15px rgba(15, 23, 42, 0.16);
     }
     .maarifazone-home-hero__card-thumb {
         position: relative;
@@ -223,14 +289,20 @@
         width: 46px;
         height: 46px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.95);
-        color: var(--theme);
+        background: #ffffff;
+        color: #ea580c;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         font-size: 16px;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22);
         text-decoration: none;
+        transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    }
+    .maarifazone-home-hero__card-play:hover {
+        transform: translate(-50%, -50%) scale(1.08);
+        background: linear-gradient(135deg, #f99f1e 0%, #ea580c 100%);
+        color: #ffffff;
     }
     .maarifazone-home-hero__card-body {
         padding: 4px 6px 6px;
@@ -242,6 +314,10 @@
         margin: 0 0 6px;
         text-decoration: none;
         display: block;
+        transition: color 0.15s ease;
+    }
+    .maarifazone-home-hero__card-title:hover {
+        color: #ea580c;
     }
     .maarifazone-home-hero__card-meta {
         display: flex;
@@ -254,14 +330,19 @@
         position: absolute;
         background: #ffffff;
         color: #0f172a;
+        border: 1px solid #e2e8f0;
         border-radius: 12px;
-        padding: 8px 12px;
-        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+        padding: 8px 13px;
+        box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.12), 0 0 1px rgba(15, 23, 42, 0.05);
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 9px;
         font-size: 11px;
         z-index: 3;
+        transition: transform 0.2s ease;
+    }
+    .maarifazone-home-hero__callout:hover {
+        transform: translateY(-2px);
     }
     .maarifazone-home-hero__callout--tr {
         top: -12px;
@@ -276,14 +357,43 @@
         right: 12px;
     }
     .maarifazone-home-hero__callout-icon {
-        width: 26px;
-        height: 26px;
-        border-radius: 7px;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         font-size: 12px;
         flex-shrink: 0;
+    }
+
+    @media (max-width: 991.98px) {
+        .maarifazone-home-hero {
+            padding: 44px 0 56px;
+        }
+        .maarifazone-home-hero__title {
+            font-size: 32px;
+        }
+        .maarifazone-home-hero__visual {
+            margin-top: 24px;
+        }
+        .maarifazone-home-hero__callout--tr {
+            right: 4px;
+        }
+        .maarifazone-home-hero__callout--bl {
+            left: 4px;
+        }
+    }
+    @media (max-width: 575.98px) {
+        .maarifazone-home-hero__title {
+            font-size: 27px;
+        }
+        .maarifazone-home-hero__mini-stats {
+            gap: 10px;
+        }
+        .maarifazone-home-hero__mini-stat {
+            flex: 1 1 100%;
+        }
     }
 
     /* Shared Section Headers */
@@ -878,41 +988,60 @@
 
     /* 11. Instructor CTA Banner + Inbox Card + Footer Newsletter */
     .maarifazone-teach-cta {
-        background: linear-gradient(135deg, var(--theme) 0%, var(--theme-2, #e0860a) 100%);
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border: 1px solid #334155;
         border-radius: 18px;
-        padding: 36px 28px;
+        padding: 38px 28px;
         text-align: center;
         color: #ffffff;
-        box-shadow: 0 14px 32px rgba(249, 159, 30, 0.22);
+        box-shadow: 0 16px 36px -10px rgba(15, 23, 42, 0.35);
         margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+    .maarifazone-teach-cta::before {
+        content: '';
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(249, 159, 30, 0.18) 0%, transparent 70%);
+        pointer-events: none;
     }
     .maarifazone-teach-cta__title {
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 800;
         color: #ffffff;
-        margin: 0 0 6px;
+        margin: 0 0 8px;
+        letter-spacing: -0.02em;
     }
     .maarifazone-teach-cta__desc {
-        font-size: 13px;
-        color: rgba(255, 255, 255, 0.86);
+        font-size: 13.5px;
+        color: #94a3b8;
         max-width: 480px;
-        margin: 0 auto 16px;
+        margin: 0 auto 18px;
+        line-height: 1.6;
     }
     .maarifazone-teach-cta__btn {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        background: #ffffff;
-        color: var(--theme);
-        font-size: 12.5px;
+        gap: 8px;
+        background: linear-gradient(135deg, #f99f1e 0%, #ea580c 100%);
+        color: #ffffff;
+        font-size: 13px;
         font-weight: 700;
-        padding: 9px 20px;
-        border-radius: 8px;
+        padding: 10px 24px;
+        border-radius: 999px;
         text-decoration: none;
+        box-shadow: 0 4px 14px rgba(249, 159, 30, 0.35);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
     .maarifazone-teach-cta__btn:hover {
-        background: var(--theme-yellow, #f4ed2d);
-        color: #0f172a;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(249, 159, 30, 0.5);
+        color: #ffffff;
     }
 
     .maarifazone-inbox-box {
@@ -987,7 +1116,8 @@
         padding: 36px 0 12px;
     }
     .maarifazone-newsletter-banner {
-        background: linear-gradient(135deg, var(--theme) 0%, var(--theme-2, #e0860a) 100%);
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border: 1px solid #334155;
         border-radius: 16px;
         padding: 28px 36px;
         display: flex;
@@ -1058,7 +1188,7 @@
 
                     <h1 class="maarifazone-home-hero__title">
                         Learn without limits,
-                        <span>grow without fear.</span>
+                        <span class="maarifazone-home-hero__highlight">grow with Maarifa.</span>
                     </h1>
 
                     <p class="maarifazone-home-hero__desc">
@@ -1123,12 +1253,12 @@
                 <div class="col-lg-6">
                     <div class="maarifazone-home-hero__visual">
                         <div class="maarifazone-home-hero__callout maarifazone-home-hero__callout--tr">
-                            <span class="maarifazone-home-hero__callout-icon" style="background: rgba(249, 159, 30, 0.1); color: var(--theme);">
-                                <i class="fa-solid fa-award"></i>
+                            <span class="maarifazone-home-hero__callout-icon" style="background: rgba(249, 159, 30, 0.12); color: #ea580c;">
+                                <i class="fa-solid fa-laptop-code"></i>
                             </span>
                             <div>
-                                <div class="fw-bold" style="font-size: 11px;">Verified Certificate</div>
-                                <div class="text-muted" style="font-size: 10px;">QR-enabled on completion</div>
+                                <div class="fw-bold" style="font-size: 11px;">100% Online & Flexible</div>
+                                <div class="text-muted" style="font-size: 10px;">Self-paced video learning</div>
                             </div>
                         </div>
 
@@ -1157,17 +1287,17 @@
                             </span>
                             <div>
                                 <div class="fw-bold" style="font-size: 11px;">{{ number_format($stats['enrollments']) }}+ Enrolled</div>
-                                <div class="text-muted" style="font-size: 10px;">Active learning community</div>
+                                <div class="text-muted" style="font-size: 10px;">Active scholar community</div>
                             </div>
                         </div>
 
                         <div class="maarifazone-home-hero__callout maarifazone-home-hero__callout--br">
-                            <span class="maarifazone-home-hero__callout-icon" style="background: #fef3c7; color: #d97706;">
-                                <i class="fa-solid fa-bolt"></i>
+                            <span class="maarifazone-home-hero__callout-icon" style="background: #eff6ff; color: #2563eb;">
+                                <i class="fa-solid fa-lightbulb"></i>
                             </span>
                             <div>
-                                <div class="fw-bold" style="font-size: 11px;">Verified Certificates</div>
-                                <div class="text-muted" style="font-size: 10px;">Official course credentials</div>
+                                <div class="fw-bold" style="font-size: 11px;">Practical Maarifa</div>
+                                <div class="text-muted" style="font-size: 10px;">Real-world skills & mastery</div>
                             </div>
                         </div>
                     </div>
@@ -1193,22 +1323,22 @@
                 <div class="col-lg-3 col-md-6">
                     <div class="maarifazone-why-card">
                         <div class="maarifazone-why-card__icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
-                        <h3 class="maarifazone-why-card__title">Self-Paced & Live</h3>
-                        <p class="maarifazone-why-card__desc">Study on your schedule with lifetime video access and interactive live classes.</p>
+                        <h3 class="maarifazone-why-card__title">100% Online & Self-Paced</h3>
+                        <p class="maarifazone-why-card__desc">Study on your schedule anytime, anywhere with lifetime access to lessons.</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="maarifazone-why-card">
-                        <div class="maarifazone-why-card__icon"><i class="fa-solid fa-certificate"></i></div>
-                        <h3 class="maarifazone-why-card__title">Verified Certificates</h3>
-                        <p class="maarifazone-why-card__desc">Earn shareable QR-verified certificates upon completing your courses.</p>
+                        <div class="maarifazone-why-card__icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                        <h3 class="maarifazone-why-card__title">Maarifa-Driven Learning</h3>
+                        <p class="maarifazone-why-card__desc">Focus purely on acquiring high-impact, real-world knowledge without bureaucratic friction.</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="maarifazone-why-card">
                         <div class="maarifazone-why-card__icon"><i class="fa-solid fa-layer-group"></i></div>
-                        <h3 class="maarifazone-why-card__title">Hands-On Projects</h3>
-                        <p class="maarifazone-why-card__desc">Reinforce every concept with real-world assignments, quizzes, and feedback.</p>
+                        <h3 class="maarifazone-why-card__title">Practical Expertise</h3>
+                        <p class="maarifazone-why-card__desc">Reinforce every concept with clear, structured lessons and focused skill development.</p>
                     </div>
                 </div>
             </div>
@@ -1362,17 +1492,17 @@
                             <span class="maarifazone-step-item__num">2</span>
                         </div>
                         <h3 class="maarifazone-step-item__title">Learn at your pace</h3>
-                        <p class="maarifazone-step-item__desc">Watch HD lessons, practice with quizzes, and complete hands-on assignments.</p>
+                        <p class="maarifazone-step-item__desc">Watch high-definition lessons and master each topic at your own speed.</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="maarifazone-step-item">
                         <div class="maarifazone-step-item__icon-wrap">
-                            <i class="fa-solid fa-award"></i>
+                            <i class="fa-solid fa-graduation-cap"></i>
                             <span class="maarifazone-step-item__num">3</span>
                         </div>
-                        <h3 class="maarifazone-step-item__title">Get certified</h3>
-                        <p class="maarifazone-step-item__desc">Receive an official verifiable certificate to highlight your new skills.</p>
+                        <h3 class="maarifazone-step-item__title">Gain valuable Maarifa</h3>
+                        <p class="maarifazone-step-item__desc">Apply your new practical knowledge directly to advance your career and skills.</p>
                     </div>
                 </div>
             </div>
