@@ -30,8 +30,10 @@ class StoreCourseRequest extends FormRequest
      */
     public function rules(): array
     {
+        $isUpdate = $this->isMethod('put') || $this->isMethod('patch') || $this->route('id');
+
         $rules = [
-            'instructor_id' => ['required', 'exists:users,id'],
+            'instructor_id' => $isUpdate ? ['nullable', 'exists:users,id'] : ['required', 'exists:users,id'],
             'assistant_instructor_id' => ['nullable', 'exists:users,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],

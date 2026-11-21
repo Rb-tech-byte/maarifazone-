@@ -28,18 +28,28 @@ class CourseController extends Controller
      * Display all courses
      *
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Contracts\View\View
+     * @return \Illuminate\Contracts\View\View|\Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        $query = Course::with(['instructor', 'enrollments']);
+        $perPage = (int) request()->input('per_page', 4);
+        if ($perPage < 1 || $perPage > 100) {
+            $perPage = 4;
+        }
+
+        $query = Course::with(['instructor', 'courseCategory'])
+            ->withCount(['enrollments', 'topics', 'lessons']);
 
         if (request()->has('search') && request()->search) {
-            $search = request()->search;
+            $search = trim(request()->search);
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhere('category', 'like', "%{$search}%");
+                    ->orWhere('category', 'like', "%{$search}%")
+                    ->orWhereHas('instructor', function ($iq) use ($search) {
+                        $iq->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -53,6 +63,10 @@ class CourseController extends Controller
             $query->where('status', '!=', 'archived');
         }
 
+        if (request()->has('category') && request()->category) {
+            $query->where('category', request()->category);
+        }
+
         if (request()->has('visibility') && request()->visibility) {
             $query->where('visibility', request()->visibility);
         }
@@ -61,10 +75,36 @@ class CourseController extends Controller
             $query->where('pricing_model', request()->pricing_model);
         }
 
-        $courses = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
-        $pendingCount = Course::where('status', 'pending')->count();
+        $courses = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
 
-        return view('admin.courses.index', compact('courses', 'pendingCount'));
+        $stats = [
+            'total'             => Course::where('status', '!=', 'archived')->count(),
+            'published'         => Course::where('status', 'published')->count(),
+            'pending'           => Course::where('status', 'pending')->count(),
+            'draft'             => Course::where('status', 'draft')->count(),
+            'archived'          => Course::where('status', 'archived')->count(),
+            'total_enrollments' => Enrollment::count(),
+        ];
+        $pendingCount = $stats['pending'];
+
+        $categories = Course::whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'html'       => view('admin.courses.partials.courses-list', compact('courses'))->render(),
+                'pagination' => (string) $courses->links('vendor.pagination.stisla-default'),
+                'total'      => $courses->total(),
+                'firstItem'  => $courses->firstItem() ?? 0,
+                'lastItem'   => $courses->lastItem() ?? 0,
+                'stats'      => $stats,
+            ]);
+        }
+
+        return view('admin.courses.index', compact('courses', 'pendingCount', 'stats', 'categories', 'perPage'));
     }
 
     /**
@@ -220,6 +260,14 @@ class CourseController extends Controller
             'archived' => 'Archived'
         ];
 
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Course '{$course->title}' status has been changed to {$statusLabels[$newStatus]}.",
+                'status'  => $newStatus,
+            ]);
+        }
+
         ToastMagic::success("Course '{$course->title}' status has been changed to {$statusLabels[$newStatus]}.");
         return back();
     }
@@ -228,7 +276,7 @@ class CourseController extends Controller
      * Archive a course (soft delete)
      *
      * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
@@ -238,6 +286,13 @@ class CourseController extends Controller
         $course->status = 'archived';
         $course->deleted_date = now();
         $course->save();
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Course '{$courseTitle}' has been archived successfully.",
+            ]);
+        }
 
         ToastMagic::success("Course '{$courseTitle}' has been archived successfully.");
         return back();
