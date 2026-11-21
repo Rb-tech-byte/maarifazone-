@@ -10,6 +10,7 @@ use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\User;
 use App\Services\FileUploadService;
+use Devrabiul\ToastMagic\Facades\ToastMagic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -40,32 +41,58 @@ class StudentCourseController extends Controller
     {
         $user = $this->currentUser();
 
-        $enrollment = Enrollment::where('user_id', $user->id)
-            ->where('course_id', $courseId)
-            ->whereIn('status', ['approved', 'completed'])
-            ->firstOrFail();
-
         $course = Course::with([
             'topics.lessons.liveClass',
             'instructor',
         ])->findOrFail($courseId);
 
+        $userEnrollments = Enrollment::where('user_id', $user->id)
+            ->where('course_id', $courseId)
+            ->whereIn('status', ['approved', 'completed'])
+            ->get();
+
+        if ($userEnrollments->isEmpty()) {
+            $hasFreeTopic = $course->topics->contains(fn($t) => $t->is_free || (float)$t->price <= 0);
+            if ($course->pricing_model === 'free' || $hasFreeTopic) {
+                $enrollment = Enrollment::create([
+                    'user_id' => $user->id,
+                    'course_id' => $courseId,
+                    'status' => Enrollment::STATUS_APPROVED,
+                    'enrolled_at' => now(),
+                ]);
+                $userEnrollments = collect([$enrollment]);
+            } else {
+                ToastMagic::warning('Please enroll in this course or a topic module to access course learning.');
+                return redirect()->route('courses.show', $courseId);
+            }
+        } else {
+            $enrollment = $userEnrollments->first();
+        }
+
         $userProgress = $user->lessonProgress()
-            ->where('enrollment_id', $enrollment->id)
+            ->whereIn('enrollment_id', $userEnrollments->pluck('id'))
             ->get()
             ->keyBy('lesson_id');
 
         $allItems = $this->getAllCourseItems($course);
         $accessibleItems = [];
         foreach ($allItems as $item) {
-            $accessibleItems['lesson_' . $item['id']] = $this->isItemAccessible($user, $enrollment, $courseId, 'lesson', $item['id'], $course);
+            $accessibleItems['lesson_' . $item['id']] = $this->isItemAccessible($user, $userEnrollments, $courseId, 'lesson', $item['id'], $course);
         }
 
         // Resolve requested item (?item_type=lesson&item_id=...)
         $currentItem = null;
+        $isCurrentItemLocked = false;
         $requestedId = $request->integer('item_id');
-        if ($requestedId && ($accessibleItems['lesson_' . $requestedId] ?? false)) {
-            $currentItem = Lesson::find($requestedId);
+
+        if ($requestedId) {
+            $requestedLesson = Lesson::with(['topic.course', 'liveClass'])->find($requestedId);
+            if ($requestedLesson && $requestedLesson->topic && (int)$requestedLesson->topic->course_id === (int)$courseId) {
+                $currentItem = $requestedLesson;
+                if (!($accessibleItems['lesson_' . $requestedId] ?? false)) {
+                    $isCurrentItemLocked = true;
+                }
+            }
         }
 
         // Resume at first incomplete accessible lesson
@@ -74,7 +101,7 @@ class StudentCourseController extends Controller
                 $isItemAccessible = $accessibleItems['lesson_' . $item['id']] ?? false;
                 $isDone = isset($userProgress[$item['id']]) && $userProgress[$item['id']]->is_completed;
                 if ($isItemAccessible && ! $isDone) {
-                    $currentItem = Lesson::find($item['id']);
+                    $currentItem = Lesson::with(['topic.course', 'liveClass'])->find($item['id']);
                     if ($currentItem) {
                         break;
                     }
@@ -84,11 +111,14 @@ class StudentCourseController extends Controller
 
         if (! $currentItem && $allItems->isNotEmpty()) {
             $fallbackItem = $allItems->first();
-            $currentItem = Lesson::find($fallbackItem['id']);
+            $currentItem = Lesson::with(['topic.course', 'liveClass'])->find($fallbackItem['id']);
+            if ($currentItem && !($accessibleItems['lesson_' . $currentItem->id] ?? false)) {
+                $isCurrentItemLocked = true;
+            }
         }
 
-        // Ensure initial progress record exists
-        if ($currentItem instanceof Lesson) {
+        // Ensure initial progress record exists for accessible lessons
+        if ($currentItem instanceof Lesson && !$isCurrentItemLocked) {
             $initialProgress = LessonProgress::firstOrCreate(
                 [
                     'user_id' => $user->id,
@@ -118,8 +148,14 @@ class StudentCourseController extends Controller
             $progressStats = $topic->getProgressStats($userProgress);
             $itemsData = [];
 
+            $isTopicUnlocked = $topic->is_free
+                || (float)$topic->price <= 0
+                || $userEnrollments->contains(fn($e) => empty($e->course_topic_id) || (int)$e->course_topic_id === (int)$topic->id);
+
             foreach ($topic->lessons as $lesson) {
                 $progress = $userProgress[$lesson->id] ?? null;
+                $isLessonAccessible = $accessibleItems['lesson_' . $lesson->id] ?? false;
+
                 $itemsData[] = [
                     'id'                 => $lesson->id,
                     'type'               => 'lesson',
@@ -128,7 +164,9 @@ class StudentCourseController extends Controller
                     'duration_formatted' => $lesson->formatted_duration,
                     'is_completed'       => (bool) ($progress && $progress->is_completed),
                     'is_active'          => $currentItem && $currentItem->id == $lesson->id,
-                    'is_accessible'      => $accessibleItems['lesson_' . $lesson->id] ?? false,
+                    'is_accessible'      => $isLessonAccessible,
+                    'is_free'            => (bool) ($lesson->is_free || $lesson->is_preview || $topic->is_free || (float)$topic->price <= 0),
+                    'price'              => (float) ($lesson->price ?? 0),
                     'is_live'            => (bool) $lesson->is_live,
                     'live_status'        => $lesson->liveClass?->status,
                     'lesson_type'        => $lesson->lesson_type ?: 'video',
@@ -138,16 +176,19 @@ class StudentCourseController extends Controller
             usort($itemsData, fn ($a, $b) => ($a['order'] <=> $b['order']));
 
             $topicsData[] = [
-                'topic'    => $topic,
-                'index'    => $index,
-                'progress' => $progressStats,
-                'items'    => $itemsData,
+                'topic'             => $topic,
+                'index'             => $index,
+                'progress'          => $progressStats,
+                'items'             => $itemsData,
+                'is_free'           => (bool) ($topic->is_free || (float)$topic->price <= 0),
+                'price'             => (float) $topic->price,
+                'is_topic_unlocked' => $isTopicUnlocked,
             ];
         }
 
         $currentItemType = 'lesson';
         $currentItemDurationFormatted = $currentItem?->formatted_duration ?? '';
-        $initialLessonVideoData = $currentItem ? $this->prepareLessonVideoData($currentItem) : null;
+        $initialLessonVideoData = ($currentItem && !$isCurrentItemLocked) ? $this->prepareLessonVideoData($currentItem) : null;
         $navigation = $currentItem
             ? $this->buildNavigationState($user, $enrollment, $courseId, $allItems, 'lesson', $currentItem->id)
             : ['has_previous' => false, 'has_next' => false, 'next_accessible' => false, 'previous_item' => null, 'next_item' => null];
@@ -173,6 +214,7 @@ class StudentCourseController extends Controller
             'initialQuizPassed',
             'initialQuizResultsData',
             'isCompleted',
+            'isCurrentItemLocked',
             'progressSummary',
             'navigation'
         ));
@@ -187,10 +229,14 @@ class StudentCourseController extends Controller
         $lessonId = $request->input('lesson_id');
         $courseId = $request->input('course_id');
 
-        $enrollment = Enrollment::where('user_id', $user->id)
+        $userEnrollments = Enrollment::where('user_id', $user->id)
             ->where('course_id', $courseId)
             ->whereIn('status', ['approved', 'completed'])
-            ->firstOrFail();
+            ->get();
+
+        if ($userEnrollments->isEmpty()) {
+            return response()->json(['error' => 'You are not enrolled in this course.'], 403);
+        }
 
         $lesson = Lesson::with(['topic.course', 'liveClass'])->findOrFail($lessonId);
 
@@ -198,13 +244,32 @@ class StudentCourseController extends Controller
             return response()->json(['error' => 'Lesson does not belong to this course'], 403);
         }
 
-        if (! $this->isItemAccessible($user, $enrollment, $courseId, 'lesson', $lessonId)) {
+        $isAccessible = $this->isItemAccessible($user, $userEnrollments, $courseId, 'lesson', $lessonId, $lesson->topic->course);
+
+        if (! $isAccessible) {
+            $lockedHtml = view('student.course-access.partials.locked-content', [
+                'course' => $lesson->topic->course,
+                'topic'  => $lesson->topic,
+                'lesson' => $lesson,
+            ])->render();
+
             return response()->json([
-                'success' => false,
-                'error' => 'Please complete the previous lessons before accessing this one.',
-                'locked' => true,
-            ], 403);
+                'success'            => true,
+                'locked'             => true,
+                'html'               => $lockedHtml,
+                'lesson_id'          => $lesson->id,
+                'type'               => 'lesson',
+                'title'              => $lesson->title,
+                'duration'           => $lesson->duration,
+                'navigation'         => ['has_previous' => false, 'has_next' => false, 'next_accessible' => false, 'previous_item' => null, 'next_item' => null],
+                'topic_title'        => $lesson->topic->title,
+                'topic_price'        => $lesson->topic->price,
+                'checkout_topic_url' => route('courses.checkout', ['id' => $courseId, 'topic_id' => $lesson->course_topic_id]),
+                'checkout_course_url'=> route('courses.checkout', $courseId),
+            ]);
         }
+
+        $enrollment = $userEnrollments->first();
 
         $progress = LessonProgress::firstOrCreate(
             [
@@ -238,6 +303,7 @@ class StudentCourseController extends Controller
             'title' => $lesson->title,
             'duration' => $lesson->duration,
             'navigation' => $navigation,
+            'videoData' => $videoData,
         ]);
     }
 
@@ -524,7 +590,7 @@ class StudentCourseController extends Controller
     /**
      * Determine accessibility for a lesson.
      */
-    private function isItemAccessible($user, $enrollment, $courseId, string $type, int $itemId, ?Course $course = null): bool
+    private function isItemAccessible($user, $userEnrollments, $courseId, string $type, int $itemId, ?Course $course = null): bool
     {
         if (! $course) {
             $course = Course::with('topics.lessons')->find($courseId);
@@ -539,27 +605,36 @@ class StudentCourseController extends Controller
             return true;
         }
 
-        // If lesson is marked preview or free, it is open to all
+        // If lesson is marked preview or free, open to all
         if ($lesson->is_preview || $lesson->is_free) {
             return true;
         }
 
-        // If the topic itself is marked free, all its lessons are open
-        if ($lesson->topic && $lesson->topic->is_free) {
+        // If the topic itself is free, all lessons in this topic are open
+        if ($lesson->topic && ($lesson->topic->is_free || (float)$lesson->topic->price <= 0)) {
             return true;
         }
 
-        // If user is enrolled in the full course (no topic restriction)
-        if ($enrollment && empty($enrollment->course_topic_id)) {
+        // Resolve user enrollments as a collection
+        if (! $userEnrollments instanceof Collection) {
+            $userId = is_object($user) ? $user->id : (int) $user;
+            $userEnrollments = Enrollment::where('user_id', $userId)
+                ->where('course_id', $courseId)
+                ->whereIn('status', ['approved', 'completed'])
+                ->get();
+        }
+
+        // 1. Full course enrollment (course_topic_id is null) unlocks all topics and lessons
+        if ($userEnrollments->contains(fn($e) => empty($e->course_topic_id))) {
             return true;
         }
 
-        // If enrolled specifically in this topic
-        if ($enrollment && $enrollment->course_topic_id) {
-            return (int) $lesson->course_topic_id === (int) $enrollment->course_topic_id;
+        // 2. Topic-specific enrollment unlocks all lessons in that topic
+        if ($lesson->course_topic_id && $userEnrollments->contains(fn($e) => (int)$e->course_topic_id === (int)$lesson->course_topic_id)) {
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     /**

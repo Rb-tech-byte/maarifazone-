@@ -267,6 +267,17 @@
                         <div class="tab-pane fade" id="curriculum" role="tabpanel">
                             <div class="mt-4">
                                 <h5>Course Curriculum</h5>
+                                @php
+                                    $fullAccessCount = $course->enrollments->whereNull('course_topic_id')->count();
+                                    $topicAccessCount = $course->enrollments->whereNotNull('course_topic_id')->count();
+                                    $paidTopicsCount = $course->topics->filter(fn ($t) => ! $t->is_free && (float) $t->price > 0)->count();
+                                @endphp
+                                <div class="d-flex flex-wrap mb-3" style="gap: 8px;">
+                                    <span class="badge badge-light border px-3 py-2">Full course price: <strong>{{ $course->pricing_model === 'free' ? 'Free' : $course->formatPrice($course->sale_price ?: ($course->regular_price ?? 0)) }}</strong></span>
+                                    <span class="badge badge-light border px-3 py-2">Paid topics: <strong>{{ $paidTopicsCount }}</strong> / {{ $course->topics->count() }}</span>
+                                    <span class="badge badge-light border px-3 py-2">Full-course scholars: <strong>{{ $fullAccessCount }}</strong></span>
+                                    <span class="badge badge-light border px-3 py-2">Topic-only scholars: <strong>{{ $topicAccessCount }}</strong></span>
+                                </div>
                                 @if ($course->topics->count() > 0)
                                     <div class="accordion" id="curriculumAccordion">
                                         @foreach ($course->topics as $index => $topic)
@@ -283,6 +294,19 @@
                                                             <span class="badge badge-info ml-2">
                                                                 {{ $topic->lessons->count() }} Lessons
                                                             </span>
+                                                            @if ($topic->is_free || (float) $topic->price <= 0)
+                                                                <span class="badge badge-success ml-1">Free Topic</span>
+                                                            @else
+                                                                <span class="badge badge-dark ml-1" style="background:#0f172a;">
+                                                                    <i class="fas fa-lock mr-1"></i>Paid: {{ $course->formatPrice($topic->price) }}
+                                                                </span>
+                                                            @endif
+                                                            @php
+                                                                $topicBuyers = $course->enrollments->where('course_topic_id', $topic->id)->count();
+                                                            @endphp
+                                                            @if ($topicBuyers > 0)
+                                                                <span class="badge badge-light ml-1">{{ $topicBuyers }} topic-only scholar(s)</span>
+                                                            @endif
                                                         </button>
                                                     </h6>
                                                 </div>
@@ -295,13 +319,29 @@
                                                         @endif
                                                         <ul class="list-unstyled">
                                                             @foreach ($topic->lessons as $lesson)
-                                                                <li class="mb-2">
-                                                                    <i class="fas fa-play-circle text-primary mr-2"></i>
-                                                                    <strong>Lesson:</strong> {{ $lesson->title }}
+                                                                @php
+                                                                    $lessonIcon = match ($lesson->lesson_type) {
+                                                                        'text' => 'fa-file-alt text-info',
+                                                                        'pdf' => 'fa-file-pdf text-danger',
+                                                                        'ppt' => 'fa-file-powerpoint text-warning',
+                                                                        'attachment' => 'fa-paperclip text-secondary',
+                                                                        'live' => 'fa-broadcast-tower text-danger',
+                                                                        default => 'fa-play-circle text-primary',
+                                                                    };
+                                                                    $lessonOpen = $lesson->is_preview || $lesson->is_free || $topic->is_free || (float) $topic->price <= 0;
+                                                                @endphp
+                                                                <li class="mb-2 d-flex align-items-center flex-wrap">
+                                                                    <i class="fas {{ $lessonIcon }} mr-2"></i>
+                                                                    <span>{{ $lesson->title }}</span>
                                                                     @if ($lesson->duration)
-                                                                        <span
-                                                                            class="text-muted ml-2">({{ $lesson->duration }}
-                                                                            min)</span>
+                                                                        <span class="text-muted ml-2">({{ $lesson->duration }} min)</span>
+                                                                    @endif
+                                                                    @if ($lesson->is_preview)
+                                                                        <span class="badge badge-success ml-2">Free Preview</span>
+                                                                    @elseif ($lessonOpen)
+                                                                        <span class="badge badge-light ml-2">Free</span>
+                                                                    @else
+                                                                        <span class="badge badge-warning ml-2"><i class="fas fa-lock mr-1"></i>Requires topic or full course</span>
                                                                     @endif
                                                                 </li>
                                                             @endforeach

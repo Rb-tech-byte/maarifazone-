@@ -55,17 +55,7 @@ $(document).ready(function() {
         const itemId = $(this).data('item-id');
         const itemType = $(this).data('item-type');
         const targetCourseId = $(this).data('course-id');
-        const isAccessible = $(this).attr('data-accessible') == '1';
-
-        if (!isAccessible) {
-            if (window.toastMagic) {
-                window.toastMagic.warning('Content Locked', 'Please complete the previous lessons/quizzes/assignments before accessing this content.');
-            } else {
-                alert('Please complete the previous lessons/quizzes/assignments before accessing this content.');
-            }
-            return;
-        }
-
+        // Locked (paid) lessons are still loaded: the server returns an unlock / pay-per-topic panel.
         $('.lesson-item, .quiz-item, .assignment-item').removeClass('active');
         $(this).addClass('active');
 
@@ -207,7 +197,13 @@ $(document).ready(function() {
                         $('#course-sidebar-wrapper').removeClass('open');
                     }
 
-                    if (itemType === 'lesson' && response.type === 'lesson') {
+                    if (response.locked) {
+                        if (videoPlayer) {
+                            videoPlayer.dispose();
+                            videoPlayer = null;
+                        }
+                        $('#prev-btn, #next-btn').prop('disabled', false).removeClass('opacity-50');
+                    } else if (itemType === 'lesson' && response.type === 'lesson') {
                         setTimeout(function() {
                             initializeVideoPlayer();
                         }, 100);

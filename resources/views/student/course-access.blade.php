@@ -200,28 +200,17 @@
                             </div>
                         @endif
 
-                        @if ($currentItemType === 'lesson')
+                        @if (!empty($isCurrentItemLocked) && $currentItem)
+                            @include('student.course-access.partials.locked-content', [
+                                'course' => $course,
+                                'topic'  => $currentItem->topic,
+                                'lesson' => $currentItem,
+                            ])
+                        @elseif ($currentItem)
                             @include('student.course-access.partials.lesson-content', [
                                 'lesson' => $currentItem,
                                 'progress' => $userProgress[$currentItem->id] ?? null,
                                 'videoData' => $initialLessonVideoData ?? null,
-                            ])
-                        @elseif($currentItemType === 'quiz')
-                            @if ($initialQuizPassed ?? false)
-                                @include(
-                                    'student.course-access.partials.quiz-results',
-                                    $initialQuizResultsData ?? []
-                                )
-                            @else
-                                @include('student.course-access.partials.quiz-content', [
-                                    'quiz' => $currentItem,
-                                    'previousAttempt' => $userQuizAttempts[$currentItem->id] ?? null,
-                                ])
-                            @endif
-                        @else
-                            @include('student.course-access.partials.assignment-content', [
-                                'assignment' => $currentItem,
-                                'submission' => $userAssignmentSubmissions[$currentItem->id] ?? null,
                             ])
                         @endif
                     </div>
