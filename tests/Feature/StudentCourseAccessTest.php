@@ -203,6 +203,15 @@ class StudentCourseAccessTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee($this->course->title, false);
         $response->assertSee('maarifazone-cd-header', false);
+        $response->assertSee('maarifazone-cd-video-card', false);
         $response->assertDontSee('maarifazone-cd-hero', false);
+
+        // Preview video must be positioned above/before the course details header in the rendered DOM
+        $html = $response->getContent();
+        $videoPos = strpos($html, 'class="maarifazone-cd-video-card"');
+        $headerPos = strpos($html, 'class="maarifazone-cd-header"');
+        $this->assertNotFalse($videoPos);
+        $this->assertNotFalse($headerPos);
+        $this->assertLessThan($headerPos, $videoPos, 'Course preview video must be positioned above/before the details header.');
     }
 }

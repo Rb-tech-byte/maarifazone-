@@ -23,9 +23,15 @@
         padding-bottom: 64px;
     }
 
-    /* 1. Clean Course Title & Meta Header (Zero Hero Banner, Clean Modern Layout) */
+    /* 1. Clean Course Title & Meta Header (Zero Hero Banner, Positioned Below Preview Video) */
     .maarifazone-cd-header {
-        margin-bottom: 24px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 22px 24px;
+        margin-top: 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.02);
     }
     .maarifazone-cd-breadcrumb {
         display: flex;
@@ -34,7 +40,7 @@
         gap: 8px;
         font-size: 12px;
         color: #64748b;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
     }
     .maarifazone-cd-breadcrumb a {
         color: #64748b;
@@ -49,15 +55,15 @@
         color: #cbd5e1;
     }
     .maarifazone-cd-title {
-        font-size: 30px;
+        font-size: 26px;
         font-weight: 800;
         color: #0f172a;
-        line-height: 1.25;
-        letter-spacing: -0.025em;
+        line-height: 1.3;
+        letter-spacing: -0.02em;
         margin: 0 0 10px;
     }
     .maarifazone-cd-subtitle {
-        font-size: 14.5px;
+        font-size: 14px;
         color: #475569;
         line-height: 1.6;
         margin: 0 0 16px;
@@ -1064,66 +1070,20 @@
         <section class="maarifazone-cd-body">
             <div class="container">
                 <div class="row g-4">
-                    <!-- Left Column: Clean Course Header + Video Preview + Stacked Content Cards -->
+                    <!-- Left Column: Video Preview + Clean Course Header + Stacked Content Cards -->
                     <div class="col-lg-8">
-                        <!-- Clean Course Header -->
-                        <div class="maarifazone-cd-header">
-                            <nav class="maarifazone-cd-breadcrumb" aria-label="breadcrumb">
-                                <a href="{{ route('home') }}"><i class="fa-solid fa-house me-1"></i> Home</a>
+                        <!-- Breadcrumb Navigation -->
+                        <nav class="maarifazone-cd-breadcrumb" aria-label="breadcrumb">
+                            <a href="{{ route('home') }}"><i class="fa-solid fa-house me-1"></i> Home</a>
+                            <i class="fa-solid fa-chevron-right"></i>
+                            <a href="{{ route('courses') }}">Courses</a>
+                            @if($course->category)
                                 <i class="fa-solid fa-chevron-right"></i>
-                                <a href="{{ route('courses') }}">Courses</a>
-                                @if($course->category)
-                                    <i class="fa-solid fa-chevron-right"></i>
-                                    <a href="{{ route('courses', ['category' => $course->category]) }}">{{ $course->category }}</a>
-                                @endif
-                            </nav>
+                                <a href="{{ route('courses', ['category' => $course->category]) }}">{{ $course->category }}</a>
+                            @endif
+                        </nav>
 
-                            <h1 class="maarifazone-cd-title">
-                                {{ $course->title }}
-                                @if($course->is_live_course)
-                                    <span class="badge bg-danger ms-2" style="font-size: 12px; vertical-align: middle;">
-                                        <i class="fas fa-broadcast-tower me-1"></i> {{ __('frontend.live') }}
-                                    </span>
-                                @endif
-                            </h1>
-
-                            <p class="maarifazone-cd-subtitle">
-                                {{ Str::limit(trim(strip_tags($course->description)), 150) }}
-                            </p>
-
-                            <div class="maarifazone-cd-meta-row">
-                                <span class="maarifazone-cd-rating">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <i class="fa-solid fa-star {{ $i <= $roundedRating ? 'is-gold' : 'is-muted' }}"></i>
-                                    @endfor
-                                    <span class="maarifazone-cd-rating-val">{{ number_format($displayRating, 1) }}</span>
-                                    <span class="text-muted small">({{ $totalReviews }} {{ $totalReviews === 1 ? 'review' : 'reviews' }})</span>
-                                </span>
-
-                                <span class="maarifazone-cd-meta-pill">
-                                    <i class="fa-solid fa-user-group"></i> {{ number_format($studentsCount) }} scholars
-                                </span>
-
-                                <span class="maarifazone-cd-meta-pill">
-                                    <i class="fa-solid fa-signal"></i> {{ ucfirst($course->difficulty ?? 'Beginner') }}
-                                </span>
-
-                                <span class="maarifazone-cd-meta-pill">
-                                    <i class="fa-solid fa-globe"></i> {{ strtoupper(substr($course->language ?? 'EN', 0, 2)) }}
-                                </span>
-
-                                <div class="maarifazone-cd-author-pill">
-                                    @if(!empty($course->instructor->avatar))
-                                        <img src="{{ $course->instructor->profile_photo_url }}" alt="{{ $instructorName }}" class="maarifazone-cd-author-avatar">
-                                    @else
-                                        <span class="maarifazone-cd-author-initials">{{ $instructorInitials ?: 'IN' }}</span>
-                                    @endif
-                                    <span>Taught by <strong>{{ $instructorName }}</strong></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Video / Thumbnail Preview Card -->
+                        <!-- Video / Thumbnail Preview Card (Top Media Hero) -->
                         <div class="maarifazone-cd-video-card">
                             <img src="{{ $course->thumbnail }}" alt="{{ $course->title }}" class="maarifazone-cd-video-card__img">
                             <div class="maarifazone-cd-video-card__overlay">
@@ -1159,6 +1119,53 @@
                                         <span>Watch Preview</span>
                                         <i class="fa-brands fa-youtube text-danger"></i>
                                     </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Course Details Header (Positioned Below Preview Video) -->
+                        <div class="maarifazone-cd-header">
+                            <h1 class="maarifazone-cd-title">
+                                {{ $course->title }}
+                                @if($course->is_live_course)
+                                    <span class="badge bg-danger ms-2" style="font-size: 12px; vertical-align: middle;">
+                                        <i class="fas fa-broadcast-tower me-1"></i> {{ __('frontend.live') }}
+                                    </span>
+                                @endif
+                            </h1>
+
+                            <p class="maarifazone-cd-subtitle">
+                                {{ Str::limit(trim(strip_tags($course->description)), 200) }}
+                            </p>
+
+                            <div class="maarifazone-cd-meta-row">
+                                <span class="maarifazone-cd-rating">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="fa-solid fa-star {{ $i <= $roundedRating ? 'is-gold' : 'is-muted' }}"></i>
+                                    @endfor
+                                    <span class="maarifazone-cd-rating-val">{{ number_format($displayRating, 1) }}</span>
+                                    <span class="text-muted small">({{ $totalReviews }} {{ $totalReviews === 1 ? 'review' : 'reviews' }})</span>
+                                </span>
+
+                                <span class="maarifazone-cd-meta-pill">
+                                    <i class="fa-solid fa-user-group"></i> {{ number_format($studentsCount) }} scholars
+                                </span>
+
+                                <span class="maarifazone-cd-meta-pill">
+                                    <i class="fa-solid fa-signal"></i> {{ ucfirst($course->difficulty ?? 'Beginner') }}
+                                </span>
+
+                                <span class="maarifazone-cd-meta-pill">
+                                    <i class="fa-solid fa-globe"></i> {{ strtoupper(substr($course->language ?? 'EN', 0, 2)) }}
+                                </span>
+
+                                <div class="maarifazone-cd-author-pill">
+                                    @if(!empty($course->instructor->avatar))
+                                        <img src="{{ $course->instructor->profile_photo_url }}" alt="{{ $instructorName }}" class="maarifazone-cd-author-avatar">
+                                    @else
+                                        <span class="maarifazone-cd-author-initials">{{ $instructorInitials ?: 'IN' }}</span>
+                                    @endif
+                                    <span>Taught by <strong>{{ $instructorName }}</strong></span>
                                 </div>
                             </div>
                         </div>
