@@ -544,6 +544,9 @@
                         @if ($isBundle)
                             <input type="hidden" name="type" value="bundle">
                         @endif
+                        @if (isset($topic) && $topic)
+                            <input type="hidden" name="topic_id" value="{{ $topic->id }}">
+                        @endif
                         <input type="hidden" name="coupon_code" id="applied_coupon_code" value="">
 
                         {{-- Card 1: Course Overview --}}
@@ -556,6 +559,11 @@
                                 <img src="{{ $itemImage }}" alt="{{ $itemTitle }}" class="maarifazone-co-course-thumb">
                                 <div class="maarifazone-co-course-meta flex-grow-1">
                                     <h3>{{ $itemTitle }}</h3>
+                                    @if(isset($topic) && $topic)
+                                        <div class="alert alert-info py-2 px-3 mt-2 mb-2" style="font-size: 13.5px; border-radius: 8px;">
+                                            <i class="fa-solid fa-layer-group me-1 text-primary"></i> <strong>Module Enrollment:</strong> You are purchasing access to topic: <span class="fw-bold">{{ $topic->title }}</span>
+                                        </div>
+                                    @endif
                                     <div class="maarifazone-co-course-badges">
                                         @if (isset($course->instructor))
                                             <span class="maarifazone-co-badge">

@@ -117,35 +117,73 @@ class CourseEnrollmentController extends Controller
                 return redirect()->route('courses.show', $course->id);
             }
 
-            $existingEnrollment = Enrollment::with('payment')
-                ->where('user_id', $user->id)
-                ->where('course_id', $course->id)
-                ->first();
-
-            if ($existingEnrollment) {
-                if (in_array($existingEnrollment->status, [Enrollment::STATUS_APPROVED, Enrollment::STATUS_COMPLETED], true)) {
-                    ToastMagic::info('You are already enrolled in this course.');
-                    return redirect()->route('courses.show', $course->id);
-                }
-
-                if ($existingEnrollment->payment && $existingEnrollment->payment->payment_method === Payment::PAYMENT_METHOD_OFFLINE) {
-                    ToastMagic::warning('You have a pending offline payment request. Please wait for admin approval.');
-                    return redirect()->route('courses.show', $course->id);
-                }
+            $topic = null;
+            $topicId = request()->query('topic_id') ?? request()->input('topic_id');
+            if ($topicId) {
+                $topic = \App\Models\CourseTopic::where('course_id', $course->id)->find($topicId);
             }
 
-            $price = $this->calculatePrice($course);
+            if ($topic) {
+                $existingEnrollment = Enrollment::with('payment')
+                    ->where('user_id', $user->id)
+                    ->where('course_id', $course->id)
+                    ->where(function ($q) use ($topic) {
+                        $q->whereNull('course_topic_id')->orWhere('course_topic_id', $topic->id);
+                    })
+                    ->whereIn('status', [Enrollment::STATUS_APPROVED, Enrollment::STATUS_COMPLETED])
+                    ->first();
 
-            if ($price <= 0) {
-                $enrollment = Enrollment::create([
-                    'user_id' => $user->id,
-                    'course_id' => $course->id,
-                    'status' => Enrollment::STATUS_APPROVED,
-                    'enrolled_at' => now(),
-                ]);
+                if ($existingEnrollment) {
+                    ToastMagic::info('You already have access to this topic.');
+                    return redirect()->route('student.courses.show', $course->id);
+                }
 
-                ToastMagic::success('Congratulations! You have successfully enrolled in this free course.');
-                return redirect()->route('student.courses.show', $course->id);
+                if ($topic->is_free || (float)$topic->price <= 0) {
+                    Enrollment::create([
+                        'user_id' => $user->id,
+                        'course_id' => $course->id,
+                        'course_topic_id' => $topic->id,
+                        'status' => Enrollment::STATUS_APPROVED,
+                        'enrolled_at' => now(),
+                    ]);
+
+                    ToastMagic::success("Congratulations! You have enrolled in topic '{$topic->title}' for free.");
+                    return redirect()->route('student.courses.show', $course->id);
+                }
+
+                $price = (float) $topic->price;
+            } else {
+                $existingEnrollment = Enrollment::with('payment')
+                    ->where('user_id', $user->id)
+                    ->where('course_id', $course->id)
+                    ->whereNull('course_topic_id')
+                    ->first();
+
+                if ($existingEnrollment) {
+                    if (in_array($existingEnrollment->status, [Enrollment::STATUS_APPROVED, Enrollment::STATUS_COMPLETED], true)) {
+                        ToastMagic::info('You are already enrolled in this course.');
+                        return redirect()->route('courses.show', $course->id);
+                    }
+
+                    if ($existingEnrollment->payment && $existingEnrollment->payment->payment_method === Payment::PAYMENT_METHOD_OFFLINE) {
+                        ToastMagic::warning('You have a pending offline payment request. Please wait for admin approval.');
+                        return redirect()->route('courses.show', $course->id);
+                    }
+                }
+
+                $price = $this->calculatePrice($course);
+
+                if ($price <= 0) {
+                    $enrollment = Enrollment::create([
+                        'user_id' => $user->id,
+                        'course_id' => $course->id,
+                        'status' => Enrollment::STATUS_APPROVED,
+                        'enrolled_at' => now(),
+                    ]);
+
+                    ToastMagic::success('Congratulations! You have successfully enrolled in this free course.');
+                    return redirect()->route('student.courses.show', $course->id);
+                }
             }
         }
 
@@ -161,7 +199,7 @@ class CourseEnrollmentController extends Controller
             'pesapal'     => 'Pay securely with M-Pesa, Tigo Pesa, Airtel Money, HaloPesa, or card via Pesapal.',
         ];
 
-        return view('checkout', compact('course', 'price', 'onlineGateways', 'offlineGateway', 'offlineInstructions', 'gatewayDescriptions', 'isBundle'));
+        return view('checkout', compact('course', 'price', 'onlineGateways', 'offlineGateway', 'offlineInstructions', 'gatewayDescriptions', 'isBundle', 'topic'));
     }
 
     /**
@@ -207,40 +245,89 @@ class CourseEnrollmentController extends Controller
                 return redirect()->route('courses.show', $course->id);
             }
 
-            $existingEnrollment = Enrollment::where('user_id', $user->id)
-                ->where('course_id', $course->id)
-                ->first();
-
-            if ($existingEnrollment) {
-                if (
-                    $existingEnrollment->status === Enrollment::STATUS_APPROVED ||
-                    $existingEnrollment->status === Enrollment::STATUS_COMPLETED
-                ) {
-                    ToastMagic::info('You are already enrolled in this course.');
-                    return redirect()->route('courses.show', $course->id);
-                }
-
-                $payment = $existingEnrollment->payment;
-                if ($payment && $payment->payment_method === Payment::PAYMENT_METHOD_OFFLINE) {
-                    ToastMagic::warning('You have a pending offline payment request. Please wait for admin approval.');
-                    return redirect()->route('courses.show', $course->id);
-                }
-
-                $existingEnrollment->delete();
+            $topic = null;
+            $topicId = $request->input('topic_id');
+            if ($topicId) {
+                $topic = \App\Models\CourseTopic::where('course_id', $course->id)->find($topicId);
             }
 
-            $price = $this->calculatePrice($course);
+            if ($topic) {
+                $existingEnrollment = Enrollment::where('user_id', $user->id)
+                    ->where('course_id', $course->id)
+                    ->where(function ($q) use ($topic) {
+                        $q->whereNull('course_topic_id')->orWhere('course_topic_id', $topic->id);
+                    })
+                    ->first();
 
-            if ($price <= 0) {
-                $enrollment = Enrollment::create([
-                    'user_id' => $user->id,
-                    'course_id' => $course->id,
-                    'status' => Enrollment::STATUS_APPROVED,
-                    'enrolled_at' => now(),
-                ]);
+                if ($existingEnrollment) {
+                    if (
+                        $existingEnrollment->status === Enrollment::STATUS_APPROVED ||
+                        $existingEnrollment->status === Enrollment::STATUS_COMPLETED
+                    ) {
+                        ToastMagic::info('You already have access to this topic.');
+                        return redirect()->route('student.courses.show', $course->id);
+                    }
 
-                ToastMagic::success('Congratulations! You have successfully enrolled in this free course.');
-                return redirect()->route('student.courses.show', $course->id);
+                    $payment = $existingEnrollment->payment;
+                    if ($payment && $payment->payment_method === Payment::PAYMENT_METHOD_OFFLINE) {
+                        ToastMagic::warning('You have a pending offline payment request. Please wait for admin approval.');
+                        return redirect()->route('courses.show', $course->id);
+                    }
+
+                    $existingEnrollment->delete();
+                }
+
+                if ($topic->is_free || (float)$topic->price <= 0) {
+                    $enrollment = Enrollment::create([
+                        'user_id' => $user->id,
+                        'course_id' => $course->id,
+                        'course_topic_id' => $topic->id,
+                        'status' => Enrollment::STATUS_APPROVED,
+                        'enrolled_at' => now(),
+                    ]);
+
+                    ToastMagic::success("Congratulations! You have enrolled in topic '{$topic->title}' for free.");
+                    return redirect()->route('student.courses.show', $course->id);
+                }
+
+                $price = (float) $topic->price;
+            } else {
+                $existingEnrollment = Enrollment::where('user_id', $user->id)
+                    ->where('course_id', $course->id)
+                    ->whereNull('course_topic_id')
+                    ->first();
+
+                if ($existingEnrollment) {
+                    if (
+                        $existingEnrollment->status === Enrollment::STATUS_APPROVED ||
+                        $existingEnrollment->status === Enrollment::STATUS_COMPLETED
+                    ) {
+                        ToastMagic::info('You are already enrolled in this course.');
+                        return redirect()->route('courses.show', $course->id);
+                    }
+
+                    $payment = $existingEnrollment->payment;
+                    if ($payment && $payment->payment_method === Payment::PAYMENT_METHOD_OFFLINE) {
+                        ToastMagic::warning('You have a pending offline payment request. Please wait for admin approval.');
+                        return redirect()->route('courses.show', $course->id);
+                    }
+
+                    $existingEnrollment->delete();
+                }
+
+                $price = $this->calculatePrice($course);
+
+                if ($price <= 0) {
+                    $enrollment = Enrollment::create([
+                        'user_id' => $user->id,
+                        'course_id' => $course->id,
+                        'status' => Enrollment::STATUS_APPROVED,
+                        'enrolled_at' => now(),
+                    ]);
+
+                    ToastMagic::success('Congratulations! You have successfully enrolled in this free course.');
+                    return redirect()->route('student.courses.show', $course->id);
+                }
             }
 
             $courseIdToUse = $course->id;
@@ -307,6 +394,7 @@ class CourseEnrollmentController extends Controller
                 $enrollment = Enrollment::firstOrCreate([
                     'user_id' => $user->id,
                     'course_id' => $courseIdToUse,
+                    'course_topic_id' => $topic?->id,
                 ], [
                     'status' => Enrollment::STATUS_PENDING,
                 ]);
@@ -315,6 +403,7 @@ class CourseEnrollmentController extends Controller
                     'user_id' => $user->id,
                     'enrollment_id' => $enrollment->id,
                     'bundle_id' => $isBundle ? $course->id : null,
+                    'course_topic_id' => $topic?->id,
                     'payment_method' => Payment::PAYMENT_METHOD_STRIPE,
                     'amount' => $price,
                     'status' => Payment::STATUS_PENDING,
@@ -339,6 +428,7 @@ class CourseEnrollmentController extends Controller
                 $enrollment = Enrollment::firstOrCreate([
                     'user_id' => $user->id,
                     'course_id' => $courseIdToUse,
+                    'course_topic_id' => $topic?->id,
                 ], [
                     'status' => Enrollment::STATUS_PENDING,
                 ]);
@@ -347,6 +437,7 @@ class CourseEnrollmentController extends Controller
                     'user_id' => $user->id,
                     'enrollment_id' => $enrollment->id,
                     'bundle_id' => $isBundle ? $course->id : null,
+                    'course_topic_id' => $topic?->id,
                     'payment_method' => Payment::PAYMENT_METHOD_FLUTTERWAVE,
                     'amount' => $price,
                     'status' => Payment::STATUS_PENDING,
@@ -371,6 +462,7 @@ class CourseEnrollmentController extends Controller
                 $enrollment = Enrollment::firstOrCreate([
                     'user_id' => $user->id,
                     'course_id' => $courseIdToUse,
+                    'course_topic_id' => $topic?->id,
                 ], [
                     'status' => Enrollment::STATUS_PENDING,
                 ]);
@@ -379,6 +471,7 @@ class CourseEnrollmentController extends Controller
                     'user_id' => $user->id,
                     'enrollment_id' => $enrollment->id,
                     'bundle_id' => $isBundle ? $course->id : null,
+                    'course_topic_id' => $topic?->id,
                     'payment_method' => Payment::PAYMENT_METHOD_PAYPAL,
                     'amount' => $price,
                     'status' => Payment::STATUS_PENDING,
@@ -403,6 +496,7 @@ class CourseEnrollmentController extends Controller
                 $enrollment = Enrollment::firstOrCreate([
                     'user_id'   => $user->id,
                     'course_id' => $courseIdToUse,
+                    'course_topic_id' => $topic?->id,
                 ], [
                     'status' => Enrollment::STATUS_PENDING,
                 ]);
@@ -412,7 +506,7 @@ class CourseEnrollmentController extends Controller
                     'merchant_reference' => $merchantReference,
                     'currency'           => base_currency_code() ?: 'TZS',
                     'amount'             => $price,
-                    'description'        => ($isBundle ? 'Bundle: ' : 'Course: ') . $course->title,
+                    'description'        => ($topic ? ('Topic: ' . $topic->title . ' - ') : '') . ($isBundle ? 'Bundle: ' : 'Course: ') . $course->title,
                     'callback_url'       => route('payment.pesapal.callback'),
                     'ipn_url'            => route('payment.pesapal.ipn'),
                     'customer_name'      => $user->name,
@@ -424,6 +518,7 @@ class CourseEnrollmentController extends Controller
                     'user_id'                    => $user->id,
                     'enrollment_id'              => $enrollment->id,
                     'bundle_id'                  => $isBundle ? $course->id : null,
+                    'course_topic_id'            => $topic?->id,
                     'payment_method'             => Payment::PAYMENT_METHOD_PESAPAL,
                     'amount'                     => $price,
                     'status'                     => Payment::STATUS_PENDING,
@@ -455,6 +550,7 @@ class CourseEnrollmentController extends Controller
                 $enrollment = Enrollment::firstOrCreate([
                     'user_id' => $user->id,
                     'course_id' => $courseIdToUse,
+                    'course_topic_id' => $topic?->id,
                 ], [
                     'status' => Enrollment::STATUS_PENDING,
                 ]);
@@ -463,6 +559,7 @@ class CourseEnrollmentController extends Controller
                     'user_id' => $user->id,
                     'enrollment_id' => $enrollment->id,
                     'bundle_id' => $isBundle ? $course->id : null,
+                    'course_topic_id' => $topic?->id,
                     'payment_method' => Payment::PAYMENT_METHOD_OFFLINE,
                     'amount' => $price,
                     'status' => Payment::STATUS_PENDING,
@@ -483,6 +580,7 @@ class CourseEnrollmentController extends Controller
                 $enrollment = Enrollment::create([
                     'user_id' => $user->id,
                     'course_id' => $courseIdToUse,
+                    'course_topic_id' => $topic?->id,
                     'status' => Enrollment::STATUS_APPROVED,
                     'enrolled_at' => now(),
                 ]);

@@ -20,16 +20,44 @@ class CourseTopic extends Model
         'course_id',
         'title',
         'description',
+        'is_free',
+        'price',
         'order',
         'drip_days',
         'drip_date',
     ];
 
     protected $casts = [
+        'is_free' => 'boolean',
+        'price' => 'decimal:2',
         'order' => 'integer',
         'drip_days' => 'integer',
         'drip_date' => 'datetime',
     ];
+
+    /**
+     * Determine if topic is open for free access.
+     */
+    public function isFree(): bool
+    {
+        return (bool) $this->is_free;
+    }
+
+    /**
+     * Determine if topic has its own standalone purchase price.
+     */
+    public function hasStandalonePrice(): bool
+    {
+        return !$this->is_free && (float) $this->price > 0;
+    }
+
+    /**
+     * Get the enrollments specifically for this topic.
+     */
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class, 'course_topic_id');
+    }
 
     /**
      * Get the course that owns the topic.

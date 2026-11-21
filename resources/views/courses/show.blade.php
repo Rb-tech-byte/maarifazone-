@@ -1220,8 +1220,20 @@
                                                     data-bs-target="#cdTopicCollapse{{ $topic->id }}"
                                                     aria-expanded="{{ $topicIndex === 0 ? 'true' : 'false' }}"
                                                     aria-controls="cdTopicCollapse{{ $topic->id }}">
-                                                <span class="maarifazone-cd-section__title">{{ $topic->title }}</span>
-                                                <span class="maarifazone-cd-section__meta">
+                                                <span class="maarifazone-cd-section__title">
+                                                    {{ $topic->title }}
+                                                    @if($topic->is_free)
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0 ms-2" style="font-size: 11px;"><i class="fa-solid fa-gift me-1"></i>Free Topic</span>
+                                                    @elseif($topic->price > 0)
+                                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0 ms-2" style="font-size: 11px;">TZS {{ number_format($topic->price) }}</span>
+                                                    @endif
+                                                </span>
+                                                <span class="maarifazone-cd-section__meta align-items-center">
+                                                    @if(!$isEnrolled && $topic->price > 0)
+                                                        <a href="{{ route('courses.checkout', ['id' => $course->id, 'topic_id' => $topic->id]) }}" class="btn btn-sm btn-outline-primary py-0 px-2 me-2" style="font-size: 11px; font-weight: 600; border-radius: 6px;" onclick="event.stopPropagation();">
+                                                            Buy Topic Only (TZS {{ number_format($topic->price) }})
+                                                        </a>
+                                                    @endif
                                                     <span>{{ $topic->lessons->count() }} {{ $topic->lessons->count() === 1 ? 'lesson' : 'lessons' }}</span>
                                                     <i class="fa-solid fa-chevron-down maarifazone-cd-section__chevron"></i>
                                                 </span>
@@ -1231,13 +1243,22 @@
                                                 <ul class="maarifazone-cd-lessons">
                                                     @foreach($topic->lessons as $lessonIdx => $lesson)
                                                         @php
-                                                            $canPlayPreview = $lesson->is_preview && (($lesson->video_type === 'url' && $lesson->video_url) || ($lesson->video_type === 'upload' && $lesson->video_path));
+                                                            $canPlayPreview = ($lesson->is_preview || $lesson->is_free) && (($lesson->video_type === 'url' && $lesson->video_url) || ($lesson->video_type === 'upload' && $lesson->video_path));
                                                             $lessonMins = (int) ($lesson->duration ?: 15);
+                                                            $lType = $lesson->lesson_type ?: 'video';
+                                                            $lIcon = match($lType) {
+                                                                'text' => 'fa-regular fa-file-lines text-info',
+                                                                'pdf' => 'fa-solid fa-file-pdf text-danger',
+                                                                'ppt' => 'fa-solid fa-file-powerpoint text-warning',
+                                                                'attachment' => 'fa-solid fa-paperclip text-secondary',
+                                                                'live' => 'fa-solid fa-satellite-dish text-danger',
+                                                                default => 'fa-regular fa-circle-play text-primary',
+                                                            };
                                                         @endphp
                                                         <li class="maarifazone-cd-lesson-item">
                                                             <div class="maarifazone-cd-lesson-item__left">
-                                                                @if($lesson->is_preview || $lessonIdx === 0)
-                                                                    <i class="fa-regular fa-circle-play maarifazone-cd-lesson-item__icon-play"></i>
+                                                                @if($topic->is_free || $lesson->is_preview || $lesson->is_free || $isEnrolled || $lessonIdx === 0)
+                                                                    <i class="{{ $lIcon }} maarifazone-cd-lesson-item__icon-play"></i>
                                                                 @else
                                                                     <i class="fa-solid fa-lock maarifazone-cd-lesson-item__icon-lock"></i>
                                                                 @endif
@@ -1254,8 +1275,12 @@
                                                                     <span class="maarifazone-cd-lesson-item__name">{{ $lesson->title }}</span>
                                                                 @endif
 
-                                                                @if($lesson->is_preview || $lessonIdx === 0)
+                                                                @if($topic->is_free || $lesson->is_preview || $lesson->is_free || $lessonIdx === 0)
                                                                     <span class="maarifazone-cd-lesson-item__preview-badge">{{ __('frontend.preview') }}</span>
+                                                                @endif
+
+                                                                @if(!$topic->is_free && $lesson->price > 0)
+                                                                    <span class="badge bg-light text-muted border ms-2" style="font-size: 10px;">TZS {{ number_format($lesson->price) }}</span>
                                                                 @endif
                                                             </div>
 

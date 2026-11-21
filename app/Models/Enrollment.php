@@ -20,6 +20,7 @@ class Enrollment extends Model
     protected $fillable = [
         'user_id',
         'course_id',
+        'course_topic_id',
         'payment_id',
         'status',
         'start_date',
@@ -115,6 +116,14 @@ class Enrollment extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    /**
+     * Eloquent belongsTo relationship for specific Topic (when enrolled per-topic).
+     */
+    public function courseTopic(): BelongsTo
+    {
+        return $this->belongsTo(CourseTopic::class, 'course_topic_id');
     }
 
     /**

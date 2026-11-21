@@ -36,11 +36,20 @@
                                     <span style="width: 10px; height: 10px; border-radius: 50%; background: #dc3545; animation: liveDot 1.5s infinite;"></span>
                                 </span>
                             @elseif($item['type'] === 'lesson' && ($item['is_live'] ?? false))
-                                <i class="fas fa-broadcast-tower" style="color: #e0860a; font-size: 12px;"></i>
+                                <i class="fas fa-broadcast-tower" style="color: #dc3545; font-size: 12px;"></i>
                             @elseif($item['type'] === 'lesson')
-                                <i class="fas fa-play"></i>
-                            @elseif($item['type'] === 'quiz')
-                                <i class="fas fa-comments"></i>
+                                @php
+                                    $lType = $item['lesson_type'] ?? 'video';
+                                    $icon = match($lType) {
+                                        'text' => 'fa-file-lines text-info',
+                                        'pdf' => 'fa-file-pdf text-danger',
+                                        'ppt' => 'fa-file-powerpoint text-warning',
+                                        'attachment' => 'fa-paperclip text-secondary',
+                                        'live' => 'fa-broadcast-tower text-danger',
+                                        default => 'fa-play text-primary',
+                                    };
+                                @endphp
+                                <i class="fas {{ $icon }}"></i>
                             @else
                                 <i class="fas fa-file-alt"></i>
                             @endif

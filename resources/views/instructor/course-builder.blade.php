@@ -255,7 +255,7 @@
                                                         @endif
                                                     </div>
                                                     <p class="text-muted mb-2" style="font-size:0.75rem;">
-                                                        Primary keeps 100% of the instructor share. Co-instructors appear on the course page and get their share of the instructor earnings from every sale. With "Can edit" they can change the curriculum, quizzes, assignments, FAQs and live classes — never the price, the co-instructor list or delete the course.
+                                                        Primary keeps 100% of the instructor share. Co-instructors appear on the course page and get their share of the instructor earnings from every sale. With "Can edit" they can change the curriculum, learning materials, FAQs and live classes — never the price, the co-instructor list or delete the course.
                                                     </p>
                                                     <div id="coInstructorsList">
                                                         @php $existingCos = old('co_instructors', $courseDataArray['co_instructors'] ?? []); @endphp
@@ -1085,8 +1085,8 @@
                                 <select id="aiStudioMode" class="form-select form-select-sm">
                                     <option value="outline">Course Outline (Prompt / Doc)</option>
                                     <option value="lesson_text">Lesson Text</option>
-                                    <option value="quiz_questions">Quiz Questions</option>
-                                    <option value="assignment_rubric">Assignment + Rubric</option>
+                                    <option value="learning_materials">Topic Reading Materials & Notes</option>
+                                    <option value="slide_deck_outline">Presentation & Slide Outline</option>
                                     <option value="faqs">Course FAQs</option>
                                     <option value="marketing_copy">Marketing Copy &amp; SEO</option>
                                 </select>

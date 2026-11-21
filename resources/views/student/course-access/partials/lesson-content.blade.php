@@ -210,6 +210,64 @@
                     </div>
                 @endif
 
+                {{-- Full Text / Article Lecture Reading Material --}}
+                @if (!empty($lesson->content_text))
+                    <div class="maarifazone-lesson-text-body p-4 my-4 rounded-3" style="background: #ffffff; border: 1px solid #e2e8f0; font-size: 16px; line-height: 1.8; color: #1e293b; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom text-muted" style="font-size: 13px;">
+                            <i class="fa-regular fa-file-lines text-info"></i>
+                            <span class="fw-semibold">Lesson Article &amp; Lecture Notes</span>
+                        </div>
+                        <div class="content-body" style="white-space: pre-wrap;">{{ $lesson->content_text }}</div>
+                    </div>
+                @endif
+
+                {{-- Embedded PDF or Presentation / Downloadable Learning Materials --}}
+                @if (!empty($lesson->attachment_path))
+                    @php
+                        $ext = strtolower(pathinfo($lesson->attachment_path, PATHINFO_EXTENSION));
+                        $isPdf = $ext === 'pdf' || $lesson->lesson_type === 'pdf';
+                        $isPpt = in_array($ext, ['ppt', 'pptx']) || $lesson->lesson_type === 'ppt';
+                        $attachmentUrl = asset('storage/' . $lesson->attachment_path);
+                        $attachmentTitle = $lesson->attachment_name ?: ($isPdf ? 'Lecture Notes (PDF)' : ($isPpt ? 'Presentation Slides' : 'Learning Material'));
+                    @endphp
+
+                    @if ($isPdf)
+                        <div class="pdf-viewer-wrapper my-4">
+                            <div class="d-flex align-items-center justify-content-between p-3 rounded-top" style="background: #0f172a; color: #ffffff;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-file-pdf text-danger fa-lg"></i>
+                                    <span class="fw-bold">{{ $attachmentTitle }}</span>
+                                </div>
+                                <a href="{{ $attachmentUrl }}" target="_blank" download="{{ $lesson->attachment_name ?: 'document.pdf' }}" class="btn btn-sm btn-outline-light">
+                                    <i class="fa-solid fa-download me-1"></i> Download PDF
+                                </a>
+                            </div>
+                            <iframe src="{{ $attachmentUrl }}" width="100%" height="650" style="border: 1px solid #0f172a; border-top: none; border-radius: 0 0 8px 8px;"></iframe>
+                        </div>
+                    @else
+                        <div class="card p-4 my-4 rounded-3 border" style="background: #f8fafc;">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div style="width: 48px; height: 48px; border-radius: 10px; background: #e2e8f0; display: flex; align-items: center; justify-content: center;">
+                                        @if ($isPpt)
+                                            <i class="fa-solid fa-file-powerpoint text-warning fa-2x"></i>
+                                        @else
+                                            <i class="fa-solid fa-file-arrow-down text-primary fa-2x"></i>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1 fw-bold text-dark">{{ $attachmentTitle }}</h5>
+                                        <small class="text-muted">Format: .{{ strtoupper($ext ?: 'FILE') }} &bull; Maarifazone course resource</small>
+                                    </div>
+                                </div>
+                                <a href="{{ $attachmentUrl }}" target="_blank" download="{{ $lesson->attachment_name ?: 'material' }}" class="btn btn-primary px-3 py-2 fw-semibold">
+                                    <i class="fa-solid fa-download me-1"></i> Download File
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+                @endif
+
                 @if ($lesson->description)
                     <div class="description-content mt-4">
                         <h3 class="mb-3">{{ __('student.description') }}</h3>

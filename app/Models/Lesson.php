@@ -20,13 +20,19 @@ class Lesson extends Model
     protected $fillable = [
         'course_topic_id',
         'title',
+        'lesson_type',
         'description',
         'content_text',
         'video_type',
         'video_url',
         'video_path',
+        'attachment_path',
+        'attachment_name',
+        'attachment_type',
         'duration',
         'is_preview',
+        'is_free',
+        'price',
         'drip_days',
         'drip_date',
         'is_live',
@@ -36,17 +42,36 @@ class Lesson extends Model
 
     protected $appends = [
         'video_url',
+        'attachment_url',
     ];
 
     protected $casts = [
         'duration'      => 'integer',
         'is_preview'    => 'boolean',
+        'is_free'       => 'boolean',
+        'price'         => 'decimal:2',
         'drip_days'     => 'integer',
         'drip_date'     => 'datetime',
         'is_live'       => 'boolean',
         'live_class_id' => 'integer',
         'order'         => 'integer',
     ];
+
+    /**
+     * Accessor for full attachment URL if an attachment file is uploaded.
+     */
+    public function getAttachmentUrlAttribute(): ?string
+    {
+        if (!$this->attachment_path) {
+            return null;
+        }
+
+        if (filter_var($this->attachment_path, FILTER_VALIDATE_URL)) {
+            return $this->attachment_path;
+        }
+
+        return asset('storage/' . ltrim($this->attachment_path, '/'));
+    }
 
     /**
      * Get the topic that owns the lesson.

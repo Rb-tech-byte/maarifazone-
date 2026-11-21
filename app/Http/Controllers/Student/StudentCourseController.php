@@ -131,6 +131,7 @@ class StudentCourseController extends Controller
                     'is_accessible'      => $accessibleItems['lesson_' . $lesson->id] ?? false,
                     'is_live'            => (bool) $lesson->is_live,
                     'live_status'        => $lesson->liveClass?->status,
+                    'lesson_type'        => $lesson->lesson_type ?: 'video',
                 ];
             }
 
@@ -452,6 +453,7 @@ class StudentCourseController extends Controller
                     'is_accessible'      => $accessibleItems['lesson_' . $lesson->id] ?? false,
                     'is_live'            => (bool) $lesson->is_live,
                     'live_status'        => $lesson->liveClass?->status,
+                    'lesson_type'        => $lesson->lesson_type ?: 'video',
                 ];
             }
             usort($itemsData, fn ($a, $b) => ($a['order'] <=> $b['order']));
@@ -531,7 +533,32 @@ class StudentCourseController extends Controller
             return false;
         }
 
-        // Online Maarifa courses allow free progression across enrolled lessons
+        // Find the lesson and its topic
+        $lesson = Lesson::with('topic')->find($itemId);
+        if (!$lesson) {
+            return true;
+        }
+
+        // If lesson is marked preview or free, it is open to all
+        if ($lesson->is_preview || $lesson->is_free) {
+            return true;
+        }
+
+        // If the topic itself is marked free, all its lessons are open
+        if ($lesson->topic && $lesson->topic->is_free) {
+            return true;
+        }
+
+        // If user is enrolled in the full course (no topic restriction)
+        if ($enrollment && empty($enrollment->course_topic_id)) {
+            return true;
+        }
+
+        // If enrolled specifically in this topic
+        if ($enrollment && $enrollment->course_topic_id) {
+            return (int) $lesson->course_topic_id === (int) $enrollment->course_topic_id;
+        }
+
         return true;
     }
 

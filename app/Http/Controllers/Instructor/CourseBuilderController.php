@@ -164,18 +164,20 @@ class CourseBuilderController extends Controller
             if ($request->has('topics') && is_array($request->topics)) {
                 foreach ($request->topics as $topicIndex => $topicData) {
                     $topic = CourseTopic::create([
-                        'course_id' => $course->id,
-                        'title' => $topicData['title'] ?? '',
+                        'course_id'   => $course->id,
+                        'title'       => $topicData['title'] ?? '',
                         'description' => $topicData['description'] ?? null,
-                        'order' => $topicIndex,
+                        'is_free'     => filter_var($topicData['is_free'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                        'price'       => isset($topicData['price']) && is_numeric($topicData['price']) ? (float) $topicData['price'] : 0.00,
+                        'order'       => $topicIndex,
                     ]);
 
                     if (isset($topicData['lessons']) && is_array($topicData['lessons'])) {
                         foreach ($topicData['lessons'] as $lessonIndex => $lessonData) {
                             $lessonVideoPath = null;
                             $lessonVideoUrl = null;
-
-                            $isLiveLesson = ($lessonData['video_type'] ?? 'url') === 'live';
+                            $contentType = $lessonData['lesson_type'] ?? ($lessonData['contentType'] ?? 'video');
+                            $isLiveLesson = ($lessonData['video_type'] ?? 'url') === 'live' || $contentType === 'live';
 
                             if (!$isLiveLesson && ($lessonData['video_type'] ?? 'url') === 'upload') {
                                 $videoFile = null;
@@ -203,15 +205,42 @@ class CourseBuilderController extends Controller
                                 $lessonVideoUrl = $lessonData['video_url'] ?? null;
                             }
 
+                            // Handle downloadable material file (PDF, PPT, DOC, ZIP)
+                            $materialPath = null;
+                            $materialName = null;
+                            $materialType = null;
+                            $simpleMatKey = "lesson_material_{$topicIndex}_{$lessonIndex}";
+                            $matFile = $request->file($simpleMatKey) ?? $request->file("topics.{$topicIndex}.lessons.{$lessonIndex}.material_file");
+                            if ($matFile && $matFile instanceof \Illuminate\Http\UploadedFile) {
+                                $matInfo = $this->fileUploadService->uploadLessonMaterial($matFile);
+                                $materialPath = $matInfo['file_path'];
+                                $materialName = $matInfo['original_filename'];
+                                $materialType = $matInfo['extension'];
+                            } elseif (!empty($lessonData['attachment_path'])) {
+                                $materialPath = str_replace(asset('storage/'), '', $lessonData['attachment_path']);
+                                $materialName = $lessonData['attachment_name'] ?? null;
+                                $materialType = $lessonData['attachment_type'] ?? null;
+                            }
+
+                            $isPreview = filter_var($lessonData['is_preview'] ?? false, FILTER_VALIDATE_BOOLEAN);
+                            $isFree = filter_var($lessonData['is_free'] ?? $isPreview, FILTER_VALIDATE_BOOLEAN) || $isPreview;
+
                             Lesson::create([
                                 'course_topic_id' => $topic->id,
                                 'title'           => $lessonData['title'] ?? '',
+                                'lesson_type'     => $contentType,
                                 'description'     => $lessonData['description'] ?? null,
+                                'content_text'    => $lessonData['content_text'] ?? null,
                                 'video_type'      => $lessonData['video_type'] ?? 'url',
                                 'video_url'       => $isLiveLesson ? null : $lessonVideoUrl,
                                 'video_path'      => $isLiveLesson ? null : $lessonVideoPath,
+                                'attachment_path' => $materialPath,
+                                'attachment_name' => $materialName,
+                                'attachment_type' => $materialType,
                                 'duration'        => $lessonData['duration'] ?? null,
-                                'is_preview'      => filter_var($lessonData['is_preview'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                                'is_preview'      => $isPreview,
+                                'is_free'         => $isFree,
+                                'price'           => isset($lessonData['price']) && is_numeric($lessonData['price']) ? (float) $lessonData['price'] : 0.00,
                                 'is_live'         => $isLiveLesson,
                                 'order'           => $lessonIndex,
                             ]);
@@ -356,26 +385,34 @@ class CourseBuilderController extends Controller
             'intro_video' => $course->intro_video ? asset('storage/' . $course->intro_video) : null,
             'topics' => $course->topics->map(function ($topic) {
                 return [
-                    'id' => $topic->id,
-                    'title' => $topic->title,
+                    'id'          => $topic->id,
+                    'title'       => $topic->title,
                     'description' => $topic->description,
-                    'lessons' => $topic->lessons->map(function ($lesson) {
+                    'is_free'     => (bool) $topic->is_free,
+                    'price'       => (float) ($topic->price ?? 0),
+                    'lessons'     => $topic->lessons->map(function ($lesson) {
                         return [
-                            'id'          => $lesson->id,
-                            'title'       => $lesson->title,
-                            'description' => $lesson->description,
-                            'type'        => 'lesson',
-                            'videoType'   => $lesson->video_type,
-                            'videoUrl'    => $lesson->video_url,
-                            'videoPath'   => $lesson->video_path ? asset('storage/' . $lesson->video_path) : null,
-                            'duration'    => $lesson->duration,
-                            'isPreview'   => $lesson->is_preview,
-                            'isLive'      => (bool) $lesson->is_live,
-                            'liveClassId' => $lesson->live_class_id,
+                            'id'             => $lesson->id,
+                            'title'          => $lesson->title,
+                            'description'    => $lesson->description,
+                            'type'           => 'lesson',
+                            'lessonType'     => $lesson->lesson_type ?: 'video',
+                            'contentType'    => $lesson->lesson_type ?: 'video',
+                            'contentText'    => $lesson->content_text,
+                            'videoType'      => $lesson->video_type,
+                            'videoUrl'       => $lesson->video_url,
+                            'videoPath'      => $lesson->video_path ? asset('storage/' . $lesson->video_path) : null,
+                            'attachmentPath' => $lesson->attachment_path ? asset('storage/' . $lesson->attachment_path) : null,
+                            'attachmentName' => $lesson->attachment_name,
+                            'attachmentType' => $lesson->attachment_type,
+                            'duration'       => $lesson->duration,
+                            'isPreview'      => (bool) $lesson->is_preview,
+                            'isFree'         => (bool) ($lesson->is_free ?? $lesson->is_preview),
+                            'price'          => (float) ($lesson->price ?? 0),
+                            'isLive'         => (bool) $lesson->is_live,
+                            'liveClassId'    => $lesson->live_class_id,
                         ];
                     })->toArray(),
-                    'quizzes' => [],
-                    'assignments' => [],
                 ];
             })->toArray(),
         ];
@@ -519,20 +556,19 @@ class CourseBuilderController extends Controller
                 foreach ($request->topics as $topicIndex => $topicData) {
                     $topicId = $topicData['id'] ?? null;
 
+                    $topicPayload = [
+                        'title'       => $topicData['title'] ?? '',
+                        'description' => $topicData['description'] ?? null,
+                        'is_free'     => filter_var($topicData['is_free'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                        'price'       => isset($topicData['price']) && is_numeric($topicData['price']) ? (float) $topicData['price'] : 0.00,
+                        'order'       => $topicIndex,
+                    ];
+
                     if ($topicId && CourseTopic::where('id', $topicId)->where('course_id', $course->id)->exists()) {
                         $topic = CourseTopic::find($topicId);
-                        $topic->update([
-                            'title' => $topicData['title'] ?? '',
-                            'description' => $topicData['description'] ?? null,
-                            'order' => $topicIndex,
-                        ]);
+                        $topic->update($topicPayload);
                     } else {
-                        $topic = CourseTopic::create([
-                            'course_id' => $course->id,
-                            'title' => $topicData['title'] ?? '',
-                            'description' => $topicData['description'] ?? null,
-                            'order' => $topicIndex,
-                        ]);
+                        $topic = CourseTopic::create(array_merge(['course_id' => $course->id], $topicPayload));
                     }
 
                     $requestTopicIds[] = $topic->id;
@@ -543,7 +579,8 @@ class CourseBuilderController extends Controller
                             $lessonVideoPath = null;
                             $lessonVideoUrl = null;
 
-                            $isLiveLesson   = ($lessonData['video_type'] ?? 'url') === 'live';
+                            $contentType  = $lessonData['lesson_type'] ?? ($lessonData['contentType'] ?? 'video');
+                            $isLiveLesson = ($lessonData['video_type'] ?? 'url') === 'live' || $contentType === 'live';
 
                             if (!$isLiveLesson && ($lessonData['video_type'] ?? 'url') === 'upload') {
                                 $videoFile = null;
@@ -578,47 +615,63 @@ class CourseBuilderController extends Controller
                                 $lessonVideoUrl = $lessonData['video_url'] ?? null;
                             }
 
+                            // Handle downloadable material file (PDF, PPT, DOC, ZIP)
+                            $materialPath = null;
+                            $materialName = null;
+                            $materialType = null;
+                            $simpleMatKey = "lesson_material_{$topicIndex}_{$lessonIndex}";
+                            $matFile = $request->file($simpleMatKey) ?? $request->file("topics.{$topicIndex}.lessons.{$lessonIndex}.material_file");
+                            if ($matFile && $matFile instanceof \Illuminate\Http\UploadedFile) {
+                                if ($lessonId && $lesson = Lesson::find($lessonId)) {
+                                    if ($lesson->attachment_path) {
+                                        $this->fileUploadService->deleteFile($lesson->attachment_path);
+                                    }
+                                }
+                                $matInfo = $this->fileUploadService->uploadLessonMaterial($matFile);
+                                $materialPath = $matInfo['file_path'];
+                                $materialName = $matInfo['original_filename'];
+                                $materialType = $matInfo['extension'];
+                            } elseif (!empty($lessonData['attachment_path'])) {
+                                $materialPath = str_replace(asset('storage/'), '', $lessonData['attachment_path']);
+                                $materialName = $lessonData['attachment_name'] ?? null;
+                                $materialType = $lessonData['attachment_type'] ?? null;
+                            } elseif ($lessonId && $lesson = Lesson::find($lessonId)) {
+                                $materialPath = $lesson->attachment_path;
+                                $materialName = $lesson->attachment_name;
+                                $materialType = $lesson->attachment_type;
+                            }
+
+                            $isPreview = filter_var($lessonData['is_preview'] ?? false, FILTER_VALIDATE_BOOLEAN);
+                            $isFree = filter_var($lessonData['is_free'] ?? $isPreview, FILTER_VALIDATE_BOOLEAN) || $isPreview;
+
+                            $lessonPayload = [
+                                'course_topic_id' => $topic->id,
+                                'title'           => $lessonData['title'] ?? '',
+                                'lesson_type'     => $contentType,
+                                'description'     => $lessonData['description'] ?? null,
+                                'content_text'    => $lessonData['content_text'] ?? null,
+                                'video_type'      => $lessonData['video_type'] ?? 'url',
+                                'video_url'       => $isLiveLesson ? null : $lessonVideoUrl,
+                                'video_path'      => $isLiveLesson ? null : $lessonVideoPath,
+                                'attachment_path' => $materialPath,
+                                'attachment_name' => $materialName,
+                                'attachment_type' => $materialType,
+                                'duration'        => $lessonData['duration'] ?? null,
+                                'is_preview'      => $isPreview,
+                                'is_free'         => $isFree,
+                                'price'           => isset($lessonData['price']) && is_numeric($lessonData['price']) ? (float) $lessonData['price'] : 0.00,
+                                'is_live'         => $isLiveLesson,
+                                'order'           => $lessonIndex,
+                            ];
+
                             if ($lessonId && $lesson = Lesson::find($lessonId)) {
-                                if ($lesson->topic->course_id === $course->id) {
-                                    $lesson->update([
-                                        'course_topic_id' => $topic->id,
-                                        'title'           => $lessonData['title'] ?? '',
-                                        'description'     => $lessonData['description'] ?? null,
-                                        'video_type'      => $lessonData['video_type'] ?? 'url',
-                                        'video_url'       => $isLiveLesson ? null : $lessonVideoUrl,
-                                        'video_path'      => $isLiveLesson ? null : $lessonVideoPath,
-                                        'duration'        => $lessonData['duration'] ?? null,
-                                        'is_preview'      => filter_var($lessonData['is_preview'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                                        'is_live'         => $isLiveLesson,
-                                        'order'           => $lessonIndex,
-                                    ]);
+                                if ($lesson->topic && $lesson->topic->course_id === $course->id) {
+                                    $lesson->update($lessonPayload);
                                 } else {
-                                    $lesson = Lesson::create([
-                                        'course_topic_id' => $topic->id,
-                                        'title'           => $lessonData['title'] ?? '',
-                                        'description'     => $lessonData['description'] ?? null,
-                                        'video_type'      => $lessonData['video_type'] ?? 'url',
-                                        'video_url'       => $isLiveLesson ? null : $lessonVideoUrl,
-                                        'video_path'      => $isLiveLesson ? null : $lessonVideoPath,
-                                        'duration'        => $lessonData['duration'] ?? null,
-                                        'is_preview'      => filter_var($lessonData['is_preview'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                                        'is_live'         => $isLiveLesson,
-                                        'order'           => $lessonIndex,
-                                    ]);
+                                    $lesson = Lesson::create($lessonPayload);
                                 }
                             } else {
-                                $lesson = Lesson::create([
-                                    'course_topic_id' => $topic->id,
-                                    'title'           => $lessonData['title'] ?? '',
-                                    'description'     => $lessonData['description'] ?? null,
-                                    'video_type'      => $lessonData['video_type'] ?? 'url',
-                                    'video_url'       => $isLiveLesson ? null : $lessonVideoUrl,
-                                    'video_path'      => $isLiveLesson ? null : $lessonVideoPath,
-                                    'duration'        => $lessonData['duration'] ?? null,
-                                    'is_preview'      => filter_var($lessonData['is_preview'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                                    'is_live'         => $isLiveLesson,
-                                    'order'           => $lessonIndex,
-                                ]);
+                                $lesson = Lesson::create($lessonPayload);
                             }
 
                             $requestLessonIds[] = $lesson->id;

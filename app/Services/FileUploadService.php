@@ -171,6 +171,32 @@ class FileUploadService
     }
 
     /**
+     * Upload lesson learning material (PDF, PPT, PPTX, DOC, DOCX, ZIP, etc.)
+     */
+    public function uploadLessonMaterial(UploadedFile $file): array
+    {
+        $allowedExtensions = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'zip', 'txt', 'mp3', 'wav', 'epub'];
+        $ext = strtolower($file->getClientOriginalExtension());
+
+        $maxSize = 50 * 1024 * 1024; // 50MB
+        if ($file->getSize() > $maxSize) {
+            throw new \Exception('Learning material file size must be less than 50MB');
+        }
+
+        $cleanOriginalName = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . ($ext ?: 'bin');
+        $filename = time() . '_' . Str::random(8) . '_' . $cleanOriginalName;
+        $path = $file->storeAs('courses/materials', $filename, 'public');
+
+        return [
+            'file_path'         => $path,
+            'original_filename' => $file->getClientOriginalName(),
+            'file_size'         => $file->getSize(),
+            'mime_type'         => $file->getMimeType(),
+            'extension'         => $ext,
+        ];
+    }
+
+    /**
      * Upload assignment file
      */
     public function uploadAssignmentFile(UploadedFile $file): array

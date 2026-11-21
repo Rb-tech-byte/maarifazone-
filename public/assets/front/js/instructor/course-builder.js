@@ -97,54 +97,41 @@ $(document).ready(function () {
             languageSelectEl.value = courseData.course_language_id;
         }
 
-        topics = courseData.topics.map(function (topic) {
+        topics = (courseData.topics || []).map(function (topic) {
             return {
                 id: topic.id || Date.now() + Math.random(),
                 title: topic.title || '',
                 description: topic.description || '',
+                is_free: Boolean(topic.is_free),
+                price: parseFloat(topic.price || 0) || 0,
                 lessons: (topic.lessons || []).map(function (lesson) {
+                    const lType = lesson.lessonType || lesson.contentType || 'video';
                     return {
                         id: lesson.id || Date.now() + Math.random(),
                         title: lesson.title || '',
                         type: 'lesson',
+                        lessonType: lType,
+                        contentType: lType,
                         description: lesson.description || '',
+                        contentText: lesson.contentText || '',
                         videoType: lesson.videoType || 'url',
                         videoUrl: lesson.videoUrl || '',
                         videoFile: null,
                         videoPath: lesson.videoPath || null,
+                        attachmentPath: lesson.attachmentPath || null,
+                        attachmentName: lesson.attachmentName || '',
+                        attachmentType: lesson.attachmentType || '',
+                        materialFile: null,
                         duration: lesson.duration || '',
-                        isPreview: lesson.isPreview || false
+                        isPreview: Boolean(lesson.isPreview || lesson.isFree),
+                        isFree: Boolean(lesson.isFree || lesson.isPreview),
+                        price: parseFloat(lesson.price || 0) || 0,
+                        isLive: Boolean(lesson.isLive)
                     };
                 }),
-                quizzes: (topic.quizzes || []).map(function (quiz) {
-                    return {
-                        id: quiz.id || Date.now() + Math.random(),
-                        title: quiz.title || '',
-                        type: 'quiz',
-                        description: quiz.description || '',
-                        questions: (quiz.questions || []).map(function (q) {
-                            return {
-                                id: q.id || Date.now() + Math.random(),
-                                question: q.question || '',
-                                type: q.type || 'multiple-choice',
-                                options: q.options || [],
-                                correctAnswer: q.correctAnswer || 0
-                            };
-                        }),
-                        passingScore: quiz.passingScore || 60,
-                        timeLimit: quiz.timeLimit || ''
-                    };
-                }),
-                assignments: (topic.assignments || []).map(function (assignment) {
-                    return {
-                        id: assignment.id || Date.now() + Math.random(),
-                        title: assignment.title || '',
-                        type: 'assignment',
-                        description: assignment.description || '',
-                        instructions: assignment.instructions || '',
-                        attachments: assignment.attachments || []
-                    };
-                })
+                quizzes: [],
+                assignments: [],
+                items: []
             };
         });
 
@@ -419,6 +406,8 @@ function submitForm(publish = false) {
         formData.append(`topics[${topicIndex}][title]`, topic.title || '');
         formData.append(`topics[${topicIndex}][description]`, topic.description || '');
         formData.append(`topics[${topicIndex}][order]`, topicIndex);
+        formData.append(`topics[${topicIndex}][is_free]`, topic.is_free ? '1' : '0');
+        formData.append(`topics[${topicIndex}][price]`, topic.price || 0);
 
         if (topic.id) {
             formData.append(`topics[${topicIndex}][id]`, topic.id);
@@ -428,11 +417,16 @@ function submitForm(publish = false) {
             topic.lessons.forEach((lesson, lessonIndex) => {
                 formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][title]`, lesson.title || '');
                 formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][description]`, lesson.description || '');
+                formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][lesson_type]`, lesson.lessonType || lesson.contentType || 'video');
+                formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][content_text]`, lesson.contentText || '');
                 formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][video_type]`, lesson.videoType || 'url');
                 formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][video_url]`, lesson.videoUrl || '');
                 formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][duration]`, lesson.duration || '');
                 const isPreview = lesson.isPreview === true || lesson.isPreview === 'true' || lesson.isPreview === 1 || lesson.isPreview === '1';
+                const isFree = lesson.isFree === true || lesson.isFree === 'true' || lesson.isFree === 1 || isPreview;
                 formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][is_preview]`, isPreview ? '1' : '0');
+                formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][is_free]`, isFree ? '1' : '0');
+                formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][price]`, lesson.price || 0);
                 formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][order]`, lessonIndex);
 
                 if (lesson.id) {
@@ -440,6 +434,9 @@ function submitForm(publish = false) {
                 }
                 if (lesson.videoPath) {
                     formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][video_path]`, lesson.videoPath);
+                }
+                if (lesson.attachmentPath) {
+                    formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][attachment_path]`, lesson.attachmentPath);
                 }
 
                 if (lesson.videoType === 'upload' && lesson.videoFile && lesson.videoFile.file) {
@@ -449,73 +446,11 @@ function submitForm(publish = false) {
                         formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][video_file]`, videoFile);
                     }
                 }
-            });
-        }
 
-        // Process quizzes
-        if (topic.quizzes && topic.quizzes.length > 0) {
-            topic.quizzes.forEach((quiz, quizIndex) => {
-                formData.append(`topics[${topicIndex}][quizzes][${quizIndex}][title]`, quiz.title || '');
-                formData.append(`topics[${topicIndex}][quizzes][${quizIndex}][description]`, quiz.description || '');
-                formData.append(`topics[${topicIndex}][quizzes][${quizIndex}][passing_score]`, quiz.passingScore || 60);
-                formData.append(`topics[${topicIndex}][quizzes][${quizIndex}][time_limit]`, quiz.timeLimit || '');
-                formData.append(`topics[${topicIndex}][quizzes][${quizIndex}][order]`, quizIndex);
-
-                if (quiz.id) {
-                    formData.append(`topics[${topicIndex}][quizzes][${quizIndex}][id]`, quiz.id);
-                }
-
-                if (quiz.questions && quiz.questions.length > 0) {
-                    quiz.questions.forEach((question, qIndex) => {
-                        formData.append(`topics[${topicIndex}][quizzes][${quizIndex}][questions][${qIndex}][question]`, question.question || '');
-                        formData.append(`topics[${topicIndex}][quizzes][${quizIndex}][questions][${qIndex}][type]`, question.type || 'multiple-choice');
-                        formData.append(`topics[${topicIndex}][quizzes][${quizIndex}][questions][${qIndex}][correct_answer]`, question.correctAnswer || 0);
-                        formData.append(`topics[${topicIndex}][quizzes][${quizIndex}][questions][${qIndex}][order]`, qIndex);
-
-                        if (question.id) {
-                            formData.append(`topics[${topicIndex}][quizzes][${quizIndex}][questions][${qIndex}][id]`, question.id);
-                        }
-
-                        if (question.options && Array.isArray(question.options)) {
-                            question.options.forEach((option, optIndex) => {
-                                formData.append(`topics[${topicIndex}][quizzes][${quizIndex}][questions][${qIndex}][options][${optIndex}]`, option || '');
-                            });
-                        }
-                    });
-                }
-            });
-        }
-
-        // Process assignments
-        if (topic.assignments && topic.assignments.length > 0) {
-            topic.assignments.forEach((assignment, assignmentIndex) => {
-                formData.append(`topics[${topicIndex}][assignments][${assignmentIndex}][title]`, assignment.title || '');
-                formData.append(`topics[${topicIndex}][assignments][${assignmentIndex}][description]`, assignment.description || '');
-                formData.append(`topics[${topicIndex}][assignments][${assignmentIndex}][instructions]`, assignment.instructions || '');
-                formData.append(`topics[${topicIndex}][assignments][${assignmentIndex}][order]`, assignmentIndex);
-
-                if (assignment.id) {
-                    formData.append(`topics[${topicIndex}][assignments][${assignmentIndex}][id]`, assignment.id);
-                }
-
-                if (assignment.attachments && assignment.attachments.length > 0) {
-                    assignment.attachments.forEach((fileObj, fileIndex) => {
-                        if (fileObj.id) {
-                            formData.append(`topics[${topicIndex}][assignments][${assignmentIndex}][existing_files][${fileIndex}][id]`, fileObj.id);
-                        }
-                        if (fileObj.url) {
-                            formData.append(`topics[${topicIndex}][assignments][${assignmentIndex}][existing_files][${fileIndex}][url]`, fileObj.url);
-                        }
-                        if (fileObj.name) {
-                            formData.append(`topics[${topicIndex}][assignments][${assignmentIndex}][existing_files][${fileIndex}][name]`, fileObj.name);
-                        }
-
-                        if (fileObj.file && fileObj.file instanceof File) {
-                            const file = fileObj.file;
-                            formData.append(`assignment_file_${topicIndex}_${assignmentIndex}_${fileIndex}`, file);
-                            formData.append(`topics[${topicIndex}][assignments][${assignmentIndex}][files][]`, file);
-                        }
-                    });
+                const matFile = lesson.materialFile instanceof File ? lesson.materialFile : (lesson.materialFile && lesson.materialFile.file instanceof File ? lesson.materialFile.file : null);
+                if (matFile) {
+                    formData.append(`lesson_material_${topicIndex}_${lessonIndex}`, matFile);
+                    formData.append(`topics[${topicIndex}][lessons][${lessonIndex}][material_file]`, matFile);
                 }
             });
         }
@@ -629,6 +564,8 @@ function addTopic() {
         id: topicId,
         title: 'New Topic',
         description: '',
+        is_free: false,
+        price: '',
         lessons: [],
         quizzes: [],
         assignments: [],
@@ -668,13 +605,15 @@ function renderTopics() {
             topic.items = [];
         }
 
+        const isFree = topic.is_free === true || topic.is_free === 'true' || topic.is_free === 1 || topic.is_free === '1';
+
         const topicHtml = `
             <div class="topic-card" data-topic-id="${topic.id}">
                 <div class="topic-header">
                     <div class="topic-drag-handle">
                         <i class="fa-solid fa-grip-vertical"></i>
                     </div>
-                    <input type="text" class="topic-title-input" value="${topic.title}" placeholder="Topic Title" onchange="updateTopic(${topic.id}, 'title', this.value)">
+                    <input type="text" class="topic-title-input" value="${topic.title || ''}" placeholder="Topic Title" onchange="updateTopic(${topic.id}, 'title', this.value)">
                     <div class="topic-actions">
                         <button type="button" class="topic-action-btn" onclick="copyTopic(${topic.id})" title="Copy">
                             <i class="fa-solid fa-copy"></i>
@@ -688,28 +627,47 @@ function renderTopics() {
                     </div>
                 </div>
                 <div class="topic-body" data-topic-body="${topic.id}" style="display: ${expandedStates[topic.id] === false ? 'none' : 'block'};">
-                    <div class="topic-description">
-                        <textarea class="form-control" rows="3" placeholder="Topic description..." onchange="updateTopic(${topic.id}, 'description', this.value)">${topic.description}</textarea>
+                    <div class="topic-description" style="margin-bottom: 12px;">
+                        <textarea class="form-control" rows="2" placeholder="Topic description..." onchange="updateTopic(${topic.id}, 'description', this.value)">${topic.description || ''}</textarea>
                     </div>
-                    <div class="topic-actions-row">
-                        <button type="button" class="btn-add-content" onclick="addLesson(${topic.id})">
-                            <i class="fa-solid fa-plus"></i> Lesson
+                    <div class="topic-pricing-row" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 12px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px;">
+                        <label style="display: inline-flex; align-items: center; gap: 8px; margin: 0; font-weight: 600; font-size: 13px; color: #0f172a; cursor: pointer;">
+                            <input type="checkbox" ${isFree ? 'checked' : ''} onchange="updateTopic(${topic.id}, 'is_free', this.checked); renderTopics();" style="width: 17px; height: 17px; accent-color: #10b981; cursor: pointer;">
+                            <span><i class="fa-solid fa-gift text-success me-1"></i> Free Topic</span>
+                        </label>
+                        <div style="display: inline-flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 13px; font-weight: 600; color: #475569;">Standalone Price (TZS):</span>
+                            <input type="number" min="0" step="1000" class="form-control form-control-sm" style="width: 160px; font-weight: 600;" placeholder="e.g. 50000" value="${topic.price || ''}" ${isFree ? 'disabled' : ''} onchange="updateTopic(${topic.id}, 'price', this.value)">
+                        </div>
+                        <span style="font-size: 12px; color: #64748b; flex: 1 1 200px;">
+                            ${isFree ? '<span class="text-success fw-bold"><i class="fa-solid fa-circle-check"></i> Free for all scholars</span>' : (topic.price && topic.price > 0 ? `<span class="text-primary fw-bold">TZS ${Number(topic.price).toLocaleString()}</span> (Scholars can purchase only this topic)` : 'Included in full course enrollment')}
+                        </span>
+                    </div>
+                    <div class="topic-actions-row" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+                        <button type="button" class="btn-add-content" onclick="addLesson(${topic.id}, 'video')">
+                            <i class="fa-solid fa-video text-primary"></i> Video Lecture
+                        </button>
+                        <button type="button" class="btn-add-content" onclick="addLesson(${topic.id}, 'text')">
+                            <i class="fa-solid fa-file-lines text-info"></i> Text / Notes
+                        </button>
+                        <button type="button" class="btn-add-content" onclick="addLesson(${topic.id}, 'pdf')">
+                            <i class="fa-solid fa-file-pdf text-danger"></i> PDF Document
+                        </button>
+                        <button type="button" class="btn-add-content" onclick="addLesson(${topic.id}, 'ppt')">
+                            <i class="fa-solid fa-file-powerpoint text-warning"></i> Presentation (PPT)
+                        </button>
+                        <button type="button" class="btn-add-content" onclick="addLesson(${topic.id}, 'attachment')">
+                            <i class="fa-solid fa-paperclip text-secondary"></i> Learning Material
                         </button>
                         <button type="button" class="btn-add-content" onclick="addLiveLesson(${topic.id})" style="background: rgba(229,62,62,0.1); color:#e53e3e; border-color:#e53e3e;">
-                            <i class="fa-solid fa-circle" style="font-size:0.6rem;"></i> Live Lesson
-                        </button>
-                        <button type="button" class="btn-add-content" onclick="addQuiz(${topic.id})">
-                            <i class="fa-solid fa-plus"></i> Quiz
-                        </button>
-                        <button type="button" class="btn-add-content" onclick="addAssignment(${topic.id})">
-                            <i class="fa-solid fa-plus"></i> Assignment
+                            <i class="fa-solid fa-circle" style="font-size:0.6rem;"></i> Live Session
                         </button>
                     </div>
                     <div class="topic-content-list" data-content-list="${topic.id}">
                         <!-- Content items will be added here -->
                     </div>
                     <div class="topic-footer">
-                        <button type="button" class="btn-ok" onclick="saveTopic(${topic.id})">Ok</button>
+                        <button type="button" class="btn-ok" onclick="saveTopic(${topic.id})">Save Topic</button>
                     </div>
                 </div>
             </div>
@@ -786,20 +744,35 @@ function toggleTopic(topicId) {
     $(`.topic-body[data-topic-body="${topicId}"]`).slideToggle();
 }
 
-function addLesson(topicId) {
+function addLesson(topicId, contentType = 'video') {
     const topic = topics.find(t => t.id === topicId);
     if (topic) {
         const lessonId = Date.now();
+        const titles = {
+            video: 'New Video Lecture',
+            text: 'New Text / Article Lesson',
+            pdf: 'New PDF Document',
+            ppt: 'New Presentation (PPT)',
+            attachment: 'New Learning Material / File'
+        };
         topic.lessons.push({
             id: lessonId,
-            title: 'New Lesson',
+            title: titles[contentType] || 'New Lesson',
             type: 'lesson',
+            lessonType: contentType,
+            contentType: contentType,
             description: '',
+            contentText: '',
             videoType: 'url',
             videoUrl: '',
             videoFile: null,
+            materialFile: null,
+            attachmentName: '',
+            attachmentPath: '',
             duration: '',
             isPreview: false,
+            isFree: false,
+            price: '',
             isLive: false,
         });
         topic.items.push({ id: lessonId, type: 'lesson' });
@@ -814,14 +787,22 @@ function addLiveLesson(topicId) {
         const lessonId = Date.now();
         topic.lessons.push({
             id: lessonId,
-            title: 'New Live Lesson',
+            title: 'New Live Interactive Session',
             type: 'lesson',
+            lessonType: 'live',
+            contentType: 'live',
             description: '',
+            contentText: '',
             videoType: 'live',
             videoUrl: '',
             videoFile: null,
+            materialFile: null,
+            attachmentName: '',
+            attachmentPath: '',
             duration: '',
             isPreview: false,
+            isFree: false,
+            price: '',
             isLive: true,
         });
         topic.items.push({ id: lessonId, type: 'lesson' });
@@ -830,41 +811,13 @@ function addLiveLesson(topicId) {
     }
 }
 
+// Quizzes and assignments are decommissioned in Maarifazone pure digital curriculum
 function addQuiz(topicId) {
-    const topic = topics.find(t => t.id === topicId);
-    if (topic) {
-        const quizId = Date.now();
-        topic.quizzes.push({
-            id: quizId,
-            title: 'New Quiz',
-            type: 'quiz',
-            description: '',
-            questions: [],
-            passingScore: 60,
-            timeLimit: ''
-        });
-        topic.items.push({ id: quizId, type: 'quiz' });
-        renderTopicContent(topicId);
-        setTimeout(() => toggleContentEdit(topicId, quizId, 'quiz'), 100);
-    }
+    addLesson(topicId, 'text');
 }
 
 function addAssignment(topicId) {
-    const topic = topics.find(t => t.id === topicId);
-    if (topic) {
-        const assignmentId = Date.now();
-        topic.assignments.push({
-            id: assignmentId,
-            title: 'New Assignment',
-            type: 'assignment',
-            description: '',
-            instructions: '',
-            attachments: []
-        });
-        topic.items.push({ id: assignmentId, type: 'assignment' });
-        renderTopicContent(topicId);
-        setTimeout(() => toggleContentEdit(topicId, assignmentId, 'assignment'), 100);
-    }
+    addLesson(topicId, 'attachment');
 }
 
 function renderTopicContent(topicId) {
@@ -882,150 +835,218 @@ function renderTopicContent(topicId) {
             return;
         }
 
-        const icon = item.type === 'lesson' ? 'fa-play-circle' : item.type === 'quiz' ? 'fa-question-circle' : 'fa-file-alt';
         const isExpanded = item.expanded || false;
+        const cType = item.lessonType || item.contentType || (item.videoType === 'live' ? 'live' : (item.type === 'lesson' ? 'video' : item.type));
 
-        let optionsHtml = '';
-        if (item.type === 'lesson') {
+        let iconClass = 'fa-play-circle text-primary';
+        let typeBadge = 'Video';
+        if (cType === 'text') {
+            iconClass = 'fa-file-lines text-info';
+            typeBadge = 'Text / Notes';
+        } else if (cType === 'pdf') {
+            iconClass = 'fa-file-pdf text-danger';
+            typeBadge = 'PDF Document';
+        } else if (cType === 'ppt') {
+            iconClass = 'fa-file-powerpoint text-warning';
+            typeBadge = 'Presentation';
+        } else if (cType === 'attachment') {
+            iconClass = 'fa-paperclip text-secondary';
+            typeBadge = 'Material';
+        } else if (cType === 'live') {
+            iconClass = 'fa-satellite-dish text-danger';
+            typeBadge = 'Live Session';
+        }
+
+        const isFree = item.isPreview === true || item.isPreview === 'true' || item.isPreview === 1 || item.isPreview === '1' || item.isFree === true || item.isFree === 'true' || item.isFree === 1 || item.isFree === '1';
+
+        let optionsHtml = `
+            <div class="content-item-options" style="display: ${isExpanded ? 'block' : 'none'}; padding: 15px; background: #ffffff; border-radius: 8px; margin-top: 10px; border: 1px solid #e2e8f0;">
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
+                    <span style="font-size: 12px; font-weight: 700; color: #64748b; align-self: center; margin-right: 6px;">Format:</span>
+                    <button type="button" class="btn btn-sm ${cType === 'video' ? 'btn-primary' : 'btn-light'}" style="font-size: 12px; padding: 4px 10px;" onclick="updateContentItem(${topicId}, ${item.id}, 'lesson', 'lessonType', 'video'); updateContentItem(${topicId}, ${item.id}, 'lesson', 'contentType', 'video'); renderTopicContent(${topicId});">
+                        <i class="fa-solid fa-video me-1"></i> Video
+                    </button>
+                    <button type="button" class="btn btn-sm ${cType === 'text' ? 'btn-info text-white' : 'btn-light'}" style="font-size: 12px; padding: 4px 10px;" onclick="updateContentItem(${topicId}, ${item.id}, 'lesson', 'lessonType', 'text'); updateContentItem(${topicId}, ${item.id}, 'lesson', 'contentType', 'text'); renderTopicContent(${topicId});">
+                        <i class="fa-solid fa-file-lines me-1"></i> Text / Notes
+                    </button>
+                    <button type="button" class="btn btn-sm ${cType === 'pdf' ? 'btn-danger' : 'btn-light'}" style="font-size: 12px; padding: 4px 10px;" onclick="updateContentItem(${topicId}, ${item.id}, 'lesson', 'lessonType', 'pdf'); updateContentItem(${topicId}, ${item.id}, 'lesson', 'contentType', 'pdf'); renderTopicContent(${topicId});">
+                        <i class="fa-solid fa-file-pdf me-1"></i> PDF
+                    </button>
+                    <button type="button" class="btn btn-sm ${cType === 'ppt' ? 'btn-warning text-dark' : 'btn-light'}" style="font-size: 12px; padding: 4px 10px;" onclick="updateContentItem(${topicId}, ${item.id}, 'lesson', 'lessonType', 'ppt'); updateContentItem(${topicId}, ${item.id}, 'lesson', 'contentType', 'ppt'); renderTopicContent(${topicId});">
+                        <i class="fa-solid fa-file-powerpoint me-1"></i> PPT
+                    </button>
+                    <button type="button" class="btn btn-sm ${cType === 'attachment' ? 'btn-secondary text-white' : 'btn-light'}" style="font-size: 12px; padding: 4px 10px;" onclick="updateContentItem(${topicId}, ${item.id}, 'lesson', 'lessonType', 'attachment'); updateContentItem(${topicId}, ${item.id}, 'lesson', 'contentType', 'attachment'); renderTopicContent(${topicId});">
+                        <i class="fa-solid fa-paperclip me-1"></i> Material
+                    </button>
+                    <button type="button" class="btn btn-sm ${cType === 'live' ? 'btn-danger' : 'btn-light'}" style="font-size: 12px; padding: 4px 10px;" onclick="updateContentItem(${topicId}, ${item.id}, 'lesson', 'lessonType', 'live'); updateContentItem(${topicId}, ${item.id}, 'lesson', 'contentType', 'live'); updateContentItem(${topicId}, ${item.id}, 'lesson', 'videoType', 'live'); renderTopicContent(${topicId});">
+                        <i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> Live
+                    </button>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label style="font-weight: 600; font-size: 13px; color: #334155;">Lesson / Material Overview</label>
+                    <textarea class="form-control" rows="2" placeholder="Brief summary or description..." onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'description', this.value)">${item.description || ''}</textarea>
+                </div>
+        `;
+
+        if (cType === 'text') {
+            optionsHtml += `
+                <div class="form-group mb-3">
+                    <label style="font-weight: 600; font-size: 13px; color: #334155;"><i class="fa-solid fa-file-lines text-info me-1"></i> Text / Article Content (Full Lesson Notes)</label>
+                    <textarea class="form-control" rows="8" placeholder="Type or paste lecture notes, concepts, code, or article content here..." onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'contentText', this.value)">${item.contentText || ''}</textarea>
+                    <small class="text-muted">Scholars can read this content directly inside the Maarifazone learning viewer.</small>
+                </div>
+                <div class="form-group mb-3">
+                    <label style="font-weight: 600; font-size: 13px; color: #334155;">Estimated Reading Time (minutes)</label>
+                    <input type="number" class="form-control" placeholder="10" min="0" value="${item.duration || ''}" onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'duration', this.value)">
+                </div>
+            `;
+        } else if (cType === 'pdf') {
+            const hasFile = item.materialFile || item.attachmentName || item.attachmentPath;
+            const fileName = item.materialFile ? item.materialFile.name : (item.attachmentName || (item.attachmentPath ? 'Existing PDF Document' : ''));
+            optionsHtml += `
+                <div class="form-group mb-3">
+                    <label style="font-weight: 600; font-size: 13px; color: #334155;"><i class="fa-solid fa-file-pdf text-danger me-1"></i> PDF Document File</label>
+                    <div class="file-upload-area p-3 text-center" style="border: 2px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; cursor: pointer;" onclick="document.getElementById('pdf-upload-${item.id}').click()">
+                        <input type="file" id="pdf-upload-${item.id}" accept=".pdf,application/pdf" style="display: none;" onchange="handleLessonMaterial(${topicId}, ${item.id}, this.files, 'pdf')">
+                        <i class="fa-solid fa-file-pdf fa-2x text-danger mb-2"></i>
+                        <p class="mb-1" style="font-size: 14px; font-weight: 600; color: #334155;">Click to upload PDF document</p>
+                        <small class="text-muted">PDF files up to 50MB</small>
+                        ${hasFile ? `
+                            <div class="mt-2 text-success fw-bold" style="font-size: 13px;">
+                                <i class="fa-solid fa-check-circle me-1"></i> ${fileName}
+                                <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2" onclick="event.stopPropagation(); removeLessonMaterial(${topicId}, ${item.id});"><i class="fa-solid fa-times"></i> Remove</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    <label style="font-weight: 600; font-size: 13px; color: #334155;">Estimated Reading Time (minutes)</label>
+                    <input type="number" class="form-control" placeholder="15" min="0" value="${item.duration || ''}" onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'duration', this.value)">
+                </div>
+            `;
+        } else if (cType === 'ppt') {
+            const hasFile = item.materialFile || item.attachmentName || item.attachmentPath;
+            const fileName = item.materialFile ? item.materialFile.name : (item.attachmentName || (item.attachmentPath ? 'Existing PPT Presentation' : ''));
+            optionsHtml += `
+                <div class="form-group mb-3">
+                    <label style="font-weight: 600; font-size: 13px; color: #334155;"><i class="fa-solid fa-file-powerpoint text-warning me-1"></i> Presentation Slide Deck (PPT/PPTX)</label>
+                    <div class="file-upload-area p-3 text-center" style="border: 2px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; cursor: pointer;" onclick="document.getElementById('ppt-upload-${item.id}').click()">
+                        <input type="file" id="ppt-upload-${item.id}" accept=".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" style="display: none;" onchange="handleLessonMaterial(${topicId}, ${item.id}, this.files, 'ppt')">
+                        <i class="fa-solid fa-file-powerpoint fa-2x text-warning mb-2"></i>
+                        <p class="mb-1" style="font-size: 14px; font-weight: 600; color: #334155;">Click to upload PowerPoint file</p>
+                        <small class="text-muted">PPT, PPTX files up to 50MB</small>
+                        ${hasFile ? `
+                            <div class="mt-2 text-success fw-bold" style="font-size: 13px;">
+                                <i class="fa-solid fa-check-circle me-1"></i> ${fileName}
+                                <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2" onclick="event.stopPropagation(); removeLessonMaterial(${topicId}, ${item.id});"><i class="fa-solid fa-times"></i> Remove</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    <label style="font-weight: 600; font-size: 13px; color: #334155;">Duration / Review Time (minutes)</label>
+                    <input type="number" class="form-control" placeholder="20" min="0" value="${item.duration || ''}" onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'duration', this.value)">
+                </div>
+            `;
+        } else if (cType === 'attachment') {
+            const hasFile = item.materialFile || item.attachmentName || item.attachmentPath;
+            const fileName = item.materialFile ? item.materialFile.name : (item.attachmentName || (item.attachmentPath ? 'Existing Learning Material' : ''));
+            optionsHtml += `
+                <div class="form-group mb-3">
+                    <label style="font-weight: 600; font-size: 13px; color: #334155;"><i class="fa-solid fa-paperclip text-secondary me-1"></i> Learning Material / Resource File</label>
+                    <div class="file-upload-area p-3 text-center" style="border: 2px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; cursor: pointer;" onclick="document.getElementById('mat-upload-${item.id}').click()">
+                        <input type="file" id="mat-upload-${item.id}" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt" style="display: none;" onchange="handleLessonMaterial(${topicId}, ${item.id}, this.files, 'attachment')">
+                        <i class="fa-solid fa-cloud-arrow-up fa-2x text-primary mb-2"></i>
+                        <p class="mb-1" style="font-size: 14px; font-weight: 600; color: #334155;">Click to upload document, spreadsheet, code, or ZIP archive</p>
+                        <small class="text-muted">PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, ZIP up to 50MB</small>
+                        ${hasFile ? `
+                            <div class="mt-2 text-success fw-bold" style="font-size: 13px;">
+                                <i class="fa-solid fa-check-circle me-1"></i> ${fileName}
+                                <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2" onclick="event.stopPropagation(); removeLessonMaterial(${topicId}, ${item.id});"><i class="fa-solid fa-times"></i> Remove</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        } else if (cType === 'live') {
+            optionsHtml += `
+                <div style="padding:14px 16px;background:rgba(229,62,62,0.06);border:1px dashed #e53e3e;border-radius:8px; margin-bottom: 15px;">
+                    <p style="margin:0;color:#e53e3e;font-size:13px;font-weight:700;"><i class="fa-solid fa-satellite-dish me-2"></i> Live Interactive Session</p>
+                    <p style="margin:4px 0 0;color:#555;font-size:12px;">This is a scheduled live interactive class. Scholars will receive joining links and live broadcast in their portal.</p>
+                </div>
+                <div class="form-group mb-3">
+                    <label style="font-weight: 600; font-size: 13px; color: #334155;">Session Duration (minutes)</label>
+                    <input type="number" class="form-control" placeholder="60" min="0" value="${item.duration || ''}" onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'duration', this.value)">
+                </div>
+            `;
+        } else {
+            // Default: Video
             const videoType = item.videoType || 'url';
-            const isLive = videoType === 'live';
-            const liveBadge = isLive ? `<span style="display:inline-block;background:#e53e3e;color:#fff;font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:4px;margin-left:8px;letter-spacing:0.5px;vertical-align:middle;">LIVE</span>` : '';
-            optionsHtml = `
-                <div class="content-item-options" style="display: ${isExpanded ? 'block' : 'none'};">
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label>Description</label>
-                        <textarea class="form-control" rows="3" placeholder="Lesson description..." onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'description', this.value)">${item.description || ''}</textarea>
-                    </div>
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label>Video Source</label>
-                        <div style="display: flex; gap: 15px; margin-bottom: 12px;">
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
-                                <input type="radio" name="videoType-${item.id}" value="url" ${videoType === 'url' ? 'checked' : ''} onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'videoType', 'url'); renderTopicContent(${topicId});" style="width: 18px; height: 18px; cursor: pointer; margin: 0;">
-                                <span>Video URL</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
-                                <input type="radio" name="videoType-${item.id}" value="upload" ${videoType === 'upload' ? 'checked' : ''} onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'videoType', 'upload'); renderTopicContent(${topicId});" style="width: 18px; height: 18px; cursor: pointer; margin: 0;">
-                                <span>Upload Video</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
-                                <input type="radio" name="videoType-${item.id}" value="live" ${videoType === 'live' ? 'checked' : ''} onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'videoType', 'live'); updateContentItem(${topicId}, ${item.id}, 'lesson', 'isLive', true); renderTopicContent(${topicId});" style="width: 18px; height: 18px; cursor: pointer; margin: 0;">
-                                <span style="color:#e53e3e;font-weight:600;">Live Session</span>
-                            </label>
-                        </div>
-                        ${isLive ? `
-                            <div style="padding:12px 16px;background:rgba(229,62,62,0.08);border:1px dashed #e53e3e;border-radius:8px;">
-                                <p style="margin:0;color:#e53e3e;font-size:13px;font-weight:600;"><i class="fa-solid fa-circle" style="font-size:0.55rem;margin-right:6px;"></i> Live Session Lesson</p>
-                                <p style="margin:4px 0 0;color:#555;font-size:12px;">No video upload needed. Schedule a live class from your <a href="${appBaseUrl}/instructor/live-classes" target="_blank">Live Classes</a> page and link it to this lesson.</p>
-                            </div>
-                        ` : videoType === 'url' ? `
-                            <input type="url" class="form-control" placeholder="https://..." value="${item.videoUrl || ''}" onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'videoUrl', this.value)">
-                        ` : `
-                            <div class="file-upload-area">
-                                <input type="file" class="file-upload-input" id="lesson-video-${item.id}" accept="video/*" style="display: none;" onchange="handleVideoUpload(${topicId}, ${item.id}, this.files)">
-                                <div class="video-upload-dropzone" onclick="document.getElementById('lesson-video-${item.id}').click()">
-                                    <i class="fa-solid fa-video"></i>
-                                    <p>Click to upload video file or drag and drop</p>
-                                    <small>MP4, AVI, MOV, WEBM (Max 500MB)</small>
-                                    ${item.videoFile ? `<div style="margin-top: 10px; color: var(--theme); font-weight: 600;">${item.videoFile.name}</div>` : (item.videoPath ? `<div style="margin-top: 10px; color: var(--theme); font-weight: 600;">Current video uploaded</div>` : '')}
-                                </div>
-                            </div>
-                        `}
-                    </div>
-                    <div class="form-group">
-                        <label>Duration (minutes)</label>
-                        <input type="number" class="form-control" placeholder="0" min="0" value="${item.duration || ''}" onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'duration', this.value)">
-                    </div>
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="checkbox" ${item.isPreview ? 'checked' : ''} onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'isPreview', this.checked)" style="width: 18px; height: 18px; cursor: pointer; margin: 0;">
-                            <span>Preview Lesson (Free)</span>
+            optionsHtml += `
+                <div class="form-group mb-3">
+                    <label style="font-weight: 600; font-size: 13px; color: #334155;">Video Source</label>
+                    <div style="display: flex; gap: 15px; margin-bottom: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                            <input type="radio" name="videoType-${item.id}" value="url" ${videoType === 'url' ? 'checked' : ''} onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'videoType', 'url'); renderTopicContent(${topicId});" style="width: 17px; height: 17px; cursor: pointer; margin: 0;">
+                            <span>Video URL (YouTube, Vimeo, MP4)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                            <input type="radio" name="videoType-${item.id}" value="upload" ${videoType === 'upload' ? 'checked' : ''} onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'videoType', 'upload'); renderTopicContent(${topicId});" style="width: 17px; height: 17px; cursor: pointer; margin: 0;">
+                            <span>Upload Video File</span>
                         </label>
                     </div>
+                    ${videoType === 'url' ? `
+                        <input type="url" class="form-control" placeholder="https://www.youtube.com/watch?v=... or direct MP4 link" value="${item.videoUrl || ''}" onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'videoUrl', this.value)">
+                    ` : `
+                        <div class="file-upload-area p-3 text-center" style="border: 2px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; cursor: pointer;" onclick="document.getElementById('lesson-video-${item.id}').click()">
+                            <input type="file" class="file-upload-input" id="lesson-video-${item.id}" accept="video/*" style="display: none;" onchange="handleVideoUpload(${topicId}, ${item.id}, this.files)">
+                            <i class="fa-solid fa-video fa-2x text-primary mb-2"></i>
+                            <p class="mb-1" style="font-size: 14px; font-weight: 600; color: #334155;">Click to upload video file or drag and drop</p>
+                            <small class="text-muted">MP4, AVI, MOV, WEBM (Max 500MB)</small>
+                            ${item.videoFile ? `<div class="mt-2 text-success fw-bold" style="font-size: 13px;"><i class="fa-solid fa-check-circle me-1"></i> ${item.videoFile.name}</div>` : (item.videoPath ? `<div class="mt-2 text-success fw-bold" style="font-size: 13px;"><i class="fa-solid fa-check-circle me-1"></i> Current video uploaded</div>` : '')}
+                        </div>
+                    `}
                 </div>
-            `;
-        } else if (item.type === 'quiz') {
-            if (!item.questions) item.questions = [];
-            optionsHtml = `
-                <div class="content-item-options" style="display: ${isExpanded ? 'block' : 'none'};">
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label>Description</label>
-                        <textarea class="form-control" rows="3" placeholder="Quiz description..." onchange="updateContentItem(${topicId}, ${item.id}, 'quiz', 'description', this.value)">${item.description || ''}</textarea>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Passing Score (%)</label>
-                            <input type="number" class="form-control" placeholder="60" min="0" max="100" value="${item.passingScore || 60}" onchange="updateContentItem(${topicId}, ${item.id}, 'quiz', 'passingScore', this.value)">
-                        </div>
-                        <div class="form-group">
-                            <label>Time Limit (minutes)</label>
-                            <input type="number" class="form-control" placeholder="Unlimited" min="0" value="${item.timeLimit || ''}" onchange="updateContentItem(${topicId}, ${item.id}, 'quiz', 'timeLimit', this.value)">
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin-top: 20px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <label style="margin: 0; font-weight: 600;">Questions</label>
-                            <button type="button" class="btn-add-question" onclick="addQuestion(${topicId}, ${item.id})" style="padding: 6px 12px; font-size: 13px; background: var(--theme); color: white; border: none; border-radius: 6px; cursor: pointer;">
-                                <i class="fa-solid fa-plus"></i> Add Question
-                            </button>
-                        </div>
-                        <div class="questions-list">
-                            ${item.questions.length === 0 ? '<p style="color: var(--text); opacity: 0.6; font-size: 14px; padding: 10px; text-align: center; background: rgba(108, 112, 111, 0.05); border-radius: 6px;">No questions added yet. Click "Add Question" to get started.</p>' : item.questions.map((q, index) => renderQuestion(q, index + 1, topicId, item.id)).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        } else if (item.type === 'assignment') {
-            if (!item.attachments) item.attachments = [];
-            optionsHtml = `
-                <div class="content-item-options" style="display: ${isExpanded ? 'block' : 'none'};">
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label>Description</label>
-                        <textarea class="form-control" rows="3" placeholder="Assignment description..." onchange="updateContentItem(${topicId}, ${item.id}, 'assignment', 'description', this.value)">${item.description || ''}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Instructions</label>
-                        <textarea class="form-control" rows="4" placeholder="Detailed instructions for students..." onchange="updateContentItem(${topicId}, ${item.id}, 'assignment', 'instructions', this.value)">${item.instructions || ''}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Assignment Files</label>
-                        <div class="file-upload-area">
-                            <input type="file" class="file-upload-input" id="assignment-file-${item.id}" multiple style="display: none;" onchange="handleAssignmentFiles(${topicId}, ${item.id}, this.files)">
-                            <div class="file-upload-dropzone" onclick="document.getElementById('assignment-file-${item.id}').click()">
-                                <i class="fa-solid fa-cloud-upload"></i>
-                                <p>Click to upload files or drag and drop</p>
-                                <small>PDF, DOC, PPT, ZIP (Max 10MB per file)</small>
-                            </div>
-                            ${item.attachments.length > 0 ? `
-                                <div class="uploaded-files-list" style="margin-top: 12px;">
-                                    ${item.attachments.map((file, idx) => `
-                                        <div class="uploaded-file-item" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(108, 112, 111, 0.05); border-radius: 6px; margin-top: 8px;">
-                                            <div style="display: flex; align-items: center; gap: 8px;">
-                                                <i class="fa-solid fa-file" style="color: var(--theme);"></i>
-                                                <span style="font-size: 14px; color: var(--header);">${file.name || 'File ' + (idx + 1)}</span>
-                                            </div>
-                                            <button type="button" onclick="removeAssignmentFile(${topicId}, ${item.id}, ${idx})" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">
-                                                <i class="fa-solid fa-times"></i>
-                                            </button>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
+                <div class="form-group mb-3">
+                    <label style="font-weight: 600; font-size: 13px; color: #334155;">Duration (minutes)</label>
+                    <input type="number" class="form-control" placeholder="15" min="0" value="${item.duration || ''}" onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'duration', this.value)">
                 </div>
             `;
         }
 
+        // Modular Lesson Pricing & Free Preview Row (Applies to all lesson content formats)
+        optionsHtml += `
+                <div class="lesson-pricing-box" style="margin-top: 15px; padding: 12px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
+                        <label style="display: inline-flex; align-items: center; gap: 8px; margin: 0; font-weight: 600; font-size: 13px; color: #0f172a; cursor: pointer;">
+                            <input type="checkbox" ${isFree ? 'checked' : ''} onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'isPreview', this.checked); updateContentItem(${topicId}, ${item.id}, 'lesson', 'isFree', this.checked); renderTopicContent(${topicId});" style="width: 17px; height: 17px; accent-color: #10b981; cursor: pointer;">
+                            <span><i class="fa-solid fa-gift text-success me-1"></i> Free Preview (Scholars can access free)</span>
+                        </label>
+                        <div style="display: inline-flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 13px; font-weight: 600; color: #475569;">Lesson Standalone Price (TZS):</span>
+                            <input type="number" min="0" step="500" class="form-control form-control-sm" style="width: 150px; font-weight: 600;" placeholder="Optional" value="${item.price || ''}" ${isFree ? 'disabled' : ''} onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'price', this.value)">
+                        </div>
+                        <small style="color: #64748b; font-size: 11px; flex: 1 1 200px;">
+                            ${isFree ? '<span class="text-success fw-bold"><i class="fa-solid fa-circle-check"></i> Free lesson</span>' : (item.price && item.price > 0 ? `<span class="text-primary fw-bold">TZS ${Number(item.price).toLocaleString()}</span> (scholars can purchase this lesson individually)` : 'Included in topic or full course enrollment')}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        `;
+
         const itemHtml = `
-            <div class="content-item" data-item-id="${item.id}" data-item-type="${item.type}">
-                <div class="content-item-header">
-                    <i class="fa-solid ${icon}"></i>
-                    <input type="text" class="content-item-title" value="${item.title}" placeholder="${item.type} title" onchange="updateContentItem(${topicId}, ${item.id}, '${item.type}', 'title', this.value)">
-                    <div class="content-item-actions">
-                        <button type="button" class="content-action-btn" onclick="toggleContentEdit(${topicId}, ${item.id}, '${item.type}')" title="${isExpanded ? 'Collapse' : 'Expand'}">
+            <div class="content-item" data-item-id="${item.id}" data-item-type="lesson" style="margin-bottom: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
+                <div class="content-item-header" style="display: flex; align-items: center; padding: 10px 14px; gap: 10px;">
+                    <i class="fa-solid ${iconClass}" style="font-size: 16px;"></i>
+                    <span class="badge bg-light text-dark border" style="font-size: 11px; font-weight: 600;">${typeBadge}</span>
+                    <input type="text" class="content-item-title form-control form-control-sm" style="font-weight: 600; flex: 1;" value="${item.title || ''}" placeholder="Title" onchange="updateContentItem(${topicId}, ${item.id}, 'lesson', 'title', this.value)">
+                    ${isFree ? '<span class="badge bg-success" style="font-size: 10px;">FREE</span>' : (item.price && item.price > 0 ? `<span class="badge bg-primary" style="font-size: 10px;">TZS ${Number(item.price).toLocaleString()}</span>` : '')}
+                    <div class="content-item-actions" style="display: flex; gap: 6px;">
+                        <button type="button" class="btn btn-sm btn-light" onclick="toggleContentEdit(${topicId}, ${item.id}, 'lesson')" title="${isExpanded ? 'Collapse' : 'Expand'}">
                             <i class="fa-solid fa-${isExpanded ? 'chevron-up' : 'chevron-down'}"></i>
                         </button>
-                        <button type="button" class="content-action-btn" onclick="deleteContentItem(${topicId}, ${item.id}, '${item.type}')" title="Delete">
+                        <button type="button" class="btn btn-sm btn-light text-danger" onclick="deleteContentItem(${topicId}, ${item.id}, 'lesson')" title="Delete">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -1268,6 +1289,45 @@ function handleVideoUpload(topicId, itemId, files) {
         file: videoFile
     };
 
+    lesson.expanded = true;
+    renderTopicContent(topicId);
+}
+
+// Learning Material & Document Upload Function
+function handleLessonMaterial(topicId, itemId, files, type) {
+    const topic = topics.find(t => t.id === topicId);
+    if (!topic) return;
+
+    const lesson = topic.lessons.find(l => l.id === itemId);
+    if (!lesson || !files || files.length === 0) return;
+
+    const file = files[0];
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+        alert('File size must be less than 50MB');
+        return;
+    }
+
+    lesson.materialFile = file;
+    lesson.attachmentName = file.name;
+    if (type) {
+        lesson.lessonType = type;
+        lesson.contentType = type;
+    }
+    lesson.expanded = true;
+    renderTopicContent(topicId);
+}
+
+function removeLessonMaterial(topicId, itemId) {
+    const topic = topics.find(t => t.id === topicId);
+    if (!topic) return;
+
+    const lesson = topic.lessons.find(l => l.id === itemId);
+    if (!lesson) return;
+
+    lesson.materialFile = null;
+    lesson.attachmentName = '';
+    lesson.attachmentPath = '';
     lesson.expanded = true;
     renderTopicContent(topicId);
 }
