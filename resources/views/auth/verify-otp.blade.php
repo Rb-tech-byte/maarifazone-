@@ -19,7 +19,7 @@
                         <div class="mhq-login-header text-center mb-4">
                             <?php $siteName = site_name(); ?>
                             <a href="{{ route('home') }}" class="login-logo mb-3">
-                                <img src="{{ branding_asset(['dark_logo_path', 'logos.secondary', 'primary_logo_path', 'logos.primary'], 'assets/front/img/logo/black-logo.svg') }}" alt="{{ $siteName }} logo">
+                                <img src="{{ branding_asset(['primary_logo_path', 'dark_logo_path', 'logos.primary'], 'assets/front/img/logo/maarifazone-logo.png') }}" alt="{{ $siteName }} logo">
                             </a>
                             <h2 class="wow fadeInUp" data-wow-delay=".2s">Verify Your Login</h2>
                             <p class="wow fadeInUp" data-wow-delay=".3s">We sent a 6-digit code to

@@ -59,12 +59,17 @@
             width: 100%;
         }
 
-        /* ──────────────── Left Showcase Panel ──────────────── */
+        /* ──────────────── Left Showcase Panel (Neutral Modern Palette Aligned with Logo) ──────────────── */
         .maarifazone-auth-showcase {
             flex: 0 0 46%;
             max-width: 46%;
-            background: linear-gradient(135deg, #c97406 0%, #f99f1e 52%, #e0860a 100%);
-            color: #ffffff;
+            background-color: #f8fafc;
+            background-image:
+                radial-gradient(ellipse 70% 60% at 85% 15%, rgba(249, 159, 30, 0.08) 0%, transparent 65%),
+                radial-gradient(ellipse 50% 50% at 10% 85%, rgba(15, 23, 42, 0.03) 0%, transparent 60%),
+                linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border-right: 1px solid #e2e8f0;
+            color: #0f172a;
             padding: 48px 54px;
             display: flex;
             flex-direction: column;
@@ -80,7 +85,7 @@
             width: 520px;
             height: 520px;
             border-radius: 50%;
-            border: 36px solid rgba(255, 255, 255, 0.14);
+            border: 36px solid rgba(249, 159, 30, 0.06);
             top: -140px;
             right: -180px;
             pointer-events: none;
@@ -92,7 +97,7 @@
             width: 240px;
             height: 240px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(249, 159, 30, 0.12) 0%, transparent 70%);
             bottom: 40px;
             left: -60px;
             pointer-events: none;
@@ -119,21 +124,23 @@
         }
 
         .maarifazone-auth-showcase__brand-badge img {
-            height: 36px;
+            height: 38px;
             width: auto;
-            max-width: 160px;
+            max-width: 170px;
             object-fit: contain;
         }
 
         .maarifazone-auth-showcase__brand-name {
             font-size: 20px;
             font-weight: 800;
-            color: #ffffff;
+            color: #0f172a;
             letter-spacing: -0.02em;
         }
 
         .maarifazone-auth-showcase__brand-name span {
-            color: #111827;
+            background: linear-gradient(135deg, #d97706 0%, #f99f1e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .maarifazone-auth-showcase__content {
@@ -148,17 +155,18 @@
             gap: 8px;
             padding: 6px 14px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            color: #ffffff;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #0f172a;
             font-size: 11.5px;
             font-weight: 700;
             letter-spacing: 0.04em;
             margin-bottom: 22px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
         }
 
         .maarifazone-auth-eyebrow i {
-            color: #ffffff;
+            color: #ea580c;
         }
 
         .maarifazone-auth-heading {
@@ -166,18 +174,22 @@
             font-weight: 800;
             line-height: 1.22;
             letter-spacing: -0.025em;
-            color: #ffffff;
+            color: #0f172a;
             margin-bottom: 14px;
         }
 
-        .maarifazone-auth-heading span {
-            color: #111827;
+        .maarifazone-auth-heading span,
+        .maarifazone-auth-heading-highlight {
+            background: linear-gradient(135deg, #d97706 0%, #f99f1e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
         }
 
         .maarifazone-auth-desc {
             font-size: 14.5px;
             line-height: 1.65;
-            color: rgba(255, 255, 255, 0.86);
+            color: #475569;
             margin-bottom: 32px;
             max-width: 480px;
         }
@@ -200,47 +212,47 @@
             width: 38px;
             height: 38px;
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #ffffff;
+            background: rgba(249, 159, 30, 0.1);
+            border: 1px solid rgba(249, 159, 30, 0.22);
+            color: #ea580c;
             font-size: 14px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
         }
 
         .maarifazone-auth-feature-text h5 {
             font-size: 14px;
             font-weight: 700;
-            color: #ffffff;
+            color: #0f172a;
             margin: 0 0 2px;
         }
 
         .maarifazone-auth-feature-text p {
             font-size: 12.5px;
-            color: rgba(255, 255, 255, 0.76);
+            color: #64748b;
             margin: 0;
             line-height: 1.5;
         }
 
         /* Testimonial Quote Card */
         .maarifazone-auth-quote-card {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
             border-radius: 16px;
             padding: 20px 22px;
             position: relative;
             z-index: 2;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
         }
 
         .maarifazone-auth-quote-text {
             font-size: 13px;
             font-style: italic;
             line-height: 1.6;
-            color: rgba(255, 255, 255, 0.92);
+            color: #334155;
             margin-bottom: 14px;
         }
 
@@ -254,8 +266,9 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #111827, #374151);
-            color: #f99f1e;
+            background: rgba(249, 159, 30, 0.12);
+            border: 1px solid rgba(249, 159, 30, 0.25);
+            color: #ea580c;
             font-size: 13px;
             font-weight: 800;
             display: inline-flex;
@@ -267,13 +280,13 @@
         .maarifazone-auth-quote-name {
             font-size: 13px;
             font-weight: 700;
-            color: #ffffff;
+            color: #0f172a;
             margin: 0;
         }
 
         .maarifazone-auth-quote-title {
             font-size: 11.5px;
-            color: rgba(255, 255, 255, 0.72);
+            color: #64748b;
             margin: 0;
         }
 
@@ -449,7 +462,7 @@
             height: 46px;
             border-radius: 10px;
             border: none;
-            background: linear-gradient(135deg, #f99f1e 0%, #e0860a 100%);
+            background: linear-gradient(135deg, #f99f1e 0%, #ea580c 100%);
             color: #ffffff;
             font-size: 14px;
             font-weight: 700;
@@ -458,13 +471,13 @@
             justify-content: center;
             gap: 8px;
             cursor: pointer;
-            box-shadow: 0 4px 14px rgba(249, 159, 30, 0.25);
+            box-shadow: 0 4px 14px rgba(249, 159, 30, 0.28);
             transition: all 0.2s ease;
         }
 
         .maarifazone-auth-submit-btn:hover {
-            background: linear-gradient(135deg, #c97406 0%, #f99f1e 100%);
-            box-shadow: 0 6px 20px rgba(249, 159, 30, 0.35);
+            background: linear-gradient(135deg, #ea580c 0%, #d97706 100%);
+            box-shadow: 0 6px 20px rgba(249, 159, 30, 0.4);
             transform: translateY(-1px);
         }
 
@@ -474,15 +487,15 @@
             transform: none;
         }
 
-        /* ──────────────── One-Click Demo Credentials Card ──────────────── */
+        /* ──────────────── One-Click Demo Credentials Card (Neutral Clean Theme) ──────────────── */
         .out-demo-box {
-            background: #fffdf8;
-            border: 1px solid #fed7aa;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
             border-radius: 14px;
             padding: 16px 18px;
             margin-top: 22px;
             position: relative;
-            box-shadow: 0 2px 8px rgba(249, 159, 30, 0.05);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
         }
 
         .out-demo-box__header {
@@ -495,7 +508,7 @@
         .out-demo-box__badge {
             display: inline-flex;
             align-items: center;
-            background: #f99f1e;
+            background: #0f172a;
             color: #ffffff;
             font-size: 10px;
             font-weight: 800;
@@ -508,23 +521,24 @@
         .out-demo-box__title {
             font-size: 13.5px;
             font-weight: 800;
-            color: #92400e;
+            color: #0f172a;
             margin: 0;
             letter-spacing: -0.01em;
         }
 
         .out-demo-box__sub {
             font-size: 11.5px;
-            color: #78350f;
+            color: #64748b;
             margin: 0 0 12px;
-            line-height: 1.4;
+            line-height: 1.45;
         }
 
         .out-demo-box__sub strong {
-            background: rgba(249, 159, 30, 0.15);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
             padding: 1px 6px;
             border-radius: 4px;
-            color: #9a3412;
+            color: #0f172a;
             font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
         }
 
@@ -542,7 +556,7 @@
 
         .out-demo-btn {
             background: #ffffff;
-            border: 1.5px solid #fde68a;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
             padding: 12px 12px;
             text-align: left;
@@ -553,19 +567,20 @@
             gap: 6px;
             width: 100%;
             position: relative;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
         }
 
         .out-demo-btn:hover {
             border-color: #f99f1e;
             background: #fffaf0;
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(249, 159, 30, 0.14);
+            box-shadow: 0 6px 16px rgba(249, 159, 30, 0.12);
         }
 
         .out-demo-btn.is-active {
             border-color: #f99f1e;
             background: #fff7ed;
-            box-shadow: 0 0 0 3px rgba(249, 159, 30, 0.25);
+            box-shadow: 0 0 0 3px rgba(249, 159, 30, 0.2);
         }
 
         .out-demo-btn__icon {
@@ -580,8 +595,8 @@
         }
 
         .out-demo-btn__icon--admin {
-            background: #fef3c7;
-            color: #b45309;
+            background: #f1f5f9;
+            color: #0f172a;
         }
 
         .out-demo-btn__icon--instructor {
@@ -591,7 +606,7 @@
 
         .out-demo-btn__icon--student,
         .out-demo-btn__icon--scholar {
-            background: #ffedd5;
+            background: rgba(249, 159, 30, 0.12);
             color: #ea580c;
         }
 
@@ -630,8 +645,9 @@
         }
 
         .out-demo-scope--admin {
-            background: #fef3c7;
-            color: #92400e;
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #e2e8f0;
         }
 
         .out-demo-scope--instructor {
@@ -641,8 +657,8 @@
 
         .out-demo-scope--student,
         .out-demo-scope--scholar {
-            background: #ffedd5;
-            color: #9a3412;
+            background: rgba(249, 159, 30, 0.12);
+            color: #c2410c;
         }
 
         .out-demo-btn__name {
@@ -657,7 +673,7 @@
         .out-demo-btn__email {
             font-size: 10.5px;
             font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            color: #f99f1e;
+            color: #ea580c;
             font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
@@ -668,7 +684,7 @@
             margin-top: 4px;
             font-size: 10.5px;
             font-weight: 700;
-            color: #92400e;
+            color: #64748b;
             display: inline-flex;
             align-items: center;
             gap: 4px;
@@ -676,19 +692,20 @@
         }
 
         .out-demo-btn:hover .out-demo-btn__action {
-            color: #f99f1e;
+            color: #ea580c;
         }
 
         .out-demo-inspector {
             margin-top: 14px;
             background: #ffffff;
-            border: 1px solid #fed7aa;
+            border: 1px solid #e2e8f0;
             border-left: 3px solid #f99f1e;
             border-radius: 10px;
             padding: 10px 14px;
             font-size: 11px;
             line-height: 1.45;
             color: #334155;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
         }
 
         .out-demo-inspector__head {

@@ -3,7 +3,7 @@
 @php
     $siteName = site_name();
     $pageTitle = 'Login | ' . $siteName;
-    $logoUrl = branding_asset(['dark_logo_path', 'footer_logo_path', 'primary_logo_path', 'logos.primary'], 'assets/front/img/logo/maarifazone-logo-dark.png');
+    $logoUrl = branding_asset(['primary_logo_path', 'dark_logo_path', 'logos.primary'], 'assets/front/img/logo/maarifazone-logo.png');
 @endphp
 
 @section('content')
