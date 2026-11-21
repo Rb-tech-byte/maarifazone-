@@ -195,4 +195,14 @@ class StudentCourseAccessTest extends TestCase
             ->get('/verify-certificate');
         $this->assertTrue(in_array($certRes->status(), [404, 405]));
     }
+
+    public function test_course_details_page_renders_cleanly_without_hero_banner(): void
+    {
+        $response = $this->get(route('courses.show', $this->course->id));
+
+        $response->assertStatus(200);
+        $response->assertSee($this->course->title, false);
+        $response->assertSee('maarifazone-cd-header', false);
+        $response->assertDontSee('maarifazone-cd-hero', false);
+    }
 }

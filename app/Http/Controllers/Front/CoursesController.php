@@ -202,8 +202,6 @@ class CoursesController extends Controller
         $course = Course::with([
             'instructor',
             'topics.lessons',
-            'topics.quizzes.questions',
-            'topics.assignments.files',
             'reviews.user',
             'reviews.replies.user',
         ])

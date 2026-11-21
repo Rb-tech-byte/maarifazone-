@@ -23,121 +23,122 @@
         padding-bottom: 64px;
     }
 
-    /* 1. Top Gradient Hero Banner */
-    .maarifazone-cd-hero {
-        background: linear-gradient(135deg, var(--theme) 0%, var(--theme-2, #e0860a) 100%);
-        padding: 36px 0 40px;
-        color: #ffffff;
-        position: relative;
-        overflow: hidden;
+    /* 1. Clean Course Title & Meta Header (Zero Hero Banner, Clean Modern Layout) */
+    .maarifazone-cd-header {
+        margin-bottom: 24px;
     }
-    .maarifazone-cd-hero__cat-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(255, 255, 255, 0.16);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        color: #ffffff;
-        font-size: 11px;
-        font-weight: 600;
-        padding: 4px 12px;
-        border-radius: 999px;
-        margin-bottom: 12px;
-        text-decoration: none;
-    }
-    .maarifazone-cd-hero__cat-pill:hover {
-        color: #ffffff;
-        background: rgba(255, 255, 255, 0.24);
-    }
-    .maarifazone-cd-hero__title {
-        font-size: 28px;
-        font-weight: 800;
-        color: #ffffff;
-        line-height: 1.25;
-        letter-spacing: -0.02em;
-        margin: 0 0 8px;
-        max-width: 780px;
-    }
-    .maarifazone-cd-hero__subtitle {
-        font-size: 13.5px;
-        color: rgba(255, 255, 255, 0.86);
-        line-height: 1.55;
-        margin: 0 0 14px;
-        max-width: 720px;
-    }
-    .maarifazone-cd-hero__meta {
+    .maarifazone-cd-breadcrumb {
         display: flex;
         align-items: center;
         flex-wrap: wrap;
         gap: 8px;
-        margin-bottom: 14px;
-    }
-    .maarifazone-cd-hero__rating {
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
         font-size: 12px;
-        margin-right: 4px;
+        color: #64748b;
+        margin-bottom: 12px;
     }
-    .maarifazone-cd-hero__rating .is-gold {
-        color: #fbbf24;
+    .maarifazone-cd-breadcrumb a {
+        color: #64748b;
+        text-decoration: none;
+        transition: color 0.15s ease;
     }
-    .maarifazone-cd-hero__rating .is-muted {
-        color: rgba(255, 255, 255, 0.35);
+    .maarifazone-cd-breadcrumb a:hover {
+        color: var(--theme, #f99f1e);
     }
-    .maarifazone-cd-hero__rating-text {
-        color: #ffffff;
-        font-weight: 600;
-        margin-left: 4px;
-        font-size: 12px;
+    .maarifazone-cd-breadcrumb i {
+        font-size: 9px;
+        color: #cbd5e1;
     }
-    .maarifazone-cd-hero__pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        color: #ffffff;
-        font-size: 11px;
-        font-weight: 600;
-        padding: 3px 10px;
-        border-radius: 999px;
+    .maarifazone-cd-title {
+        font-size: 30px;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1.25;
+        letter-spacing: -0.025em;
+        margin: 0 0 10px;
     }
-    .maarifazone-cd-hero__author {
+    .maarifazone-cd-subtitle {
+        font-size: 14.5px;
+        color: #475569;
+        line-height: 1.6;
+        margin: 0 0 16px;
+    }
+    .maarifazone-cd-meta-row {
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 12.5px;
-        color: rgba(255, 255, 255, 0.9);
+        flex-wrap: wrap;
+        gap: 10px;
     }
-    .maarifazone-cd-hero__author-avatar {
-        width: 26px;
-        height: 26px;
+    .maarifazone-cd-rating {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+    }
+    .maarifazone-cd-rating .is-gold {
+        color: #f59e0b;
+    }
+    .maarifazone-cd-rating .is-muted {
+        color: #e2e8f0;
+    }
+    .maarifazone-cd-rating-val {
+        font-weight: 700;
+        color: #0f172a;
+        margin-left: 2px;
+    }
+    .maarifazone-cd-meta-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 3.5px 11px;
+        border-radius: 999px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+    }
+    .maarifazone-cd-meta-pill i {
+        color: #64748b;
+        font-size: 11px;
+    }
+    .maarifazone-cd-author-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: #334155;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        padding: 3px 12px 3px 4px;
+        border-radius: 999px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+    }
+    .maarifazone-cd-author-avatar {
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         object-fit: cover;
-        border: 1.5px solid rgba(255, 255, 255, 0.8);
     }
-    .maarifazone-cd-hero__author-initials {
-        width: 26px;
-        height: 26px;
+    .maarifazone-cd-author-initials {
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.22);
-        border: 1.5px solid rgba(255, 255, 255, 0.8);
-        color: #ffffff;
+        background: rgba(249, 159, 30, 0.12);
+        color: #ea580c;
         font-size: 10px;
-        font-weight: 700;
+        font-weight: 800;
         display: inline-flex;
         align-items: center;
         justify-content: center;
     }
-    .maarifazone-cd-hero__author strong {
-        color: #ffffff;
-        font-weight: 700;
+    .maarifazone-cd-author-pill strong {
+        color: #0f172a;
     }
 
     /* 2. Main Body Container */
     .maarifazone-cd-body {
-        padding-top: 28px;
+        padding-top: 32px;
     }
 
     /* Video / Thumbnail Preview Card */
@@ -426,58 +427,6 @@
         color: #94a3b8;
         white-space: nowrap;
         flex-shrink: 0;
-    }
-
-    /* Quizzes Sub-box inside Course Content */
-    .maarifazone-cd-quiz-box {
-        margin-top: 12px;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 12px 16px;
-        background: #ffffff;
-    }
-    .maarifazone-cd-quiz-box__heading {
-        font-size: 12.5px;
-        font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 10px;
-    }
-    .maarifazone-cd-quiz-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding-top: 8px;
-        border-top: 1px solid #f1f5f9;
-    }
-    .maarifazone-cd-quiz-item:first-of-type {
-        border-top: 0;
-        padding-top: 0;
-    }
-    .maarifazone-cd-quiz-item__title {
-        font-size: 12.5px;
-        font-weight: 700;
-        color: #0f172a;
-        display: flex;
-        align-items: center;
-        gap: 7px;
-    }
-    .maarifazone-cd-quiz-item__title i {
-        color: var(--theme);
-    }
-    .maarifazone-cd-quiz-item__sub {
-        font-size: 11px;
-        color: #64748b;
-        margin-top: 2px;
-        padding-left: 20px;
-    }
-    .maarifazone-cd-quiz-item__lock {
-        font-size: 11px;
-        color: #94a3b8;
-        white-space: nowrap;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
     }
 
     /* Instructor Card */
@@ -1106,83 +1055,83 @@
             ];
         }
 
-        $allQuizzes = $course->topics->flatMap(fn($topic) => $topic->quizzes ?? collect());
         $firstPreviewLesson = $course->topics->flatMap(fn($topic) => $topic->lessons ?? collect())->first(fn($l) => $l->is_preview && ($l->video_url || $l->video_path));
         $avatarPalette = ['#f99f1e', '#0d9488', '#7c3aed', '#e0860a', '#db2777', '#ea580c'];
     @endphp
 
     <div class="maarifazone-cd-page">
-        <!-- 1. Gradient Hero Banner -->
-        <section class="maarifazone-cd-hero">
-            <div class="container">
-                @if($course->category)
-                    <a href="{{ route('courses', ['category' => $course->category]) }}" class="maarifazone-cd-hero__cat-pill">
-                        <i class="fa-solid fa-tag"></i> {{ $course->category }}
-                    </a>
-                @endif
-
-                <h1 class="maarifazone-cd-hero__title">
-                    {{ $course->title }}
-                    @if($course->is_live_course)
-                        <span class="badge bg-danger ms-2" style="font-size: 12px; vertical-align: middle;">
-                            <i class="fas fa-broadcast-tower me-1"></i> {{ __('frontend.live') }}
-                        </span>
-                    @endif
-                </h1>
-
-                <p class="maarifazone-cd-hero__subtitle">
-                    {{ Str::limit(trim(strip_tags($course->description)), 135) }}
-                </p>
-
-                <div class="maarifazone-cd-hero__meta">
-                    <span class="maarifazone-cd-hero__rating">
-                        @for($i = 1; $i <= 5; $i++)
-                            <i class="fa-solid fa-star {{ $i <= $roundedRating ? 'is-gold' : 'is-muted' }}"></i>
-                        @endfor
-                        <span class="maarifazone-cd-hero__rating-text">
-                            {{ number_format($displayRating, 1) }} ({{ $totalReviews }} {{ $totalReviews === 1 ? 'review' : 'reviews' }})
-                        </span>
-                    </span>
-
-                    <span class="maarifazone-cd-hero__pill">
-                        <i class="fa-solid fa-user-group"></i> {{ $studentsCount }} {{ $studentsCount === 1 ? 'student' : 'students' }}
-                    </span>
-
-                    <span class="maarifazone-cd-hero__pill">
-                        <i class="fa-solid fa-signal"></i> {{ ucfirst($course->difficulty ?? 'Beginner') }}
-                    </span>
-
-                    <span class="maarifazone-cd-hero__pill">
-                        <i class="fa-solid fa-globe"></i> {{ strtoupper(substr($course->language ?? 'EN', 0, 2)) }}
-                    </span>
-                </div>
-
-                <div class="maarifazone-cd-hero__author">
-                    @if(!empty($course->instructor->avatar))
-                        <img src="{{ $course->instructor->profile_photo_url }}" alt="{{ $instructorName }}" class="maarifazone-cd-hero__author-avatar">
-                    @else
-                        <span class="maarifazone-cd-hero__author-initials">{{ $instructorInitials ?: 'IN' }}</span>
-                    @endif
-                    <span>Created by <strong>{{ $instructorName }}</strong></span>
-                </div>
-            </div>
-        </section>
-
-        <!-- 2. Main Two-Column Content Area -->
+        <!-- Main Two-Column Content Area (Zero Hero Banner) -->
         <section class="maarifazone-cd-body">
             <div class="container">
                 <div class="row g-4">
-                    <!-- Left Column: Video Preview + Stacked Content Cards -->
+                    <!-- Left Column: Clean Course Header + Video Preview + Stacked Content Cards -->
                     <div class="col-lg-8">
+                        <!-- Clean Course Header -->
+                        <div class="maarifazone-cd-header">
+                            <nav class="maarifazone-cd-breadcrumb" aria-label="breadcrumb">
+                                <a href="{{ route('home') }}"><i class="fa-solid fa-house me-1"></i> Home</a>
+                                <i class="fa-solid fa-chevron-right"></i>
+                                <a href="{{ route('courses') }}">Courses</a>
+                                @if($course->category)
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                    <a href="{{ route('courses', ['category' => $course->category]) }}">{{ $course->category }}</a>
+                                @endif
+                            </nav>
+
+                            <h1 class="maarifazone-cd-title">
+                                {{ $course->title }}
+                                @if($course->is_live_course)
+                                    <span class="badge bg-danger ms-2" style="font-size: 12px; vertical-align: middle;">
+                                        <i class="fas fa-broadcast-tower me-1"></i> {{ __('frontend.live') }}
+                                    </span>
+                                @endif
+                            </h1>
+
+                            <p class="maarifazone-cd-subtitle">
+                                {{ Str::limit(trim(strip_tags($course->description)), 150) }}
+                            </p>
+
+                            <div class="maarifazone-cd-meta-row">
+                                <span class="maarifazone-cd-rating">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="fa-solid fa-star {{ $i <= $roundedRating ? 'is-gold' : 'is-muted' }}"></i>
+                                    @endfor
+                                    <span class="maarifazone-cd-rating-val">{{ number_format($displayRating, 1) }}</span>
+                                    <span class="text-muted small">({{ $totalReviews }} {{ $totalReviews === 1 ? 'review' : 'reviews' }})</span>
+                                </span>
+
+                                <span class="maarifazone-cd-meta-pill">
+                                    <i class="fa-solid fa-user-group"></i> {{ number_format($studentsCount) }} scholars
+                                </span>
+
+                                <span class="maarifazone-cd-meta-pill">
+                                    <i class="fa-solid fa-signal"></i> {{ ucfirst($course->difficulty ?? 'Beginner') }}
+                                </span>
+
+                                <span class="maarifazone-cd-meta-pill">
+                                    <i class="fa-solid fa-globe"></i> {{ strtoupper(substr($course->language ?? 'EN', 0, 2)) }}
+                                </span>
+
+                                <div class="maarifazone-cd-author-pill">
+                                    @if(!empty($course->instructor->avatar))
+                                        <img src="{{ $course->instructor->profile_photo_url }}" alt="{{ $instructorName }}" class="maarifazone-cd-author-avatar">
+                                    @else
+                                        <span class="maarifazone-cd-author-initials">{{ $instructorInitials ?: 'IN' }}</span>
+                                    @endif
+                                    <span>Taught by <strong>{{ $instructorName }}</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Video / Thumbnail Preview Card -->
                         <div class="maarifazone-cd-video-card">
                             <img src="{{ $course->thumbnail }}" alt="{{ $course->title }}" class="maarifazone-cd-video-card__img">
                             <div class="maarifazone-cd-video-card__overlay">
                                 <div class="maarifazone-cd-video-card__topbar">
                                     @if(!empty($course->instructor->avatar))
-                                        <img src="{{ $course->instructor->profile_photo_url }}" alt="{{ $instructorName }}" class="maarifazone-cd-hero__author-avatar">
+                                        <img src="{{ $course->instructor->profile_photo_url }}" alt="{{ $instructorName }}" class="maarifazone-cd-author-avatar">
                                     @else
-                                        <span class="maarifazone-cd-hero__author-initials">{{ $instructorInitials ?: 'IN' }}</span>
+                                        <span class="maarifazone-cd-author-initials">{{ $instructorInitials ?: 'IN' }}</span>
                                     @endif
                                     <span class="maarifazone-cd-video-card__topbar-title">{{ $course->title }} — Course Overview</span>
                                 </div>
@@ -1311,29 +1260,6 @@
                                         </div>
                                     @endforeach
                                 </div>
-
-                                <!-- Quizzes Box inside Course Content -->
-                                @if($allQuizzes->count() > 0)
-                                    <div class="maarifazone-cd-quiz-box">
-                                        <div class="maarifazone-cd-quiz-box__heading">Quizzes ({{ $allQuizzes->count() }})</div>
-                                        @foreach($allQuizzes as $quiz)
-                                            <div class="maarifazone-cd-quiz-item">
-                                                <div>
-                                                    <div class="maarifazone-cd-quiz-item__title">
-                                                        <i class="fa-regular fa-circle-question"></i>
-                                                        <span>{{ $course->title }} — {{ $quiz->title }}</span>
-                                                    </div>
-                                                    <div class="maarifazone-cd-quiz-item__sub">
-                                                        Passing score: {{ $quiz->passing_score ?? 70 }}% &bull; {{ $quiz->questions ? $quiz->questions->count() : 5 }} questions
-                                                    </div>
-                                                </div>
-                                                <span class="maarifazone-cd-quiz-item__lock">
-                                                    <i class="fa-solid fa-lock"></i> Enroll to unlock
-                                                </span>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @endif
                             @else
                                 <p class="text-muted small mb-0">{{ __('frontend.no_curriculum') }}</p>
                             @endif
