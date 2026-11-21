@@ -104,7 +104,7 @@ if [[ "${SYNC_ENV}" == "true" ]] && [[ -f "${APP_DIR}/.env" ]]; then
     foreach ($keys as $key) {
         $val = getenv($key);
         if ($val === false || $val === "") continue;
-        $needsQuotes = preg_match("/[\s#\"'\''\\\\\$!]/", $val) === 1;
+        $needsQuotes = preg_match("/[\s#\"'\''\\\\\$!=^]/", $val) === 1;
         $formatted = $needsQuotes
             ? "\"" . str_replace(["\\", "\"", "\$"], ["\\\\", "\\\"", "\\\$"], $val) . "\""
             : $val;
@@ -180,12 +180,18 @@ if [[ -f "${APP_DIR}/vendor/autoload.php" ]]; then
   fi
 fi
 
-# 2. Pull latest repository changes
-if [[ "${NO_GIT}" != "true" ]] && [[ -d "${APP_DIR}/.git" ]]; then
-  log "Fetching and syncing git origin/${BRANCH}..."
+# 2. Pull latest repository changes (auto-initialize git remote if missing)
+GIT_REPO="${GIT_REPO:-https://github.com/Rb-tech-byte/maarifazone-.git}"
+if [[ "${NO_GIT}" != "true" ]] && command -v git >/dev/null 2>&1; then
   git config --global --add safe.directory "${APP_DIR}" >/dev/null 2>&1 || true
+  if [[ ! -d "${APP_DIR}/.git" ]]; then
+    log "Initializing git repository in ${APP_DIR} -> ${GIT_REPO}..."
+    git init -b "${BRANCH}"
+    git remote add origin "${GIT_REPO}" 2>/dev/null || git remote set-url origin "${GIT_REPO}"
+  fi
+  log "Fetching and syncing git origin/${BRANCH}..."
   git fetch origin "${BRANCH}" --prune
-  git checkout -B "${BRANCH}" "origin/${BRANCH}"
+  git checkout -f -B "${BRANCH}" "origin/${BRANCH}"
   git reset --hard "origin/${BRANCH}"
 fi
 

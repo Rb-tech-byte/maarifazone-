@@ -77,13 +77,13 @@ return new class extends Migration
         $path = (string) ($parsed['path'] ?? '/');
 
         $isLegacyLocal = in_array($host, ['localhost', '127.0.0.1', '::1'], true)
-            || preg_match('#^/(?:edux(?:/public)?|lmsout(?:/public)?|public)(?=/|$)#i', $path);
+            || preg_match('#^/(?:edux(?:/public)?|lmsout(?:/public)?|maarifazone(?:/public)?|public)(?=/|$)#i', $path);
 
         if (! $isLegacyLocal) {
             return $url;
         }
 
-        $relative = preg_replace('#^/(?:edux(?:/public)?|lmsout(?:/public)?|public)(?=/|$)#i', '', $path);
+        $relative = preg_replace('#^/(?:edux(?:/public)?|lmsout(?:/public)?|maarifazone(?:/public)?|public)(?=/|$)#i', '', $path);
         $relative = '/' . ltrim((string) $relative, '/');
 
         if (! empty($parsed['query'])) {

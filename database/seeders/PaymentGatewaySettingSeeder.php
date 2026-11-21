@@ -107,19 +107,20 @@ class PaymentGatewaySettingSeeder extends Seeder
     }
 
     /**
-     * Ensure 61237100_QR-2.pdf is copied into public/assets/payment and storage/app/public/payment-gateways.
+     * Ensure 61237100_QR-2.pdf is available in public/assets/payment and storage/app/public/payment-gateways.
      */
     protected function ensureQrPdfPublished(): void
     {
-        $sourcePdf = base_path('61237100_QR-2.pdf');
+        $publicDir = public_path('assets/payment');
+        File::ensureDirectoryExists($publicDir);
+        $publicTarget = $publicDir . DIRECTORY_SEPARATOR . '61237100_QR-2.pdf';
+
+        $sourcePdf = File::exists($publicTarget) ? $publicTarget : base_path('61237100_QR-2.pdf');
         if (! File::exists($sourcePdf)) {
             return;
         }
 
-        $publicDir = public_path('assets/payment');
-        File::ensureDirectoryExists($publicDir);
-        $publicTarget = $publicDir . DIRECTORY_SEPARATOR . '61237100_QR-2.pdf';
-        if (! File::exists($publicTarget)) {
+        if ($sourcePdf !== $publicTarget && ! File::exists($publicTarget)) {
             File::copy($sourcePdf, $publicTarget);
         }
 

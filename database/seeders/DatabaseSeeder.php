@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             FrontendSettingSeeder::class,
             CustomPageSeeder::class,
             DemoContentSeeder::class,
+            PayPerTopicDemoSeeder::class,
             VersionUpdateSeeder::class,
         ]);
     }

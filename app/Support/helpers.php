@@ -635,7 +635,7 @@ if (!function_exists('resolve_app_url')) {
                 $quotedBase = preg_quote($activeBasePath, '#');
                 $cleaned = (string) preg_replace('#^/' . $quotedBase . '(?:/public)?(?=/|$)#i', '', $cleaned);
             }
-            $cleaned = (string) preg_replace('#^/(?:edux(?:/public)?|lmsout(?:/public)?|public)(?=/|$)#i', '', $cleaned);
+            $cleaned = (string) preg_replace('#^/(?:edux(?:/public)?|lmsout(?:/public)?|maarifazone(?:/public)?|public)(?=/|$)#i', '', $cleaned);
 
             return '/' . ltrim($cleaned, '/');
         };
@@ -655,7 +655,7 @@ if (!function_exists('resolve_app_url')) {
             : '';
 
         $path = $parsed['path'] ?? '/';
-        $hasLegacyPrefix = (bool) preg_match('#^/(?:edux(?:/public)?|lmsout(?:/public)?|public)(?=/|$)#i', $path);
+        $hasLegacyPrefix = (bool) preg_match('#^/(?:edux(?:/public)?|lmsout(?:/public)?|maarifazone(?:/public)?|public)(?=/|$)#i', $path);
         $isLocalHost = in_array($host, ['localhost', '127.0.0.1', '::1'], true)
             || ($requestHost !== '' && $host === $requestHost);
 

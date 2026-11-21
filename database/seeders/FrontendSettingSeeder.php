@@ -78,10 +78,10 @@ class FrontendSettingSeeder extends Seeder
             ],
             'faq' => [
                 'title' => 'Frequently Asked Questions',
-                'description' => 'Find answers to popular questions about OUT courses, certifications, instructors, pricing, and support.',
+                'description' => 'Find answers to popular questions about Maarifazone courses, modular topic pricing, instructors, and support.',
             ],
             'about' => [
-                'title' => 'About OUT',
+                'title' => 'About Maarifazone',
                 'description' => 'Discover Maarifazone’s mission, values, and the people behind our platform committed to transforming education for everyone.',
             ],
             'instructors' => [
@@ -98,30 +98,30 @@ class FrontendSettingSeeder extends Seeder
             ],
             'privacy-policy' => [
                 'title' => 'Privacy Policy',
-                'description' => 'Read our privacy policy to understand how we collect, use, and protect your personal information when you use OUT.',
+                'description' => 'Read our privacy policy to understand how we collect, use, and protect your personal information when you use Maarifazone.',
             ],
             'terms-and-conditions' => [
                 'title' => 'Terms of Service',
-                'description' => 'Review our terms of service to learn about your rights and responsibilities when using OUT services.',
+                'description' => 'Review our terms of service to learn about your rights and responsibilities when using Maarifazone services.',
             ],
             'gdpr-compliance' => [
                 'title' => 'GDPR Compliance',
-                'description' => 'Learn about how OUT complies with GDPR regulations to protect your privacy and data security.',
+                'description' => 'Learn about how Maarifazone complies with data protection regulations to protect your privacy and data security.',
             ],
         ]);
 
         FrontendSetting::setValue('pages.marquee.items', [
             [
                 'image' => 'assets/front/img/home-1/icon1.png',
-                'text' => 'Education & University',
+                'text' => '100% Online Digital Learning',
             ],
             [
                 'image' => 'assets/front/img/home-1/icon1.png',
-                'text' => 'Online Education',
+                'text' => 'Modular Pay-Per-Topic Courses',
             ],
             [
                 'image' => 'assets/front/img/home-1/icon1.png',
-                'text' => '230+ Quality Courses',
+                'text' => 'Video, Notes, PDF & Slides',
             ],
             [
                 'image' => 'assets/front/img/home-1/icon1.png',
@@ -129,7 +129,7 @@ class FrontendSettingSeeder extends Seeder
             ],
             [
                 'image' => 'assets/front/img/home-1/icon1.png',
-                'text' => '25% Extra Coupon Bonus',
+                'text' => 'Instant Online & Lipa Namba Checkout',
             ],
         ]);
 
@@ -144,7 +144,7 @@ class FrontendSettingSeeder extends Seeder
                 'icon' => 'fa-light fa-phone',
                 'label' => 'Call us anytime',
                 'type' => 'phone',
-                'value' => '+1 (800) 555-1234',
+                'value' => '+255 700 000 000',
             ],
             [
                 'icon' => 'fa-light fa-envelope',
@@ -156,13 +156,13 @@ class FrontendSettingSeeder extends Seeder
                 'icon' => 'fa-light fa-location-dot',
                 'label' => 'Visit our office',
                 'type' => 'address',
-                'value' => '371 7th Ave, New York, NY 10001',
+                'value' => 'Dar es Salaam, Tanzania',
             ],
             [
                 'icon' => 'fa-light fa-clock',
                 'label' => 'Support hours',
                 'type' => 'hours',
-                'value' => 'Mon - Fri: 9:00am - 6:00pm ET',
+                'value' => 'Mon - Fri: 8:00am - 5:00pm EAT',
             ],
         ]);
 
@@ -170,13 +170,13 @@ class FrontendSettingSeeder extends Seeder
             'heading' => 'Send us a message',
             'description' => 'Let us know how we can help. We usually respond within one business day.',
             'submit_label' => 'Send Message',
-            'success_message' => 'Thank you for contacting OUT. We will reach out shortly!',
+            'success_message' => 'Thank you for contacting Maarifazone. We will reach out shortly!',
             'subject_prefix' => '[Maarifazone Contact]',
         ]);
 
         FrontendSetting::setValue('pages.contact.map', [
-            'embed_url' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6678.7619084840835!2d144.9618311901502!3d-37.81450084255415!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642b4758afc1d%3A0x3119cc820fdfc62e!2sEnvato!5e0!3m2!1sen!2sbd!4v1641984054261!5m2!1sen!2sbd',
-            'caption' => 'Our headquarters is located in the heart of New York City.',
+            'embed_url' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126743.58638725086!2d39.182383!3d-6.792354!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x185c4bae169bd6f1%3A0x940f6b26a086a1dd!2sDar%20es%20Salaam%2C%20Tanzania!5e0!3m2!1sen!2stz!4v1700000000000!5m2!1sen!2stz',
+            'caption' => 'Our headquarters is located in Dar es Salaam, Tanzania.',
         ]);
 
         FrontendSetting::setValue('pages.home.hero', [

@@ -98,6 +98,9 @@ jobs:
         run: |
           php artisan test \
             tests/Feature/MaarifazoneThreeRoleWorkflowTest.php \
+            tests/Feature/AdminCourseCatalogModernizationTest.php \
+            tests/Feature/CourseBuilderModularPricingTest.php \
+            tests/Feature/ScholarPayPerTopicLearningTest.php \
             tests/Feature/CurrencyExchangeSwitchTest.php \
             tests/Feature/PesapalIntegrationTest.php \
             tests/Feature/StudentCourseAccessTest.php

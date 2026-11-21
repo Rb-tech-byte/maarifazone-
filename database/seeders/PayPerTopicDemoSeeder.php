@@ -27,9 +27,11 @@ class PayPerTopicDemoSeeder extends Seeder
 {
     public function run(): void
     {
-        $course = Course::with('topics.lessons')->find(45);
+        $course = Course::with('topics.lessons')->find(45)
+            ?? Course::with('topics.lessons')->where('title', 'like', '%Agile Product Management%')->first()
+            ?? Course::with('topics.lessons')->orderBy('id')->first();
         if (! $course) {
-            $this->command?->warn('Course 45 not found - skipping pay-per-topic demo.');
+            $this->command?->warn('No course found - skipping pay-per-topic demo.');
             return;
         }
 

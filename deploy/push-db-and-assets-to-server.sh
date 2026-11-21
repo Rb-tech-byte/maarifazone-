@@ -22,8 +22,8 @@ cd "${APP_DIR}"
 SSH_TARGET=""
 SSH_PORT="${SSH_PORT:-22}"
 DEPLOY_PATH=""
-PHP_BIN="${PHP_BIN:-$(command -v php || ls /Applications/MAMP/bin/php/php8.*/bin/php 2>/dev/null | tail -n 1 || true)}"
-MYSQLDUMP_BIN="${MYSQLDUMP_BIN:-$(ls /Applications/MAMP/Library/bin/mysql80/bin/mysqldump 2>/dev/null || command -v mysqldump || true)}"
+PHP_BIN="${PHP_BIN:-$(command -v php || ls /c/wamp64/bin/php/php8.*/php.exe /Applications/MAMP/bin/php/php8.*/bin/php 2>/dev/null | tail -n 1 || true)}"
+MYSQLDUMP_BIN="${MYSQLDUMP_BIN:-$(command -v mysqldump || ls /c/wamp64/bin/mysql/mysql*/bin/mysqldump.exe /Applications/MAMP/Library/bin/mysql80/bin/mysqldump 2>/dev/null | tail -n 1 || true)}"
 REMOTE_PHP="php"
 
 for arg in "$@"; do
