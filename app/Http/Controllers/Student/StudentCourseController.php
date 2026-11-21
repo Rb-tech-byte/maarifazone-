@@ -316,10 +316,16 @@ class StudentCourseController extends Controller
         $lessonId = $request->input('lesson_id');
         $courseId = $request->input('course_id');
 
-        $enrollment = Enrollment::where('user_id', $user->id)
+        $userEnrollments = Enrollment::where('user_id', $user->id)
             ->where('course_id', $courseId)
             ->whereIn('status', ['approved', 'completed'])
-            ->firstOrFail();
+            ->get();
+
+        if ($userEnrollments->isEmpty()) {
+            abort(404);
+        }
+
+        $enrollment = $userEnrollments->first();
 
         $lesson = Lesson::whereHas('topic', function ($query) use ($courseId) {
             $query->where('course_id', $courseId);
@@ -342,7 +348,10 @@ class StudentCourseController extends Controller
         // Check if full course is complete
         $course = Course::with('topics.lessons')->findOrFail($courseId);
         $allItems = $this->getAllCourseItems($course);
-        $userProgress = $user->lessonProgress()->where('enrollment_id', $enrollment->id)->get()->keyBy('lesson_id');
+        $userProgress = $user->lessonProgress()
+            ->whereIn('enrollment_id', $userEnrollments->pluck('id'))
+            ->get()
+            ->keyBy('lesson_id');
         $progressSummary = $this->buildProgressSummary($allItems, $userProgress);
 
         $courseCompleted = false;
@@ -351,24 +360,25 @@ class StudentCourseController extends Controller
             $courseCompleted = true;
         }
 
-        $currentIndex = $allItems->search(fn ($item) => $item['id'] == $lessonId);
+        $currentIndex = $allItems->search(fn ($item) => (int) $item['id'] === (int) $lessonId);
         $nextItem = null;
         if (! $courseCompleted && $currentIndex !== false && $currentIndex < $allItems->count() - 1) {
             $potentialNext = $allItems[$currentIndex + 1];
-            if ($this->isItemAccessible($user, $enrollment, $courseId, 'lesson', $potentialNext['id'], $course)) {
-                $nextItem = [
-                    'item_id' => $potentialNext['id'],
-                    'type' => 'lesson',
-                ];
-            }
+            $nextItem = [
+                'item_id'       => $potentialNext['id'],
+                'id'            => $potentialNext['id'],
+                'type'          => 'lesson',
+                'is_accessible' => $this->isItemAccessible($user, $userEnrollments, $courseId, 'lesson', $potentialNext['id'], $course),
+            ];
         }
 
         return response()->json([
-            'success' => true,
-            'message' => 'Lesson marked as complete',
-            'next_item' => $nextItem,
+            'success'          => true,
+            'message'          => 'Lesson marked as complete',
+            'next_item'        => $nextItem,
             'course_completed' => $courseCompleted,
-            'navigation' => $this->buildNavigationState($user, $enrollment, $courseId, $allItems, 'lesson', $lessonId),
+            'progress_summary' => $progressSummary,
+            'navigation'       => $this->buildNavigationState($user, $enrollment, $courseId, $allItems, 'lesson', (int) $lessonId),
         ]);
     }
 
@@ -413,28 +423,45 @@ class StudentCourseController extends Controller
     }
 
     /**
-     * Get next lesson.
+     * Get next lesson (including lessons in paid modules so the unlock screen can be displayed).
      */
     public function getNextItem(Request $request, $courseId, $itemId)
     {
         $user = $this->currentUser();
-        $enrollment = Enrollment::where('user_id', $user->id)->where('course_id', $courseId)->firstOrFail();
+        $userEnrollments = Enrollment::where('user_id', $user->id)
+            ->where('course_id', $courseId)
+            ->whereIn('status', ['approved', 'completed'])
+            ->get();
+
+        if ($userEnrollments->isEmpty()) {
+            return response()->json(['error' => 'Not enrolled in this course'], 403);
+        }
+
         $course = Course::with('topics.lessons')->findOrFail($courseId);
         $allItems = $this->getAllCourseItems($course);
 
         $currentIndex = $allItems->search(fn ($item) => (int) $item['id'] === (int) $itemId);
         if ($currentIndex === false || $currentIndex >= $allItems->count() - 1) {
-            return response()->json(['error' => 'No next lesson found'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'You have reached the last lesson in this course.',
+            ]);
         }
 
         $nextItem = $allItems[$currentIndex + 1];
-        if (! $this->isItemAccessible($user, $enrollment, $courseId, 'lesson', $nextItem['id'], $course)) {
-            return response()->json(['error' => 'Next lesson is locked'], 403);
-        }
+        $isAccessible = $this->isItemAccessible($user, $userEnrollments, $courseId, 'lesson', $nextItem['id'], $course);
 
         return response()->json([
-            'success' => true,
-            'next_item' => ['type' => 'lesson', 'id' => $nextItem['id']],
+            'success'       => true,
+            'item_id'       => $nextItem['id'],
+            'type'          => 'lesson',
+            'is_accessible' => $isAccessible,
+            'next_item'     => [
+                'type'          => 'lesson',
+                'id'            => $nextItem['id'],
+                'item_id'       => $nextItem['id'],
+                'is_accessible' => $isAccessible,
+            ],
         ]);
     }
 
@@ -444,20 +471,40 @@ class StudentCourseController extends Controller
     public function getPreviousItem(Request $request, $courseId, $itemId)
     {
         $user = $this->currentUser();
-        $enrollment = Enrollment::where('user_id', $user->id)->where('course_id', $courseId)->firstOrFail();
+        $userEnrollments = Enrollment::where('user_id', $user->id)
+            ->where('course_id', $courseId)
+            ->whereIn('status', ['approved', 'completed'])
+            ->get();
+
+        if ($userEnrollments->isEmpty()) {
+            return response()->json(['error' => 'Not enrolled in this course'], 403);
+        }
+
         $course = Course::with('topics.lessons')->findOrFail($courseId);
         $allItems = $this->getAllCourseItems($course);
 
         $currentIndex = $allItems->search(fn ($item) => (int) $item['id'] === (int) $itemId);
         if ($currentIndex === false || $currentIndex <= 0) {
-            return response()->json(['error' => 'No previous lesson found'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'You are on the first lesson of this course.',
+            ]);
         }
 
         $prevItem = $allItems[$currentIndex - 1];
+        $isAccessible = $this->isItemAccessible($user, $userEnrollments, $courseId, 'lesson', $prevItem['id'], $course);
 
         return response()->json([
-            'success' => true,
-            'previous_item' => ['type' => 'lesson', 'id' => $prevItem['id']],
+            'success'       => true,
+            'item_id'       => $prevItem['id'],
+            'type'          => 'lesson',
+            'is_accessible' => $isAccessible,
+            'previous_item' => [
+                'type'          => 'lesson',
+                'id'            => $prevItem['id'],
+                'item_id'       => $prevItem['id'],
+                'is_accessible' => $isAccessible,
+            ],
         ]);
     }
 
@@ -471,7 +518,8 @@ class StudentCourseController extends Controller
             return response()->json(['success' => true, 'results' => []]);
         }
 
-        $lessons = Lesson::whereHas('topic', fn ($t) => $t->where('course_id', $courseId))
+        $lessons = Lesson::with('topic:id,title')
+            ->whereHas('topic', fn ($t) => $t->where('course_id', $courseId))
             ->where(function ($q) use ($query) {
                 $q->where('title', 'like', "%{$query}%")
                   ->orWhere('description', 'like', "%{$query}%");
@@ -481,9 +529,10 @@ class StudentCourseController extends Controller
         return response()->json([
             'success' => true,
             'results' => $lessons->map(fn ($l) => [
-                'id' => $l->id,
-                'type' => 'lesson',
+                'id'    => $l->id,
+                'type'  => 'lesson',
                 'title' => $l->title,
+                'topic' => $l->topic?->title ?? 'Course Module',
             ]),
         ]);
     }
@@ -494,19 +543,35 @@ class StudentCourseController extends Controller
     public function refreshSidebar(Request $request, $courseId)
     {
         $user = $this->currentUser();
-        $enrollment = Enrollment::where('user_id', $user->id)->where('course_id', $courseId)->firstOrFail();
+        $userEnrollments = Enrollment::where('user_id', $user->id)
+            ->where('course_id', $courseId)
+            ->whereIn('status', ['approved', 'completed'])
+            ->get();
+
+        if ($userEnrollments->isEmpty()) {
+            abort(404);
+        }
+
+        $activeId = (int) $request->input('active_id', 0);
         $course = Course::with(['topics.lessons.liveClass'])->findOrFail($courseId);
 
-        $userProgress = $user->lessonProgress()->where('enrollment_id', $enrollment->id)->get()->keyBy('lesson_id');
+        $userProgress = $user->lessonProgress()
+            ->whereIn('enrollment_id', $userEnrollments->pluck('id'))
+            ->get()
+            ->keyBy('lesson_id');
         $allItems = $this->getAllCourseItems($course);
         $accessibleItems = [];
         foreach ($allItems as $item) {
-            $accessibleItems['lesson_' . $item['id']] = $this->isItemAccessible($user, $enrollment, $courseId, 'lesson', $item['id'], $course);
+            $accessibleItems['lesson_' . $item['id']] = $this->isItemAccessible($user, $userEnrollments, $courseId, 'lesson', $item['id'], $course);
         }
 
         $topicsData = [];
         foreach ($course->topics as $index => $topic) {
             $itemsData = [];
+            $isTopicUnlocked = $topic->is_free
+                || (float) $topic->price <= 0
+                || $userEnrollments->contains(fn ($e) => empty($e->course_topic_id) || (int) $e->course_topic_id === (int) $topic->id);
+
             foreach ($topic->lessons as $lesson) {
                 $progress = $userProgress[$lesson->id] ?? null;
                 $itemsData[] = [
@@ -516,7 +581,10 @@ class StudentCourseController extends Controller
                     'title'              => $lesson->title,
                     'duration_formatted' => $lesson->formatted_duration,
                     'is_completed'       => (bool) ($progress && $progress->is_completed),
+                    'is_active'          => $activeId === (int) $lesson->id,
                     'is_accessible'      => $accessibleItems['lesson_' . $lesson->id] ?? false,
+                    'is_free'            => (bool) ($lesson->is_free || $lesson->is_preview || $topic->is_free || (float) $topic->price <= 0),
+                    'price'              => (float) ($lesson->price ?? 0),
                     'is_live'            => (bool) $lesson->is_live,
                     'live_status'        => $lesson->liveClass?->status,
                     'lesson_type'        => $lesson->lesson_type ?: 'video',
@@ -525,18 +593,24 @@ class StudentCourseController extends Controller
             usort($itemsData, fn ($a, $b) => ($a['order'] <=> $b['order']));
 
             $topicsData[] = [
-                'topic'    => $topic,
-                'index'    => $index,
-                'progress' => $topic->getProgressStats($userProgress),
-                'items'    => $itemsData,
+                'topic'             => $topic,
+                'index'             => $index,
+                'progress'          => $topic->getProgressStats($userProgress),
+                'items'             => $itemsData,
+                'is_free'           => (bool) ($topic->is_free || (float) $topic->price <= 0),
+                'price'             => (float) $topic->price,
+                'is_topic_unlocked' => $isTopicUnlocked,
             ];
         }
 
         $progressSummary = $this->buildProgressSummary($allItems, $userProgress);
+        $html = view('student.course-access.partials.sidebar', compact('course', 'topicsData'))->render();
 
         return response()->json([
             'success'          => true,
+            'html'             => $html,
             'topics_data'      => $topicsData,
+            'accessibleItems'  => $accessibleItems,
             'progress_summary' => $progressSummary,
         ]);
     }

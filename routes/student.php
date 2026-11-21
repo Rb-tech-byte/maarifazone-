@@ -30,10 +30,11 @@ Route::middleware('guest')->group(function () {
 
 // Authenticated scholar routes
 Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
-    // Dashboard routes
+    // Dashboard & Enrolled Courses routes
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/live-summary', [DashboardController::class, 'liveSummary'])->name('dashboard.live');
     Route::get('/my-courses', [MyCoursesController::class, 'index'])->name('my-courses');
+    Route::get('/courses', [MyCoursesController::class, 'index'])->name('courses.index');
 
     // Payments routes
     Route::get('/payments', [PaymentsController::class, 'index'])->name('payments');

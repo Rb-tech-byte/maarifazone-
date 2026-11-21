@@ -238,12 +238,45 @@ $(document).ready(function() {
 
     let lastReportedProgressPercent = -1;
 
+    window.maarifazoneMountExternalEmbeds = function(forceTry) {
+        const isOnline = forceTry || (typeof navigator === 'undefined' || navigator.onLine !== false);
+        $('.mz-external-embed-wrap').each(function() {
+            const $wrap = $(this);
+            const embedSrc = $wrap.attr('data-embed-src');
+            const $iframe = $wrap.find('.mz-deferred-embed-iframe');
+            const $offlineCard = $wrap.find('.mz-embed-offline-card');
+
+            if (!embedSrc) return;
+
+            if (isOnline) {
+                $offlineCard.addClass('d-none');
+                if ($iframe.attr('src') !== embedSrc) {
+                    $iframe.attr('src', embedSrc);
+                }
+                $iframe.removeClass('d-none');
+            } else {
+                $iframe.attr('src', 'about:blank').addClass('d-none');
+                $offlineCard.removeClass('d-none');
+            }
+        });
+    };
+
+    window.addEventListener('online', function() {
+        window.maarifazoneMountExternalEmbeds(true);
+    });
+
+    window.addEventListener('offline', function() {
+        window.maarifazoneMountExternalEmbeds(false);
+    });
+
     function initializeVideoPlayer() {
         lastReportedProgressPercent = -1;
         if (videoPlayer) {
             videoPlayer.dispose();
             videoPlayer = null;
         }
+
+        window.maarifazoneMountExternalEmbeds(false);
 
         const videoElement = document.getElementById('lesson-video-player');
         if (videoElement) {
@@ -809,15 +842,19 @@ $(document).ready(function() {
                 type: currentItemType
             },
             success: function(response) {
-                if (response.success && response.item_id) {
-                    loadItem(response.item_id, response.type, courseId);
+                const targetId = response.item_id
+                    || (response.next_item && (response.next_item.id || response.next_item.item_id))
+                    || (response.previous_item && (response.previous_item.id || response.previous_item.item_id));
+                const targetType = response.type
+                    || (response.next_item && response.next_item.type)
+                    || (response.previous_item && response.previous_item.type)
+                    || 'lesson';
+
+                if (response.success && targetId) {
+                    loadItem(targetId, targetType, courseId);
                 } else if (response && response.message) {
                     if (window.toastMagic) {
-                        if (response.reason === 'locked') {
-                            window.toastMagic.warning('Content Locked', response.message);
-                        } else {
-                            window.toastMagic.info('Navigation', response.message);
-                        }
+                        window.toastMagic.info('Navigation', response.message);
                     } else {
                         alert(response.message);
                     }
@@ -826,7 +863,7 @@ $(document).ready(function() {
             error: function(xhr) {
                 const msg = extractAjaxError(xhr, 'Unable to navigate to the requested item.');
                 if (window.toastMagic) {
-                    window.toastMagic.error('Navigation Error', msg);
+                    window.toastMagic.info('Navigation', msg);
                 } else {
                     alert(msg);
                 }

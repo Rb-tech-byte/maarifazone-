@@ -8,7 +8,7 @@
     <meta name="app-url" content="{{ rtrim(url('/'), '/') }}">
     <meta name="author" content="Maarifazone — Wolinet">
     <meta name="application-name" content="{{ site_name() }}">
-    <meta name="theme-color" content="#f99f1e">
+    <meta name="theme-color" content="#0f172a">
     <title>{{ (!empty($pageTitle) && $pageTitle !== site_name()) ? $pageTitle . ' | ' . site_name() . ' Scholar Portal' : site_name() . ' - Scholar Portal' }}</title>
 
     @stack('meta')

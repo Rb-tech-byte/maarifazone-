@@ -518,39 +518,40 @@
 /* Floating Navigation Buttons */
 .floating-navigation-buttons {
     position: fixed;
-    bottom: 30px;
+    bottom: 26px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10000;
     display: flex;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
-    background: var(--bg);
-    padding: 12px 20px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 8px 14px;
     border-radius: 50px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
 }
 
 .floating-nav-btn {
-    background: var(--theme);
+    background: #0f172a;
     border: none;
-    color: white;
-    width: 50px;
-    height: 50px;
+    color: #ffffff;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    box-shadow: 0 4px 15px rgba(249, 159, 30, 0.3);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
     cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 18px;
+    transition: all 0.2s ease;
+    font-size: 16px;
 }
 
 .floating-nav-btn:hover {
-    background: var(--theme-2);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(249, 159, 30, 0.4);
+    background: #1e293b;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.28);
 }
 
 .floating-nav-btn:active {
@@ -558,10 +559,10 @@
 }
 
 .floating-nav-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
     transform: none;
-    background: var(--theme);
+    background: #64748b;
 }
 
 /* Responsive adjustments for floating navigation */
@@ -1039,21 +1040,22 @@
     overflow: hidden;
 }
 
-/* Course Header Bar */
+/* Course Header Bar - Executive Midnight Slate (Logo Dominant Palette) */
 .course-header-bar {
-    background: var(--theme);
-    height: 60px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    height: 62px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 20px;
     color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
     z-index: 100;
 }
 
 .course-header-bar .sidebar-toggle-btn {
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .course-header-left {
@@ -1172,9 +1174,9 @@
 
 /* Sidebar Wrapper */
 .course-sidebar-wrapper {
-    width: 350px;
-    background: var(--bg);
-    border-right: 1px solid #e0e0e0;
+    width: 360px;
+    background: #f8fafc;
+    border-right: 1px solid #e2e8f0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -1191,7 +1193,7 @@
 .course-main-content-wrapper {
     flex: 1;
     overflow-y: auto;
-    background: #fff;
+    background: #ffffff;
     padding: 30px;
 }
 
@@ -1202,7 +1204,7 @@
 
 /* Sidebar Search */
 .sidebar-search {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .search-input-wrapper {
@@ -1213,18 +1215,19 @@
 
 .search-input {
     width: 100%;
-    padding: 12px 45px 12px 16px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #333;
-    background: #fff;
-    transition: border-color 0.3s ease;
+    padding: 10px 42px 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 13.5px;
+    color: #0f172a;
+    background: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .search-input:focus {
     outline: none;
-    border-color: var(--theme);
+    border-color: #0f172a;
+    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
 }
 
 .search-icon-btn {
@@ -1232,7 +1235,7 @@
     right: 12px;
     background: none;
     border: none;
-    color: var(--theme);
+    color: #64748b;
     cursor: pointer;
     padding: 4px;
     display: flex;
@@ -1241,35 +1244,40 @@
 }
 
 .search-results {
-    margin-top: 12px;
+    margin-top: 10px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
 /* Chapter Section */
 .chapter-section {
-    margin-bottom: 32px;
+    margin-bottom: 24px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
 }
 
 .chapter-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #e0e0e0;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
     cursor: pointer;
     transition: background 0.2s ease;
-    padding: 8px 0 12px 0;
+    padding: 6px 6px 10px 6px;
     user-select: none;
+    border-radius: 8px;
 }
 
 .chapter-header:hover {
-    background: rgba(249, 159, 30, 0.05);
-    margin-left: -8px;
-    margin-right: -8px;
-    padding-left: 8px;
-    padding-right: 8px;
-    border-radius: 4px;
+    background: #f1f5f9;
 }
 
 .chapter-header-left {
@@ -1278,11 +1286,12 @@
     gap: 8px;
     flex: 1;
     min-width: 0;
+    flex-wrap: wrap;
 }
 
 .chapter-toggle-icon {
     font-size: 12px;
-    color: #666;
+    color: #64748b;
     transition: color 0.2s ease;
     flex-shrink: 0;
     width: 14px;
@@ -1292,7 +1301,7 @@
 }
 
 .chapter-header:hover .chapter-toggle-icon {
-    color: var(--theme);
+    color: #0f172a;
 }
 
 .chapter-section.collapsed .chapter-toggle-icon.fa-chevron-down {
@@ -1300,16 +1309,18 @@
 }
 
 .chapter-number {
-    font-size: 13px;
-    color: #666;
-    font-weight: 400;
+    font-size: 11.5px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
     white-space: nowrap;
 }
 
 .chapter-title {
-    font-size: 16px;
+    font-size: 14.5px;
     font-weight: 700;
-    color: var(--theme);
+    color: #0f172a;
     flex: 1;
     min-width: 0;
     overflow: hidden;
@@ -1318,27 +1329,31 @@
 }
 
 .chapter-progress {
-    font-size: 13px;
-    color: #666;
-    font-weight: 500;
+    font-size: 12px;
+    color: #475569;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
     flex-shrink: 0;
 }
 
 .chapter-content {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 4px;
 }
 
 /* Curriculum Item */
 .curriculum-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid #f0f0f0;
+    gap: 10px;
+    padding: 10px 10px;
+    border-radius: 8px;
+    border-bottom: 1px solid #f8fafc;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: all 0.18s ease;
     position: relative;
 }
 
@@ -1347,39 +1362,42 @@
 }
 
 .curriculum-item:hover {
-    background: #f8f9fa;
+    background: #f1f5f9;
 }
 
 .curriculum-item.active {
-    background: rgba(249, 159, 30, 0.05);
+    background: #f1f5f9;
+    border-left: 3px solid #f99f1e;
 }
 
 .curriculum-item.active .curriculum-item-title {
-    color: var(--theme);
-    font-weight: 600;
+    color: #0f172a;
+    font-weight: 700;
 }
 
 .curriculum-item.locked {
-    opacity: 0.6;
-    cursor: not-allowed;
+    opacity: 0.85;
+    cursor: pointer;
 }
 
 .curriculum-item.locked .curriculum-item-title {
-    color: #999;
+    color: #475569;
 }
 
 .curriculum-item.locked:hover {
-    background: transparent;
+    background: #f8fafc;
 }
 
 .status-locked {
-    color: #dc3545;
+    color: #d97706;
     font-size: 14px;
 }
 
 .curriculum-item-icon {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: #f8fafc;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1387,12 +1405,16 @@
 }
 
 .curriculum-item-icon i {
-    font-size: 16px;
-    color: #666;
+    font-size: 14px;
+    color: #475569;
+}
+
+.curriculum-item.active .curriculum-item-icon {
+    background: #0f172a;
 }
 
 .curriculum-item.active .curriculum-item-icon i {
-    color: var(--theme);
+    color: #ffffff !important;
 }
 
 .curriculum-item-content {

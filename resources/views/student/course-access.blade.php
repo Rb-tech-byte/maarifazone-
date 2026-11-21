@@ -68,7 +68,7 @@
         }
         .course-header-tabs li.active a {
             background: #fff;
-            color: var(--theme);
+            color: #0f172a;
         }
         
         /* Premium Forum UI Styles */

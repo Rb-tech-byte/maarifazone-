@@ -43,12 +43,12 @@
 
                     @elseif ($lc['status'] === 'scheduled')
                         {{-- Scheduled / Upcoming --}}
-                        <div style="background: linear-gradient(135deg, #f99f1e 0%, #e0860a 100%); border-radius: 16px; padding: 30px; color: #fff; margin-bottom: 25px; position: relative; overflow: hidden;">
-                            <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.08);"></div>
+                        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 16px; padding: 30px; color: #fff; margin-bottom: 25px; position: relative; overflow: hidden; border-left: 4px solid #f99f1e;">
+                            <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.06);"></div>
                             <div style="position: relative; z-index: 1;">
                                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                                    <span style="background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase;">
-                                        <i class="fas fa-clock me-1"></i> Scheduled Live Class
+                                    <span style="background: rgba(255,255,255,0.12); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase;">
+                                        <i class="fas fa-clock me-1" style="color: #f99f1e;"></i> Scheduled Live Class
                                     </span>
                                 </div>
                                 <h4 style="font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 8px;">{{ $lc['title'] }}</h4>
@@ -62,7 +62,7 @@
                                 <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                                     @if ($lc['minutes_until'] <= 30 && $lc['minutes_until'] > 0)
                                         <a href="{{ $lc['join_url'] }}" target="_blank" rel="noopener"
-                                           style="display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #f99f1e; padding: 10px 24px; border-radius: 10px; font-weight: 700; text-decoration: none;">
+                                           style="display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #0f172a; padding: 10px 24px; border-radius: 10px; font-weight: 700; text-decoration: none;">
                                             <i class="fas fa-video"></i> Join Early
                                         </a>
                                     @endif
@@ -88,9 +88,9 @@
                         {{-- Ended – show recording if available, otherwise info banner --}}
                         @if ($videoData['url'])
                             {{-- Recording available – render the normal video player below --}}
-                            <div style="background: #fff7eb; border-radius: 12px; padding: 15px 20px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                                <i class="fas fa-video" style="color: #f99f1e;"></i>
-                                <span style="font-size: 14px; color: #333;">
+                            <div style="background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 20px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-video" style="color: #0f172a;"></i>
+                                <span style="font-size: 14px; color: #0f172a;">
                                     <strong>Live session ended.</strong> Watch the recording below.
                                 </span>
                             </div>
@@ -112,17 +112,19 @@
 
                     {{-- Only render video player if ended + has recording --}}
                     @if ($lc['status'] === 'ended' && !empty($videoData['url']))
-                        @if ($videoData['type'] === 'url' && !empty($videoData['is_youtube']))
-                            <div id="video-player-container">
-                                <iframe width="100%" height="500" src="{{ $videoData['embed_url'] }}" frameborder="0"
+                        @if ($videoData['type'] === 'url' && (!empty($videoData['is_youtube']) || !empty($videoData['is_vimeo'])))
+                            <div id="video-player-container" class="mz-external-embed-wrap" data-embed-src="{{ $videoData['embed_url'] ?? $videoData['url'] }}">
+                                <iframe width="100%" height="500" src="about:blank" data-embed-src="{{ $videoData['embed_url'] ?? $videoData['url'] }}" frameborder="0"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowfullscreen class="video-iframe"></iframe>
-                            </div>
-                        @elseif($videoData['type'] === 'url' && !empty($videoData['is_vimeo']))
-                            <div id="video-player-container">
-                                <iframe src="{{ $videoData['embed_url'] }}" width="100%" height="500" frameborder="0"
-                                    allow="autoplay; fullscreen; picture-in-picture" allowfullscreen
-                                    class="video-iframe"></iframe>
+                                    allowfullscreen class="video-iframe mz-deferred-embed-iframe d-none"></iframe>
+                                <div class="mz-embed-offline-card d-none p-5 text-center rounded-4" style="background: #0f172a; color: #f8fafc; border: 1px solid #1e293b;">
+                                    <i class="fas fa-wifi-slash fa-2x mb-3" style="color: #f99f1e;"></i>
+                                    <h5 class="fw-bold text-white mb-2">Offline Study Mode</h5>
+                                    <p class="small text-white-50 mb-3">External video streaming is paused while your browser is offline. You can continue studying lesson notes and navigating modules below.</p>
+                                    <button type="button" class="btn btn-sm btn-light fw-semibold px-3" onclick="window.maarifazoneMountExternalEmbeds && window.maarifazoneMountExternalEmbeds(true)">
+                                        <i class="fas fa-sync-alt me-1"></i> Retry Video Stream
+                                    </button>
+                                </div>
                             </div>
                         @else
                             <div id="video-player-container">
@@ -137,17 +139,19 @@
                 @else
                     {{-- Normal (non-live) lesson video --}}
                     @if ($videoData && ($videoData['type'] ?? null) === 'url' && !empty($videoData['url']))
-                        @if (!empty($videoData['is_youtube']))
-                            <div id="video-player-container">
-                                <iframe width="100%" height="500" src="{{ $videoData['embed_url'] ?? $videoData['url'] }}" frameborder="0"
+                        @if (!empty($videoData['is_youtube']) || !empty($videoData['is_vimeo']))
+                            <div id="video-player-container" class="mz-external-embed-wrap" data-embed-src="{{ $videoData['embed_url'] ?? $videoData['url'] }}">
+                                <iframe width="100%" height="500" src="about:blank" data-embed-src="{{ $videoData['embed_url'] ?? $videoData['url'] }}" frameborder="0"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowfullscreen class="video-iframe"></iframe>
-                            </div>
-                        @elseif(!empty($videoData['is_vimeo']))
-                            <div id="video-player-container">
-                                <iframe src="{{ $videoData['embed_url'] ?? $videoData['url'] }}" width="100%" height="500" frameborder="0"
-                                    allow="autoplay; fullscreen; picture-in-picture" allowfullscreen
-                                    class="video-iframe"></iframe>
+                                    allowfullscreen class="video-iframe mz-deferred-embed-iframe d-none"></iframe>
+                                <div class="mz-embed-offline-card d-none p-5 text-center rounded-4" style="background: #0f172a; color: #f8fafc; border: 1px solid #1e293b;">
+                                    <i class="fas fa-wifi-slash fa-2x mb-3" style="color: #f99f1e;"></i>
+                                    <h5 class="fw-bold text-white mb-2">Offline Study Mode</h5>
+                                    <p class="small text-white-50 mb-3">External video streaming is paused while your browser is offline. You can continue studying lesson notes and navigating modules below.</p>
+                                    <button type="button" class="btn btn-sm btn-light fw-semibold px-3" onclick="window.maarifazoneMountExternalEmbeds && window.maarifazoneMountExternalEmbeds(true)">
+                                        <i class="fas fa-sync-alt me-1"></i> Retry Video Stream
+                                    </button>
+                                </div>
                             </div>
                         @else
                             <div id="video-player-container">
@@ -276,13 +280,14 @@
                 @endif
 
                 <div class="lesson-actions mt-4">
-                    <button id="mark-complete-btn" class="theme-btn style-2" data-lesson-id="{{ $lesson->id }}"
+                    <button id="mark-complete-btn" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill" data-lesson-id="{{ $lesson->id }}"
                         data-course-id="{{ $lesson->topic->course_id }}"
-                        {!! $progress && $progress->is_completed ? 'disabled style="opacity: 0.6; cursor: not-allowed;"' : '' !!}>
+                        style="background: {{ $progress && $progress->is_completed ? '#059669' : '#0f172a' }}; border-color: {{ $progress && $progress->is_completed ? '#059669' : '#0f172a' }}; color: #ffffff;"
+                        {!! $progress && $progress->is_completed ? 'disabled style="background: #059669; border-color: #059669; color: #fff; opacity: 0.85; cursor: not-allowed;"' : '' !!}>
                         @if ($progress && $progress->is_completed)
-                            {{ __('student.completed_status') }} <i class="fas fa-check-circle"></i>
+                            {{ __('student.completed_status') }} <i class="fas fa-check-circle ms-1"></i>
                         @else
-                            {{ __('student.mark_as_complete') }} <i class="fas fa-check"></i>
+                            {{ __('student.mark_as_complete') }} <i class="fas fa-check ms-1"></i>
                         @endif
                     </button>
                 </div>

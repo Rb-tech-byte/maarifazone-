@@ -8,49 +8,50 @@
 @endphp
 <style>
     :root {
-        --body: #111827;
-        --header: #111827;
+        --body: #0f172a;
+        --header: #0f172a;
         --text: #1e293b;
-        --theme: {{ $primaryColor }};
-        --theme-2: {{ $secondaryColor }};
+        --theme: #0f172a;
+        --theme-2: #1e293b;
         --theme-accent: {{ $accentColor }};
         --theme-yellow: {{ $accentColor }};
-        --bg: #fff7eb;
-        --bg-2: {{ $primaryColor }};
-        --v2-primary: {{ $primaryColor }};
-        --v2-secondary: {{ $secondaryColor }};
-        --v2-bg: #fff7eb;
-        --v2-header: #111827;
-        --bs-primary: {{ $primaryColor }};
-        --bs-primary-rgb: 249, 159, 30;
-        --bs-link-color: {{ $primaryColor }};
-        --bs-link-color-rgb: 249, 159, 30;
-        --bs-link-hover-color: #d9820b;
-        --bs-link-hover-color-rgb: 217, 130, 11;
+        --bg: #f8fafc;
+        --bg-2: #0f172a;
+        --v2-primary: #0f172a;
+        --v2-secondary: #1e293b;
+        --v2-bg: #f8fafc;
+        --v2-header: #0f172a;
+        --bs-primary: #0f172a;
+        --bs-primary-rgb: 15, 23, 42;
+        --bs-link-color: #0f172a;
+        --bs-link-color-rgb: 15, 23, 42;
+        --bs-link-hover-color: #1e293b;
+        --bs-link-hover-color-rgb: 30, 41, 59;
     }
 
-    /* Global Bootstrap Primary Overrides (Vibrant Orange #F99F1E, zero default blue) */
+    /* Global Bootstrap Primary Overrides (Logo-Dominant Midnight Slate #0f172a with Subtle Warm Accent) */
     .btn-primary {
-        background-color: {{ $primaryColor }} !important;
-        border-color: {{ $primaryColor }} !important;
+        background-color: #0f172a !important;
+        border-color: #0f172a !important;
         color: #ffffff !important;
     }
     .btn-primary:hover,
     .btn-primary:focus,
     .btn-primary:active {
-        background-color: #d9820b !important;
-        border-color: #d9820b !important;
+        background-color: #1e293b !important;
+        border-color: #1e293b !important;
         color: #ffffff !important;
     }
     .btn-outline-primary {
-        color: {{ $primaryColor }} !important;
-        border-color: {{ $primaryColor }} !important;
+        color: #0f172a !important;
+        border-color: #cbd5e1 !important;
+        background-color: #ffffff !important;
     }
     .btn-outline-primary:hover,
     .btn-outline-primary:focus,
     .btn-outline-primary:active {
-        background-color: {{ $primaryColor }} !important;
-        border-color: {{ $primaryColor }} !important;
+        background-color: #0f172a !important;
+        border-color: #0f172a !important;
         color: #ffffff !important;
     }
     .bg-primary,
@@ -58,23 +59,29 @@
     .badge.bg-primary,
     .nav-pills .nav-link.active,
     .page-item.active .page-link {
-        background-color: {{ $primaryColor }} !important;
-        border-color: {{ $primaryColor }} !important;
+        background-color: #0f172a !important;
+        border-color: #0f172a !important;
+        color: #ffffff !important;
+    }
+    .badge.bg-primary.bg-opacity-10 {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        border-color: #cbd5e1 !important;
     }
     .text-primary {
-        color: {{ $primaryColor }} !important;
+        color: #0f172a !important;
     }
     .border-primary {
-        border-color: {{ $primaryColor }} !important;
+        border-color: #0f172a !important;
     }
     .form-check-input:checked {
-        background-color: {{ $primaryColor }} !important;
-        border-color: {{ $primaryColor }} !important;
+        background-color: #0f172a !important;
+        border-color: #0f172a !important;
     }
     .form-control:focus,
     .form-select:focus {
-        border-color: {{ $primaryColor }} !important;
-        box-shadow: 0 0 0 0.2rem rgba(249, 159, 30, 0.22) !important;
+        border-color: #0f172a !important;
+        box-shadow: 0 0 0 0.2rem rgba(15, 23, 42, 0.12) !important;
     }
 
     /* ==========================================================================

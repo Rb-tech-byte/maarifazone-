@@ -19,7 +19,7 @@
         if (type === 'success') return '#059669';
         if (type === 'warning') return '#d97706';
         if (type === 'danger') return '#dc2626';
-        return '#f99f1e';
+        return '#0f172a';
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -86,6 +86,11 @@
         }
 
         // Portal live header notification bell + chat unread count synchronization
+        // Skip polling on fullscreen course player where the portal header is hidden
+        if (document.querySelector('.course-access-fullscreen')) {
+            return;
+        }
+
         const headerEl = document.querySelector('.maarifazone-portal-header');
         if (!headerEl) return;
 
@@ -95,6 +100,7 @@
         const bellList = document.getElementById('portalBellList');
         const markAllBtn = document.getElementById('portalBellMarkAll');
         const chatBadges = chatSelector ? document.querySelectorAll(chatSelector) : [];
+        let isFetchingFeed = false;
 
         function updateBadge(el, count) {
             if (!el) return;
@@ -143,14 +149,20 @@
         }
 
         function syncPortalHeader() {
-            if (!feedUrl) return;
+            if (!feedUrl || isFetchingFeed) return;
+            if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+            if (document.hidden) return;
+            if (document.querySelector('.course-access-fullscreen')) return;
+
+            isFetchingFeed = true;
             fetch(feedUrl, {
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 credentials: 'same-origin'
             })
                 .then(function (r) { return r.ok ? r.json() : null; })
                 .then(function (data) { if (data) renderBellFeed(data); })
-                .catch(function () {});
+                .catch(function () {})
+                .finally(function () { isFetchingFeed = false; });
         }
 
         if (markAllBtn) {
@@ -158,6 +170,7 @@
                 const url = markAllBtn.dataset.readAllUrl || markAllBtn.getAttribute('href');
                 if (!url || url === '#') return;
                 e.preventDefault();
+                if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
                 fetch(url, {
                     headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     credentials: 'same-origin'
@@ -168,7 +181,8 @@
         }
 
         if (feedUrl) {
-            setInterval(syncPortalHeader, 15000);
+            setInterval(syncPortalHeader, 20000);
+            window.addEventListener('online', syncPortalHeader);
         }
     });
 })();

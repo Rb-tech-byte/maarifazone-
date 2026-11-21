@@ -156,5 +156,43 @@ class ScholarPayPerTopicLearningTest extends TestCase
         $res->assertSee('Paid topics');
         $res->assertSee('Topic-only scholars');
     }
+
+    public function test_next_and_previous_navigation_works_into_paid_topic_and_student_courses_route_works(): void
+    {
+        $this->enrollTopic($this->freeTopic->id);
+
+        // Clicking Next from the free lesson into the paid topic returns item_id without 403 error
+        $nextRes = $this->actingAs($this->scholar)->getJson(route('student.courses.item.next', [
+            'courseId' => $this->course->id,
+            'itemId'   => $this->freeLesson->id,
+        ]));
+        $nextRes->assertOk()
+            ->assertJson([
+                'success'       => true,
+                'item_id'       => $this->paidLesson->id,
+                'type'          => 'lesson',
+                'is_accessible' => false,
+            ]);
+
+        // Clicking Previous from the paid lesson back to the free lesson returns item_id
+        $prevRes = $this->actingAs($this->scholar)->getJson(route('student.courses.item.previous', [
+            'courseId' => $this->course->id,
+            'itemId'   => $this->paidLesson->id,
+        ]));
+        $prevRes->assertOk()
+            ->assertJson([
+                'success'       => true,
+                'item_id'       => $this->freeLesson->id,
+                'type'          => 'lesson',
+                'is_accessible' => true,
+            ]);
+
+        // Both /student/courses and /student/my-courses work with Midnight Slate theme
+        $this->actingAs($this->scholar)
+            ->get('/student/courses')
+            ->assertOk()
+            ->assertSee($this->course->title)
+            ->assertSee('#0f172a', false);
+    }
 }
 
