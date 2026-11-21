@@ -1097,7 +1097,10 @@
                                 </div>
 
                                 @if($course->intro_video)
-                                    <a href="javascript:void(0)" class="maarifazone-cd-video-card__play-btn intro-video-play-btn" data-intro-video="{{ asset('storage/' . $course->intro_video) }}" aria-label="Play Intro Video">
+                                    @php
+                                        $introVideoSrc = str_starts_with($course->intro_video, 'http') ? $course->intro_video : asset('storage/' . $course->intro_video);
+                                    @endphp
+                                    <a href="javascript:void(0)" class="maarifazone-cd-video-card__play-btn intro-video-play-btn" data-intro-video="{{ $introVideoSrc }}" aria-label="Play Intro Video">
                                         <i class="fa-solid fa-play"></i>
                                     </a>
                                 @elseif($firstPreviewLesson)
@@ -1550,9 +1553,10 @@
                 </div>
                 <div class="modal-body">
                     <div id="introVideoContainer">
-                        <video id="introVideoPlayer" controls style="width: 100%; max-height: 500px;">
+                        <video id="introVideoPlayer" controls style="width: 100%; max-height: 500px;" class="d-none">
                             Your browser does not support the video tag.
                         </video>
+                        <div id="introVideoIframe" class="d-none"></div>
                     </div>
                 </div>
             </div>
@@ -1562,6 +1566,19 @@
     @push('scripts')
         <script>
             $(document).ready(function() {
+                function resolveVideoEmbedUrl(url) {
+                    if (!url) return '';
+                    if (url.includes('youtube.com/watch')) {
+                        return url.replace('watch?v=', 'embed/').split('&')[0];
+                    } else if (url.includes('youtu.be/')) {
+                        return url.replace('youtu.be/', 'youtube.com/embed/');
+                    } else if (url.includes('vimeo.com/')) {
+                        const vimeoId = url.split('vimeo.com/')[1].split('?')[0];
+                        return 'https://player.vimeo.com/video/' + vimeoId;
+                    }
+                    return url;
+                }
+
                 const videoModal = new bootstrap.Modal(document.getElementById('lessonVideoModal'));
                 const videoPlayer = document.getElementById('lessonVideoPlayer');
                 const videoIframe = document.getElementById('lessonVideoIframe');
@@ -1570,26 +1587,19 @@
                 $('.lesson-preview-play').on('click', function(e) {
                     e.preventDefault();
                     const videoType = $(this).data('video-type');
-                    const videoUrl = $(this).data('video-url');
+                    const videoUrl = $(this).data('video-url') || '';
                     const lessonTitle = $(this).data('lesson-title');
 
                     modalTitle.textContent = lessonTitle || 'Lesson Preview';
 
-                    if (videoType === 'url') {
-                        let embedUrl = videoUrl;
-                        if (videoUrl.includes('youtube.com/watch')) {
-                            embedUrl = videoUrl.replace('watch?v=', 'embed/').split('&')[0];
-                        } else if (videoUrl.includes('youtu.be/')) {
-                            embedUrl = videoUrl.replace('youtu.be/', 'youtube.com/embed/');
-                        } else if (videoUrl.includes('vimeo.com/')) {
-                            const vimeoId = videoUrl.split('vimeo.com/')[1].split('?')[0];
-                            embedUrl = 'https://player.vimeo.com/video/' + vimeoId;
-                        }
+                    const isEmbed = videoType === 'url' || videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be') || videoUrl.includes('vimeo.com');
 
+                    if (isEmbed) {
+                        const embedUrl = resolveVideoEmbedUrl(videoUrl);
                         videoPlayer.classList.add('d-none');
                         videoIframe.classList.remove('d-none');
                         videoIframe.innerHTML = '<iframe src="' + embedUrl +
-                            '" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="width: 100%; height: 460px;"></iframe>';
+                            '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width: 100%; height: 460px;"></iframe>';
                     } else {
                         videoIframe.classList.add('d-none');
                         videoPlayer.classList.remove('d-none');
@@ -1607,17 +1617,32 @@
 
                 const introVideoModal = new bootstrap.Modal(document.getElementById('introVideoModal'));
                 const introVideoPlayer = document.getElementById('introVideoPlayer');
+                const introVideoIframe = document.getElementById('introVideoIframe');
 
                 $('.intro-video-play-btn').on('click', function(e) {
                     e.preventDefault();
-                    const introVideoUrl = $(this).data('intro-video');
-                    introVideoPlayer.src = introVideoUrl;
+                    const introVideoUrl = $(this).data('intro-video') || '';
+                    const isEmbed = introVideoUrl.includes('youtube.com') || introVideoUrl.includes('youtu.be') || introVideoUrl.includes('vimeo.com');
+
+                    if (isEmbed) {
+                        const embedUrl = resolveVideoEmbedUrl(introVideoUrl);
+                        introVideoPlayer.classList.add('d-none');
+                        introVideoIframe.classList.remove('d-none');
+                        introVideoIframe.innerHTML = '<iframe src="' + embedUrl +
+                            '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width: 100%; height: 460px;"></iframe>';
+                    } else {
+                        introVideoIframe.classList.add('d-none');
+                        introVideoPlayer.classList.remove('d-none');
+                        introVideoPlayer.src = introVideoUrl;
+                    }
+
                     introVideoModal.show();
                 });
 
                 $('#introVideoModal').on('hidden.bs.modal', function() {
                     introVideoPlayer.pause();
                     introVideoPlayer.src = '';
+                    introVideoIframe.innerHTML = '';
                 });
 
                 $('.rating-star').on('click', function() {
