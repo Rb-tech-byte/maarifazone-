@@ -5,14 +5,15 @@ Admin Dashboard V2 Styles
 */
 
 :root {
-    --v2-primary: #f99f1e;
-    --v2-secondary: #e0860a;
-    --v2-text: #27282C;
-    --v2-header: #141519;
-    --v2-bg: #F0F4F5;
+    --v2-primary: #0f172a;
+    --v2-secondary: #1e293b;
+    --v2-accent: #f99f1e;
+    --v2-text: #334155;
+    --v2-header: #0f172a;
+    --v2-bg: #f8fafc;
     --v2-white: #ffffff;
     --v2-border: rgba(73, 81, 91, 0.15);
-    --v2-shadow: 0px 4px 25px 0px rgba(0, 0, 0, 0.06);
+    --v2-shadow: 0px 4px 20px 0px rgba(15, 23, 42, 0.05);
     --v2-success: #10b981;
     --v2-violet: #8b5cf6;
     
@@ -72,10 +73,10 @@ Admin Dashboard V2 Styles
     flex-shrink: 0;
 }
 
-.stat-icon-v2.bg-primary { background: var(--v2-primary) !important; }
-.stat-icon-v2.bg-secondary { background: var(--v2-secondary) !important; }
-.stat-icon-v2.bg-success { background: var(--v2-success) !important; }
-.stat-icon-v2.bg-violet { background: var(--v2-violet) !important; }
+.stat-icon-v2.bg-primary { background: #0f172a !important; }
+.stat-icon-v2.bg-secondary { background: #0284c7 !important; }
+.stat-icon-v2.bg-success { background: #10b981 !important; }
+.stat-icon-v2.bg-violet { background: #8b5cf6 !important; }
 
 .stat-info-v2 .label {
     font-size: 14px;

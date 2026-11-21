@@ -1152,7 +1152,7 @@
     }
 
     /* ==========================================================================
-       4. Admin & Global Theme Button Overrides
+       4. Admin & Global Theme Button Overrides (Logo Dominant Palette)
        ========================================================================== */
     .theme-btn i {
         background-color: {{ $accentColor }} !important;
@@ -1162,23 +1162,29 @@
         background-color: {{ $primaryColor }} !important;
         color: #ffffff !important;
     }
-    .bg-primary, .navbar-bg { background-color: {{ $primaryColor }} !important; }
-    .text-primary, .text-primary-all *, .text-primary-all *:before, .text-primary-all *:after { color: {{ $primaryColor }} !important; }
-    .btn-primary { background-color: {{ $primaryColor }} !important; border-color: {{ $primaryColor }} !important; }
-    .btn-primary:hover, .btn-primary:focus, .btn-primary:active { background-color: {{ $secondaryColor }} !important; border-color: {{ $secondaryColor }} !important; }
-    .nav-pills .nav-item .nav-link.active { background-color: {{ $primaryColor }}; }
+    .navbar-bg {
+        background-color: #0f172a !important;
+        background-image: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+    }
+    .nav-pills .nav-item .nav-link.active {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+    }
     .custom-control-input:checked ~ .custom-control-label::before {
-        background-color: {{ $primaryColor }} !important;
-        border-color: {{ $primaryColor }} !important;
+        background-color: #0f172a !important;
+        border-color: #0f172a !important;
     }
     .page-item.active .page-link {
-        background-color: {{ $primaryColor }};
-        border-color: {{ $primaryColor }};
+        background-color: #0f172a !important;
+        border-color: #0f172a !important;
+        color: #ffffff !important;
     }
     .main-sidebar .sidebar-menu li.active a,
     .main-sidebar .sidebar-menu li.active a i,
-    .main-sidebar .sidebar-menu li ul.dropdown-menu li.active > a,
+    .main-sidebar .sidebar-menu li ul.dropdown-menu li.active > a {
+        color: #0f172a !important;
+    }
     .main-sidebar .sidebar-menu li a:hover {
-        color: {{ $primaryColor }};
+        color: #0f172a !important;
     }
 </style>

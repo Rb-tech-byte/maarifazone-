@@ -90,33 +90,6 @@ class StoreCourseRequest extends FormRequest
             'topics.*.lessons.*.is_free' => ['nullable', 'in:0,1,true,false,on,off'],
             'topics.*.lessons.*.price' => ['nullable', 'numeric', 'min:0'],
             'topics.*.lessons.*.order' => ['nullable', 'integer'],
-            
-            'topics.*.quizzes' => ['nullable', 'array'],
-            'topics.*.quizzes.*.id' => ['nullable', 'integer'],
-            'topics.*.quizzes.*.title' => ['required_with:topics.*.quizzes', 'string', 'max:255'],
-            'topics.*.quizzes.*.description' => ['nullable', 'string'],
-            'topics.*.quizzes.*.passing_score' => ['nullable', 'integer', 'min:0', 'max:100'],
-            'topics.*.quizzes.*.time_limit' => ['nullable', 'integer', 'min:0'],
-            'topics.*.quizzes.*.order' => ['nullable', 'integer'],
-            
-            'topics.*.quizzes.*.questions' => ['nullable', 'array'],
-            'topics.*.quizzes.*.questions.*.id' => ['nullable', 'integer'],
-            'topics.*.quizzes.*.questions.*.question' => ['required_with:topics.*.quizzes.*.questions', 'string'],
-            'topics.*.quizzes.*.questions.*.type' => ['required_with:topics.*.quizzes.*.questions', Rule::in(['multiple-choice', 'true-false'])],
-            'topics.*.quizzes.*.questions.*.options' => ['required_with:topics.*.quizzes.*.questions', 'array', 'min:2'],
-            'topics.*.quizzes.*.questions.*.options.*' => ['required', 'string'],
-            'topics.*.quizzes.*.questions.*.correct_answer' => ['required_with:topics.*.quizzes.*.questions', 'integer', 'min:0'],
-            'topics.*.quizzes.*.questions.*.order' => ['nullable', 'integer'],
-            
-            'topics.*.assignments' => ['nullable', 'array'],
-            'topics.*.assignments.*.id' => ['nullable', 'integer'],
-            'topics.*.assignments.*.title' => ['required_with:topics.*.assignments', 'string', 'max:255'],
-            'topics.*.assignments.*.description' => ['nullable', 'string'],
-            'topics.*.assignments.*.instructions' => ['nullable', 'string'],
-            'topics.*.assignments.*.order' => ['nullable', 'integer'],
-            
-            'topics.*.assignments.*.files' => ['nullable', 'array'],
-            'topics.*.assignments.*.files.*' => ['file', 'mimes:pdf,doc,docx,ppt,pptx,zip,txt', 'max:10240'], // 10MB
         ];
         
         return $rules;
@@ -136,14 +109,6 @@ class StoreCourseRequest extends FormRequest
             'sale_price.lt' => 'Sale price must be less than regular price.',
             'topics.*.title.required_with' => 'Topic title is required.',
             'topics.*.lessons.*.title.required_with' => 'Lesson title is required.',
-            'topics.*.lessons.*.video_type.required_with' => 'Please select a video type.',
-            'topics.*.lessons.*.video_url.required_if' => 'Video URL is required when video type is URL.',
-            'topics.*.lessons.*.video_file.required_if' => 'Video file is required when video type is upload.',
-            'topics.*.quizzes.*.title.required_with' => 'Quiz title is required.',
-            'topics.*.quizzes.*.questions.*.question.required_with' => 'Question text is required.',
-            'topics.*.quizzes.*.questions.*.options.required_with' => 'Question options are required.',
-            'topics.*.quizzes.*.questions.*.correct_answer.required_with' => 'Correct answer is required.',
-            'topics.*.assignments.*.title.required_with' => 'Assignment title is required.',
         ];
     }
 }

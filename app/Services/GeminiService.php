@@ -169,11 +169,11 @@ class GeminiService
                     'No prior advanced experience required; fundamentals are covered in Module 1',
                 ],
                 'seo_title' => "{$cleanTitle} — Complete Course & Practical Guide",
-                'seo_description' => "Learn {$cleanTitle} with structured modules, quizzes, and practical assignments.",
-                'seo_tags' => strtolower(implode(', ', array_slice(preg_split('/\s+/', preg_replace('/[^a-zA-Z0-9\s]/', '', $cleanTitle)), 0, 6))) . ', online course, certification',
+                'seo_description' => "Learn {$cleanTitle} with structured video lessons, reading notes, and practical materials.",
+                'seo_tags' => strtolower(implode(', ', array_slice(preg_split('/\s+/', preg_replace('/[^a-zA-Z0-9\s]/', '', $cleanTitle)), 0, 6))) . ', online course, maarifazone',
                 'marketing_copy' => [
-                    'email' => "Subject: New Course Open — {$cleanTitle}\n\nReady to master {$cleanTitle}? Enroll today for step-by-step modules, hands-on assignments, and verified progress.",
-                    'social' => "Launch alert: {$cleanTitle} is now live with interactive lessons, quizzes, and practical projects. Start Module 1 free preview today!",
+                    'email' => "Subject: New Course Open — {$cleanTitle}\n\nReady to master {$cleanTitle}? Enroll today for step-by-step video lectures, reading notes, and downloadable templates.",
+                    'social' => "Launch alert: {$cleanTitle} is now live with interactive video lessons, articles, and downloadable resources. Start Module 1 free preview today!",
                 ],
                 'topics' => [
                     [
@@ -205,7 +205,7 @@ class GeminiService
     }
 
     /**
-     * AI Studio: generate reviewable artifacts for curriculum, lessons, quizzes, assignments, FAQs, or marketing copy.
+     * AI Studio: generate reviewable artifacts for curriculum, lessons, reading notes, slides, FAQs, or marketing copy.
      */
     public function generateStudioContent(string $mode, string $prompt, array $context = []): array
     {
@@ -216,8 +216,8 @@ class GeminiService
         $instructions = match ($mode) {
             'outline' => 'Return JSON { "topics": [ { "title": string, "description": string, "lessons": [ { "title": string, "duration_minutes": int, "is_preview": bool } ] } ] }.',
             'lesson_text' => 'Return JSON { "title": string, "content_text": string (rich HTML), "key_takeaways": [string] }.',
-            'quiz_questions' => 'Return JSON { "questions": [ { "question_text": string, "type": "multiple_choice", "options": [string, string, string, string], "correct_index": int, "explanation": string, "difficulty": "easy|medium|hard" } ] } with 5 questions.',
-            'assignment_rubric' => 'Return JSON { "title": string, "description": string, "accepted_submission_types": ["file","text","url"], "max_points": 100, "rubric": [ { "criterion": string, "points": int, "description": string } ] }.',
+            'learning_materials' => 'Return JSON { "title": string, "summary": string, "reading_notes": string (rich HTML), "resource_checklist": [string] }.',
+            'slide_deck_outline' => 'Return JSON { "title": string, "slides": [ { "slide_number": int, "headline": string, "talking_points": [string] } ] }.',
             'faqs' => 'Return JSON { "faqs": [ { "question": string, "answer": string } ] } with 5 items.',
             'marketing_copy' => 'Return JSON { "titles": [string, string, string], "seo_title": string, "seo_description": string, "seo_tags": string, "email": string, "social": string }.',
             default => 'Return JSON { "text": string }.',
@@ -248,65 +248,29 @@ class GeminiService
                         'Verification and troubleshooting tips',
                     ],
                 ],
-                'quiz_questions' => [
-                    'questions' => [
-                        [
-                            'question_text' => "Which statement best describes the primary goal of {$topic}?",
-                            'type' => 'multiple_choice',
-                            'options' => [
-                                "Establishing a repeatable and verifiable workflow for {$topic}",
-                                'Skipping validation to save initial setup time',
-                                'Avoiding structured documentation',
-                                'Relying solely on manual guesswork',
-                            ],
-                            'correct_index' => 0,
-                            'explanation' => 'A structured, verifiable workflow ensures consistent and reliable outcomes.',
-                            'difficulty' => 'easy',
-                        ],
-                        [
-                            'question_text' => "When troubleshooting {$topic}, what should be verified first?",
-                            'type' => 'multiple_choice',
-                            'options' => [
-                                'Input assumptions and baseline configuration',
-                                'Deleting all prior logs',
-                                'Changing every parameter simultaneously',
-                                'Ignoring edge-case constraints',
-                            ],
-                            'correct_index' => 0,
-                            'explanation' => 'Checking input assumptions and baseline settings isolates root causes quickly.',
-                            'difficulty' => 'medium',
-                        ],
-                        [
-                            'question_text' => "What is a recommended best practice before finalizing a {$topic} deliverable?",
-                            'type' => 'multiple_choice',
-                            'options' => [
-                                'Run peer or rubric-based verification checks',
-                                'Skip testing on realistic inputs',
-                                'Hardcode environment-specific values',
-                                'Remove version history',
-                            ],
-                            'correct_index' => 0,
-                            'explanation' => 'Rubric-based verification catches gaps before release.',
-                            'difficulty' => 'medium',
-                        ],
+                'learning_materials' => [
+                    'title' => "Reference Guide & Notes: {$topic}",
+                    'summary' => "Key theoretical principles, frameworks, and reference architecture for {$topic}.",
+                    'reading_notes' => "<p>This reference guide synthesizes core principles and architectural patterns for <strong>{$topic}</strong>.</p>",
+                    'resource_checklist' => [
+                        "Core architecture documentation for {$topic}",
+                        'Step-by-step implementation notes',
+                        'Best practices and troubleshooting checklist',
                     ],
                 ],
-                'assignment_rubric' => [
-                    'title' => "Practical Assignment: {$topic}",
-                    'description' => "Apply what you learned in {$topic} by submitting a concise solution report and supporting artifact.",
-                    'accepted_submission_types' => ['file', 'text', 'url'],
-                    'max_points' => 100,
-                    'rubric' => [
-                        ['criterion' => 'Problem Understanding & Scope', 'points' => 25, 'description' => 'Clearly defines objectives, constraints, and assumptions.'],
-                        ['criterion' => 'Technical Execution', 'points' => 45, 'description' => 'Applies concepts accurately with clean structure.'],
-                        ['criterion' => 'Verification & Clarity', 'points' => 30, 'description' => 'Includes evidence of testing and clear explanation.'],
+                'slide_deck_outline' => [
+                    'title' => "Slide Deck: Master {$topic}",
+                    'slides' => [
+                        ['slide_number' => 1, 'headline' => "Introduction to {$topic}", 'talking_points' => ['Welcome and objectives', 'Foundational terminology', 'Roadmap overview']],
+                        ['slide_number' => 2, 'headline' => 'Core Concepts & Mechanisms', 'talking_points' => ['How the workflow operates', 'Key inputs and outputs', 'Common misconceptions']],
+                        ['slide_number' => 3, 'headline' => 'Real-World Application & Review', 'talking_points' => ['Live scenario walkthrough', 'Measuring success', 'Recommended next modules']],
                     ],
                 ],
                 'faqs' => [
                     'faqs' => [
                         ['question' => "Who is this {$topic} course designed for?", 'answer' => 'Learners seeking practical, step-by-step mastery from foundational concepts to real-world execution.'],
-                        ['question' => 'Do I get lifetime access and updates?', 'answer' => 'Yes, once enrolled you retain full access to all lessons, quizzes, and future updates.'],
-                        ['question' => 'Are quizzes and assignments included?', 'answer' => 'Yes, every module includes knowledge checks and practical exercises to reinforce learning.'],
+                        ['question' => 'Do I get lifetime access and updates?', 'answer' => 'Yes, once enrolled you retain full access to all video lessons, notes, and downloadable materials.'],
+                        ['question' => 'What learning materials are provided?', 'answer' => 'Every topic includes video lectures, readable lecture notes, and downloadable PDF/PPT presentation materials.'],
                     ],
                 ],
                 'marketing_copy' => [
@@ -315,11 +279,11 @@ class GeminiService
                         "Mastering {$topic} From First Principles",
                         "Applied {$topic} for Real-World Results",
                     ],
-                    'seo_title' => "{$topic} | Online Course & Certification",
-                    'seo_description' => "Build real-world skills in {$topic} with structured video lessons, quizzes, and graded assignments.",
-                    'seo_tags' => strtolower($topic) . ', online learning, practical course',
-                    'email' => "Hi there,\n\nEnrollment is open for {$topic}. Inside you will find structured modules, downloadable templates, and feedback-driven assignments.\n\nSee you inside!",
-                    'social' => "Level up your skills with {$topic} — hands-on lessons, interactive quizzes, and real-world projects. Enroll now!",
+                    'seo_title' => "{$topic} | Online Course & Maarifa",
+                    'seo_description' => "Build real-world skills in {$topic} with structured video lessons, reading notes, and downloadable materials.",
+                    'seo_tags' => strtolower($topic) . ', online learning, practical course, maarifazone',
+                    'email' => "Hi there,\n\nEnrollment is open for {$topic}. Inside you will find structured modules, video lectures, and downloadable templates.\n\nSee you inside!",
+                    'social' => "Level up your skills with {$topic} — hands-on video lessons, reading notes, and real-world materials. Enroll now!",
                 ],
                 default => ['text' => "Generated content for {$topic}."],
             };

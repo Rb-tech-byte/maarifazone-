@@ -1001,7 +1001,7 @@ class CourseBuilderController extends Controller
     }
 
     /**
-     * AI Studio: outline, lesson_text, quiz_questions, assignment_rubric, faqs, marketing_copy.
+     * AI Studio: outline, lesson_text, learning_materials, slide_deck_outline, faqs, marketing_copy.
      */
     public function aiStudio(Request $request, GeminiService $geminiService): JsonResponse
     {
@@ -1010,7 +1010,7 @@ class CourseBuilderController extends Controller
         }
 
         $request->validate([
-            'mode' => 'required|in:outline,lesson_text,quiz_questions,assignment_rubric,faqs,marketing_copy',
+            'mode' => 'required|in:outline,lesson_text,learning_materials,slide_deck_outline,faqs,marketing_copy',
             'prompt' => 'required|string|max:2000',
             'course_title' => 'nullable|string|max:255',
             'document' => 'nullable|file|mimes:txt,md,csv,html,json|max:2048',

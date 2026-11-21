@@ -220,14 +220,14 @@
                     </h3>
                 </div>
                 <div class="out-card-body p-3">
-                    <div class="p-3 rounded-3 mb-3" style="background: rgba(249, 159, 30, 0.05); border: 1px solid rgba(249, 159, 30, 0.12);">
-                        <h6 class="fw-bold mb-1" style="color: #f99f1e; font-size: 13.5px;">Curriculum &amp; Quality Standards</h6>
+                    <div class="p-3 rounded-3 mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <h6 class="fw-bold mb-1" style="color: #0f172a; font-size: 13.5px;">Curriculum &amp; Quality Standards</h6>
                         <p class="text-muted mb-0" style="font-size: 12.5px;">
                             Ensure all live classes and discussion replies adhere to Maarifazone Academic Board standards.
                         </p>
                     </div>
-                    <div class="p-3 rounded-3" style="background: rgba(249, 159, 30, 0.06); border: 1px solid rgba(249, 159, 30, 0.15);">
-                        <h6 class="fw-bold mb-1" style="color: #c97406; font-size: 13.5px;">Centralized Communication</h6>
+                    <div class="p-3 rounded-3" style="background: #f0f9ff; border: 1px solid #e0f2fe;">
+                        <h6 class="fw-bold mb-1" style="color: #0369a1; font-size: 13.5px;">Centralized Communication</h6>
                         <p class="text-muted mb-0" style="font-size: 12.5px;">
                             All scholar inquiries and support requests are centrally routed through System Administration to maintain safety and institutional compliance.
                         </p>

@@ -2268,7 +2268,7 @@ Instructor Pages Styles
 }
 
 .engagement-icon.completing {
-    background: linear-gradient(135deg, #f99f1e 0%, rgba(249, 159, 30, 0.8) 100%);
+    background: linear-gradient(135deg, #0284c7 0%, rgba(2, 132, 199, 0.8) 100%);
 }
 
 .engagement-icon.at-risk {
@@ -4705,12 +4705,12 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 
 .overview-stat.graded {
     background: rgba(16, 185, 129, 0.12);
-    color: #f99f1e;
+    color: #10b981;
 }
 
 .overview-stat.returned {
-    background: rgba(249, 159, 30, 0.12);
-    color: #f99f1e;
+    background: rgba(15, 23, 42, 0.08);
+    color: #0f172a;
 }
 
 .overview-stat .stat-label {
@@ -5056,13 +5056,13 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 .status-badge-table.graded,
 .status-badge-table.passed {
     background: rgba(16, 185, 129, 0.15);
-    color: #f99f1e;
+    color: #10b981;
 }
 
 .status-badge-table.returned,
 .status-badge-table.failed {
-    background: rgba(249, 159, 30, 0.15);
-    color: #f99f1e;
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
 }
 
 /* Responsive adjustments */
@@ -5318,8 +5318,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 }
 
 .instructor-stats .stat-chip {
-    background: rgba(15, 81, 50, 0.08);
-    color: #f99f1e;
+    background: #f1f5f9;
+    color: #0f172a;
     padding: 6px 12px;
     border-radius: 20px;
     font-weight: 600;
@@ -5378,7 +5378,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 
 .mhq-team-details-contact li i {
     margin-right: 8px;
-    color: #f99f1e;
+    color: #0f172a;
 }
 
 @media (max-width: 767.98px) {

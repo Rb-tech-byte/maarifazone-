@@ -58,7 +58,7 @@
         <div class="sidebar-brand">
             @php($siteName = site_name())
             <a href="{{ route('admin.dashboard') }}">
-                <img src="{{ branding_asset(['primary_logo_path', 'logos.primary'], 'assets/front/img/logo/white-logo.svg') }}"
+                <img src="{{ branding_asset(['dark_logo_path', 'primary_logo_path', 'logos.primary'], 'assets/front/img/logo/maarifazone-logo.png') }}"
                     alt="{{ $siteName }} logo" class="img-fluid mt-3" style="max-height: 40px;">
             </a>
         </div>

@@ -43,7 +43,7 @@
                                     @foreach ($coupons as $coupon)
                                         <tr>
                                             <td>
-                                                <strong style="color: #f99f1e;">{{ $coupon->code }}</strong>
+                                                <strong style="color: #0f172a; font-family: monospace;">{{ $coupon->code }}</strong>
                                             </td>
                                             <td>
                                                 <span class="badge" style="background-color: #fff4e0; color: #c97406; padding: 5px 10px; border-radius: 4px; font-size: 12px;">
@@ -84,7 +84,7 @@
                                             </td>
                                             <td class="text-right">
                                                 <a href="{{ route('instructor.coupons.edit', $coupon->id) }}"
-                                                    style="color: #f99f1e; margin-right: 12px; font-size: 16px;">
+                                                    style="color: #0f172a; margin-right: 12px; font-size: 16px;">
                                                     <i class="fa-solid fa-edit"></i>
                                                 </a>
                                                 <form action="{{ route('instructor.coupons.destroy', $coupon->id) }}"

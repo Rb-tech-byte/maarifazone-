@@ -18,7 +18,7 @@
                 <div class="col-lg-10 col-xl-9">
                     <div class="instructor-wrapper bg-white wow fadeInUp" data-wow-delay=".3s">
                         <div class="instructor-header text-center mb-4">
-                            <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(249, 159, 30,0.1);color:var(--theme, #f99f1e);padding:6px 16px;border-radius:30px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:12px;">
+                            <span style="display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;color:#0f172a;border:1px solid #e2e8f0;padding:6px 16px;border-radius:30px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:12px;">
                                 <i class="fa-solid fa-chalkboard-user"></i> Instructor Onboarding v3.0
                             </span>
                             <h2 class="wow fadeInUp" data-wow-delay=".2s">{{ __('instructor.become_instructor') }}</h2>
@@ -31,7 +31,7 @@
                             <div class="col-md-4">
                                 <div class="p-3 rounded-4 h-100" style="background:#f8fafc;border:1px solid #e2e8f0;">
                                     <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span class="badge rounded-circle d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;background:var(--theme, #f99f1e);color:#fff;font-weight:700;">1</span>
+                                        <span class="badge rounded-circle d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;background:#0f172a;color:#fff;font-weight:700;">1</span>
                                         <strong style="font-size:14px;color:#0f172a;">Submit Profile & Credentials</strong>
                                     </div>
                                     <p class="text-muted small mb-0" style="font-size:12.5px;">Complete your personal details, academic background, and CV for fast verification.</p>
@@ -40,19 +40,19 @@
                             <div class="col-md-4">
                                 <div class="p-3 rounded-4 h-100" style="background:#f8fafc;border:1px solid #e2e8f0;">
                                     <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span class="badge rounded-circle d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;background:var(--theme, #f99f1e);color:#fff;font-weight:700;">2</span>
-                                        <strong style="font-size:14px;color:#0f172a;">Build Courses & Live Classes</strong>
+                                        <span class="badge rounded-circle d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;background:#0f172a;color:#fff;font-weight:700;">2</span>
+                                        <strong style="font-size:14px;color:#0f172a;">Teach Assigned Courses &amp; Live Classes</strong>
                                     </div>
-                                    <p class="text-muted small mb-0" style="font-size:12.5px;">Publish video lessons, quizzes, assignments, and automated Zoom/Google Meet sessions.</p>
+                                    <p class="text-muted small mb-0" style="font-size:12.5px;">Facilitate video lessons, reading articles, learning materials, and live interactive masterclasses.</p>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="p-3 rounded-4 h-100" style="background:#f8fafc;border:1px solid #e2e8f0;">
                                     <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span class="badge rounded-circle d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;background:var(--theme, #f99f1e);color:#fff;font-weight:700;">3</span>
-                                        <strong style="font-size:14px;color:#0f172a;">Earn Revenue & Issue Certificates</strong>
+                                        <span class="badge rounded-circle d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;background:#0f172a;color:#fff;font-weight:700;">3</span>
+                                        <strong style="font-size:14px;color:#0f172a;">Earn Revenue &amp; Request Payouts</strong>
                                     </div>
-                                    <p class="text-muted small mb-0" style="font-size:12.5px;">Receive automated commission payouts and issue QR-verified certificates to students.</p>
+                                    <p class="text-muted small mb-0" style="font-size:12.5px;">Receive transparent course commission payouts and withdraw earnings directly to your bank or mobile money.</p>
                                 </div>
                             </div>
                         </div>

@@ -129,8 +129,6 @@ $(document).ready(function () {
                         isLive: Boolean(lesson.isLive)
                     };
                 }),
-                quizzes: [],
-                assignments: [],
                 items: []
             };
         });
@@ -567,8 +565,6 @@ function addTopic() {
         is_free: false,
         price: '',
         lessons: [],
-        quizzes: [],
-        assignments: [],
         items: []
     };
     topics.push(topic);
@@ -696,19 +692,17 @@ function copyTopic(topicId) {
     const topic = topics.find(t => t.id === topicId);
     if (topic) {
         const idMap = {
-            lesson: {},
-            quiz: {},
-            assignment: {}
+            lesson: {}
         };
 
-        const cloneCollection = (collection, typeKey) => {
+        const cloneLessons = (collection) => {
             return (collection || []).map(item => {
                 const newId = Date.now() + Math.random();
-                idMap[typeKey][item.id] = newId;
+                idMap.lesson[item.id] = newId;
                 return {
                     ...item,
                     id: newId,
-                    type: typeKey
+                    type: 'lesson'
                 };
             });
         };
@@ -717,9 +711,9 @@ function copyTopic(topicId) {
             id: Date.now(),
             title: `${topic.title} (Copy)`,
             description: topic.description || '',
-            lessons: cloneCollection(topic.lessons, 'lesson'),
-            quizzes: cloneCollection(topic.quizzes, 'quiz'),
-            assignments: cloneCollection(topic.assignments, 'assignment'),
+            is_free: topic.is_free,
+            price: topic.price,
+            lessons: cloneLessons(topic.lessons),
             items: []
         };
 
@@ -811,14 +805,6 @@ function addLiveLesson(topicId) {
     }
 }
 
-// Quizzes and assignments are decommissioned in Maarifazone pure digital curriculum
-function addQuiz(topicId) {
-    addLesson(topicId, 'text');
-}
-
-function addAssignment(topicId) {
-    addLesson(topicId, 'attachment');
-}
 
 function renderTopicContent(topicId) {
     const topic = topics.find(t => t.id === topicId);
@@ -1064,15 +1050,7 @@ function updateContentItem(topicId, itemId, type, field, value) {
     const topic = topics.find(t => t.id === topicId);
     if (!topic) return;
 
-    let item;
-    if (type === 'lesson') {
-        item = topic.lessons.find(l => l.id === itemId);
-    } else if (type === 'quiz') {
-        item = topic.quizzes.find(q => q.id === itemId);
-    } else if (type === 'assignment') {
-        item = topic.assignments.find(a => a.id === itemId);
-    }
-
+    const item = (topic.lessons || []).find(l => l.id === itemId);
     if (item) {
         item[field] = value;
     }
@@ -1082,15 +1060,7 @@ function toggleContentEdit(topicId, itemId, type) {
     const topic = topics.find(t => t.id === topicId);
     if (!topic) return;
 
-    let item;
-    if (type === 'lesson') {
-        item = topic.lessons.find(l => l.id === itemId);
-    } else if (type === 'quiz') {
-        item = topic.quizzes.find(q => q.id === itemId);
-    } else if (type === 'assignment') {
-        item = topic.assignments.find(a => a.id === itemId);
-    }
-
+    const item = (topic.lessons || []).find(l => l.id === itemId);
     if (item) {
         item.expanded = !item.expanded;
         renderTopicContent(topicId);
@@ -1100,14 +1070,8 @@ function toggleContentEdit(topicId, itemId, type) {
 function deleteContentItem(topicId, itemId, type) {
     const topic = topics.find(t => t.id === topicId);
     if (topic) {
-        if (type === 'lesson') {
-            topic.lessons = topic.lessons.filter(l => l.id !== itemId);
-        } else if (type === 'quiz') {
-            topic.quizzes = topic.quizzes.filter(q => q.id !== itemId);
-        } else {
-            topic.assignments = topic.assignments.filter(a => a.id !== itemId);
-        }
-        topic.items = (topic.items || []).filter(ref => !(ref.id === itemId && ref.type === type));
+        topic.lessons = (topic.lessons || []).filter(l => l.id !== itemId);
+        topic.items = (topic.items || []).filter(ref => ref.id !== itemId);
         renderTopicContent(topicId);
     }
 }
@@ -1134,131 +1098,6 @@ function saveTopic(topicId) {
     setTimeout(() => {
         topicCard.css('border', '1px solid rgba(108, 112, 111, 0.1)');
     }, 2000);
-}
-
-// Quiz Question Functions
-function addQuestion(topicId, quizId) {
-    const topic = topics.find(t => t.id === topicId);
-    if (!topic) return;
-
-    const quiz = topic.quizzes.find(q => q.id === quizId);
-    if (!quiz) return;
-
-    if (!quiz.questions) quiz.questions = [];
-
-    const questionId = Date.now();
-    quiz.questions.push({
-        id: questionId,
-        question: '',
-        type: 'multiple-choice',
-        options: ['', '', '', ''],
-        correctAnswer: 0
-    });
-
-    quiz.expanded = true;
-    renderTopicContent(topicId);
-}
-
-function renderQuestion(question, index, topicId, quizId) {
-    return `
-        <div class="question-item" style="background: rgba(108, 112, 111, 0.05); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(108, 112, 111, 0.1);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <strong style="color: var(--header);">Question ${index}</strong>
-                <button type="button" onclick="deleteQuestion(${topicId}, ${quizId}, ${question.id})" style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">
-                    <i class="fa-solid fa-trash"></i> Delete
-                </button>
-            </div>
-            <div class="form-group">
-                <label>Question Text</label>
-                <input type="text" class="form-control" placeholder="Enter your question..." value="${question.question || ''}" onchange="updateQuestion(${topicId}, ${quizId}, ${question.id}, 'question', this.value)">
-            </div>
-            <div class="form-group">
-                <label>Question Type</label>
-                <select class="form-control" onchange="updateQuestionType(${topicId}, ${quizId}, ${question.id}, this.value)">
-                    <option value="multiple-choice" ${question.type === 'multiple-choice' ? 'selected' : ''}>Multiple Choice</option>
-                    <option value="true-false" ${question.type === 'true-false' ? 'selected' : ''}>True/False</option>
-                </select>
-            </div>
-            ${question.type === 'multiple-choice' || question.type === 'true-false' ? `
-                <div class="form-group">
-                    <label>Options ${question.type === 'true-false' ? '(Select Correct Answer)' : ''}</label>
-                    ${(question.type === 'true-false' ? ['True', 'False'] : (question.options || ['', '', '', ''])).map((opt, optIdx) => {
-        if (question.type === 'multiple-choice' && optIdx >= 4) return '';
-        return `
-                            <div style="display: flex; gap: 10px; margin-bottom: 8px; align-items: center;">
-                                <input type="radio" name="correct-${question.id}" value="${optIdx}" ${question.correctAnswer === optIdx ? 'checked' : ''} onchange="updateQuestion(${topicId}, ${quizId}, ${question.id}, 'correctAnswer', ${optIdx})" style="width: auto; cursor: pointer;">
-                                <input type="text" class="form-control" placeholder="${question.type === 'true-false' ? opt : 'Option ' + (optIdx + 1)}" value="${opt}" ${question.type === 'true-false' ? 'readonly' : ''} onchange="updateQuestionOption(${topicId}, ${quizId}, ${question.id}, ${optIdx}, this.value)" style="${question.type === 'true-false' ? 'background: #f5f5f5; cursor: not-allowed;' : ''}">
-                            </div>
-                        `;
-    }).join('')}
-                </div>
-            ` : ''}
-        </div>
-    `;
-}
-
-function deleteQuestion(topicId, quizId, questionId) {
-    const topic = topics.find(t => t.id === topicId);
-    if (!topic) return;
-
-    const quiz = topic.quizzes.find(q => q.id === quizId);
-    if (!quiz || !quiz.questions) return;
-
-    quiz.questions = quiz.questions.filter(q => q.id !== questionId);
-    quiz.expanded = true;
-    renderTopicContent(topicId);
-}
-
-function updateQuestion(topicId, quizId, questionId, field, value) {
-    const topic = topics.find(t => t.id === topicId);
-    if (!topic) return;
-
-    const quiz = topic.quizzes.find(q => q.id === quizId);
-    if (!quiz || !quiz.questions) return;
-
-    const question = quiz.questions.find(q => q.id === questionId);
-    if (question) {
-        question[field] = value;
-    }
-}
-
-function updateQuestionType(topicId, quizId, questionId, type) {
-    const topic = topics.find(t => t.id === topicId);
-    if (!topic) return;
-
-    const quiz = topic.quizzes.find(q => q.id === quizId);
-    if (!quiz || !quiz.questions) return;
-
-    const question = quiz.questions.find(q => q.id === questionId);
-    if (question) {
-        question.type = type;
-        if (type === 'true-false') {
-            question.options = ['True', 'False'];
-            question.correctAnswer = 0;
-        } else if (type === 'multiple-choice') {
-            if (!question.options || question.options.length < 4) {
-                question.options = ['', '', '', ''];
-            }
-            if (question.correctAnswer >= question.options.length) {
-                question.correctAnswer = 0;
-            }
-        }
-        quiz.expanded = true;
-        renderTopicContent(topicId);
-    }
-}
-
-function updateQuestionOption(topicId, quizId, questionId, optionIndex, value) {
-    const topic = topics.find(t => t.id === topicId);
-    if (!topic) return;
-
-    const quiz = topic.quizzes.find(q => q.id === quizId);
-    if (!quiz || !quiz.questions) return;
-
-    const question = quiz.questions.find(q => q.id === questionId);
-    if (question && question.options) {
-        question.options[optionIndex] = value;
-    }
 }
 
 // Video Upload Function
@@ -1332,47 +1171,6 @@ function removeLessonMaterial(topicId, itemId) {
     renderTopicContent(topicId);
 }
 
-// Assignment File Functions
-function handleAssignmentFiles(topicId, itemId, files) {
-    const topic = topics.find(t => t.id === topicId);
-    if (!topic) return;
-
-    const assignment = topic.assignments.find(a => a.id === itemId);
-    if (!assignment || !files || files.length === 0) return;
-
-    if (!assignment.attachments) assignment.attachments = [];
-
-    Array.from(files).forEach(file => {
-        const maxSize = 10 * 1024 * 1024;
-        if (file.size > maxSize) {
-            alert(`${file.name} exceeds the 10MB limit`);
-            return;
-        }
-
-        assignment.attachments.push({
-            id: Date.now() + Math.random(),
-            name: file.name,
-            size: file.size,
-            file: file
-        });
-    });
-
-    assignment.expanded = true;
-    renderTopicContent(topicId);
-}
-
-function removeAssignmentFile(topicId, itemId, fileIndex) {
-    const topic = topics.find(t => t.id === topicId);
-    if (!topic) return;
-
-    const assignment = topic.assignments.find(a => a.id === itemId);
-    if (!assignment || !assignment.attachments) return;
-
-    assignment.attachments.splice(fileIndex, 1);
-    assignment.expanded = true;
-    renderTopicContent(topicId);
-}
-
 function initialiseTopicItemsFromChildren(topic) {
     if (!topic) {
         return;
@@ -1382,17 +1180,9 @@ function initialiseTopicItemsFromChildren(topic) {
         topic.items = [];
 
         const lessonList = (topic.lessons || []).slice().sort(sortByOrderOrIndex);
-        const quizList = (topic.quizzes || []).slice().sort(sortByOrderOrIndex);
-        const assignmentList = (topic.assignments || []).slice().sort(sortByOrderOrIndex);
 
         lessonList.forEach((lesson) => {
             topic.items.push({ id: lesson.id, type: 'lesson' });
-        });
-        quizList.forEach((quiz) => {
-            topic.items.push({ id: quiz.id, type: 'quiz' });
-        });
-        assignmentList.forEach((assignment) => {
-            topic.items.push({ id: assignment.id, type: 'assignment' });
         });
     }
 
@@ -1413,8 +1203,6 @@ function ensureTopicItems(topic) {
     };
 
     (topic.lessons || []).forEach(lesson => appendIfMissing(lesson.id, 'lesson'));
-    (topic.quizzes || []).forEach(quiz => appendIfMissing(quiz.id, 'quiz'));
-    (topic.assignments || []).forEach(assignment => appendIfMissing(assignment.id, 'assignment'));
 
     topic.items = topic.items.filter(ref => {
         return Boolean(findTopicItemByReference(topic, ref));
@@ -1427,25 +1215,9 @@ function findTopicItemByReference(topic, reference) {
     if (!reference || !topic) return null;
 
     if (reference.type === 'lesson') {
-        const found = topic.lessons.find(item => item.id === reference.id);
+        const found = (topic.lessons || []).find(item => item.id === reference.id);
         if (found) {
             found.type = 'lesson';
-        }
-        return found || null;
-    }
-
-    if (reference.type === 'quiz') {
-        const found = topic.quizzes.find(item => item.id === reference.id);
-        if (found) {
-            found.type = 'quiz';
-        }
-        return found || null;
-    }
-
-    if (reference.type === 'assignment') {
-        const found = topic.assignments.find(item => item.id === reference.id);
-        if (found) {
-            found.type = 'assignment';
         }
         return found || null;
     }
@@ -1527,12 +1299,7 @@ function syncTopicCollections(topic) {
     if (!topic) return;
 
     const lessonMap = new Map((topic.lessons || []).map(item => [item.id, item]));
-    const quizMap = new Map((topic.quizzes || []).map(item => [item.id, item]));
-    const assignmentMap = new Map((topic.assignments || []).map(item => [item.id, item]));
-
     const newLessons = [];
-    const newQuizzes = [];
-    const newAssignments = [];
 
     (topic.items || []).forEach(ref => {
         if (ref.type === 'lesson' && lessonMap.has(ref.id)) {
@@ -1540,16 +1307,6 @@ function syncTopicCollections(topic) {
             lesson.order = newLessons.length;
             newLessons.push(lesson);
             lessonMap.delete(ref.id);
-        } else if (ref.type === 'quiz' && quizMap.has(ref.id)) {
-            const quiz = quizMap.get(ref.id);
-            quiz.order = newQuizzes.length;
-            newQuizzes.push(quiz);
-            quizMap.delete(ref.id);
-        } else if (ref.type === 'assignment' && assignmentMap.has(ref.id)) {
-            const assignment = assignmentMap.get(ref.id);
-            assignment.order = newAssignments.length;
-            newAssignments.push(assignment);
-            assignmentMap.delete(ref.id);
         }
     });
 
@@ -1557,16 +1314,6 @@ function syncTopicCollections(topic) {
         value.order = newLessons.length;
         newLessons.push(value);
     });
-    quizMap.forEach(value => {
-        value.order = newQuizzes.length;
-        newQuizzes.push(value);
-    });
-    assignmentMap.forEach(value => {
-        value.order = newAssignments.length;
-        newAssignments.push(value);
-    });
 
     topic.lessons = newLessons;
-    topic.quizzes = newQuizzes;
-    topic.assignments = newAssignments;
 }

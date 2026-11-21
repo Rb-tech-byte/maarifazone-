@@ -231,12 +231,12 @@
                     datasets: [{
                         label: 'Revenue',
                         data: analyticsData.thirty_days.revenue,
-                        borderColor: '#f99f1e',
-                        backgroundColor: 'rgba(249, 159, 30, 0.05)',
-                        borderWidth: 3,
-                        pointBackgroundColor: '#f99f1e',
+                        borderColor: '#0f172a',
+                        backgroundColor: 'rgba(15, 23, 42, 0.04)',
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#0f172a',
                         pointRadius: 4,
-                        tension: 0.4,
+                        tension: 0.35,
                         fill: true
                     }]
                 },
@@ -263,7 +263,7 @@
                     datasets: [{
                         label: 'Enrollments',
                         data: analyticsData.last_12_months.enrollments,
-                        backgroundColor: '#e0860a',
+                        backgroundColor: '#0284c7',
                         borderRadius: 4
                     }]
                 },

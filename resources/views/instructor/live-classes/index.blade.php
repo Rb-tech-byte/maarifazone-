@@ -61,8 +61,8 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <strong style="color: #f99f1e; font-size: 14px;">{{ $liveClass->title }}</strong>
-                                                <span style="display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 700; background: #eef2ff; color: #d9820b;">
+                                                <strong style="color: #0f172a; font-size: 14px;">{{ $liveClass->title }}</strong>
+                                                <span style="display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 700; background: #eef2ff; color: #0284c7;">
                                                     {{ $liveClass->provider_label }}
                                                 </span>
                                                 @if($liveClass->meeting_id)
@@ -117,7 +117,7 @@
                                                     @endif
 
                                                     @if($liveClass->status !== 'ended')
-                                                        <a href="{{ route('instructor.live-classes.edit', $liveClass->id) }}" class="btn-action-edit" style="color: #f99f1e; font-size: 16px; margin: 0 5px;" title="Edit">
+                                                        <a href="{{ route('instructor.live-classes.edit', $liveClass->id) }}" class="btn-action-edit" style="color: #0f172a; font-size: 16px; margin: 0 5px;" title="Edit">
                                                             <i class="fa-solid fa-edit"></i>
                                                         </a>
                                                     @endif

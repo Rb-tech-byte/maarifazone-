@@ -463,6 +463,13 @@
                                 <h3>Curriculum</h3>
                             </div>
 
+                            <div class="alert alert-light border d-flex align-items-center gap-2 py-2 px-3 mb-3 text-muted small" style="border-radius: 8px;">
+                                <i class="fa-solid fa-circle-info text-primary fs-6"></i>
+                                <div>
+                                    <strong>Digital Learning Curriculum:</strong> Add video lectures, reading notes, PDF documents, PowerPoint slide decks, and downloadable learning materials. Each topic or lesson can be priced individually or offered as a free preview.
+                                </div>
+                            </div>
+
                             <div class="curriculum-container" id="curriculumContainer">
                                 <!-- Topics will be added here dynamically -->
                             </div>
@@ -715,7 +722,7 @@
                 const courseData = {!! json_encode($courseDataArray) !!};
             </script>
         @endisset
-        <script src="{{ asset('assets/front/js/instructor/course-builder.js') }}"></script>
+        <script src="{{ asset('assets/front/js/instructor/course-builder.js') }}?v={{ file_exists(public_path('assets/front/js/instructor/course-builder.js')) ? filemtime(public_path('assets/front/js/instructor/course-builder.js')) : time() }}"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 const categorySelect = document.getElementById('course_category_id');
@@ -908,9 +915,7 @@
                                 duration: (v.duration_minutes || 10) + 'm',
                                 is_preview: !!v.is_preview,
                                 is_live: false
-                            })),
-                            quizzes: [],
-                            assignments: []
+                            }))
                         });
                         if (typeof renderTopics === 'function') renderTopics();
                         else if (typeof renderCurriculum === 'function') renderCurriculum();
@@ -989,9 +994,7 @@
                                 duration: (l.duration_minutes || 10) + 'm',
                                 is_preview: !!l.is_preview,
                                 is_live: false
-                            })),
-                            quizzes: [],
-                            assignments: []
+                            }))
                         });
                     });
                     if (typeof renderTopics === 'function') renderTopics();
@@ -1041,8 +1044,7 @@
                 } else if (mode === 'outline' && Array.isArray(data.topics) && typeof topics !== 'undefined') {
                     data.topics.forEach(t => topics.push({
                         id: null, title: t.title, description: t.description || '',
-                        lessons: (t.lessons || []).map(l => ({ id: null, title: l.title, description: '', video_type: 'url', video_url: '', duration: (l.duration_minutes || 10) + 'm', is_preview: !!l.is_preview, is_live: false })),
-                        quizzes: [], assignments: []
+                        lessons: (t.lessons || []).map(l => ({ id: null, title: l.title, description: '', video_type: 'url', video_url: '', duration: (l.duration_minutes || 10) + 'm', is_preview: !!l.is_preview, is_live: false }))
                     }));
                     if (typeof renderTopics === 'function') renderTopics();
                     else if (typeof renderCurriculum === 'function') renderCurriculum();

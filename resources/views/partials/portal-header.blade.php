@@ -79,7 +79,7 @@
                            id="portalBellMarkAll"
                            data-read-all-url="{{ $notificationsReadAllRoute }}"
                            class="text-decoration-none fw-semibold {{ $unreadCount > 0 ? '' : 'd-none' }}"
-                           style="font-size: 11.5px; color: #f99f1e;">
+                           style="font-size: 11.5px; color: #0f172a;">
                             Mark all read
                         </a>
                     </div>
@@ -94,7 +94,7 @@
                                     'success' => '#059669',
                                     'warning' => '#d97706',
                                     'danger'  => '#dc2626',
-                                    default   => '#f99f1e',
+                                    default   => '#0284c7',
                                 };
                             @endphp
                             <a href="{{ route($readRouteName, $notification->id) }}"
@@ -121,7 +121,7 @@
                     </div>
 
                     <div class="border-top px-3 py-2 text-center bg-light">
-                        <a href="{{ $notificationsRoute }}" class="text-decoration-none fw-semibold" style="font-size: 12px; color: #f99f1e;">
+                        <a href="{{ $notificationsRoute }}" class="text-decoration-none fw-semibold" style="font-size: 12px; color: #0f172a;">
                             View All Notifications <i class="fa-solid fa-arrow-right ms-1"></i>
                         </a>
                     </div>

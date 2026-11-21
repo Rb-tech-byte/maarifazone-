@@ -19,7 +19,7 @@
         <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background: white;">
             <h6 class="m-0" style="font-weight: 800; color: #002b24;">Notifications</h6>
             @if($unreadCount > 0)
-                <a href="{{ route($notifRoutePrefix . '.notifications.readAll') }}" class="text-decoration-none small" style="color: #f99f1e; font-weight: 700;">Mark all read</a>
+                <a href="{{ route($notifRoutePrefix . '.notifications.readAll') }}" class="text-decoration-none small" style="color: #0f172a; font-weight: 700;">Mark all read</a>
             @endif
         </div>
         <div class="notif-scroll-area">
@@ -58,7 +58,7 @@
                                 </small>
                                 <a href="{{ route($notifRoutePrefix . '.notifications.read', $notification->id) }}"
                                     class="fw-bold text-decoration-none"
-                                    style="font-size: 11px; color: {{ $isUnread ? '#ff6b00' : '#f99f1e' }}">
+                                    style="font-size: 11px; color: {{ $isUnread ? '#0f172a' : '#64748b' }}">
                                     View <i class="fa-solid fa-arrow-right fa-xs ms-1"></i>
                                 </a>
                             </div>
@@ -75,7 +75,7 @@
         </div>
         <div class="p-3 text-center bg-white border-top">
             <a href="{{ route($notifRoutePrefix . '.notifications.index') }}" class="small fw-bold text-decoration-none"
-                style="color: #f99f1e; font-size: 13px;">View All Notifications</a>
+                style="color: #0f172a; font-size: 13px;">View All Notifications</a>
         </div>
     </div>
 </div>

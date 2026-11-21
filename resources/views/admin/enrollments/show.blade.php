@@ -220,14 +220,18 @@
                             <a class="nav-link" id="progress-tab" data-toggle="tab" href="#progress"
                                 role="tab">Progress Tracking</a>
                         </li>
+                        @if ($enrollment->quizAttempts && $enrollment->quizAttempts->count() > 0)
                         <li class="nav-item">
                             <a class="nav-link" id="quizzes-tab" data-toggle="tab" href="#quizzes" role="tab">Quiz
                                 Attempts</a>
                         </li>
+                        @endif
+                        @if ($enrollment->assignmentSubmissions && $enrollment->assignmentSubmissions->count() > 0)
                         <li class="nav-item">
                             <a class="nav-link" id="assignments-tab" data-toggle="tab" href="#assignments"
                                 role="tab">Assignments</a>
                         </li>
+                        @endif
                     </ul>
 
                     <div class="tab-content" id="enrollmentTabsContent">
@@ -533,90 +537,86 @@
                             </div>
                         </div>
 
+                        @if ($enrollment->quizAttempts && $enrollment->quizAttempts->count() > 0)
                         <!-- Quiz Attempts Tab -->
                         <div class="tab-pane fade" id="quizzes" role="tabpanel">
                             <div class="mt-4">
                                 <h5>Quiz Attempts</h5>
-                                @if ($enrollment->quizAttempts->count() > 0)
-                                    <div class="table-responsive">
-                                        <table class="table table-striped">
-                                            <thead>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Quiz</th>
+                                                <th>Score</th>
+                                                <th>Status</th>
+                                                <th>Attempted At</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($enrollment->quizAttempts as $attempt)
                                                 <tr>
-                                                    <th>Quiz</th>
-                                                    <th>Score</th>
-                                                    <th>Status</th>
-                                                    <th>Attempted At</th>
+                                                    <td>{{ $attempt->quiz->title ?? 'N/A' }}</td>
+                                                    <td>{{ $attempt->score ?? 'N/A' }}%</td>
+                                                    <td>
+                                                        @if ($attempt->passed ?? false)
+                                                            <span class="badge badge-success">Passed</span>
+                                                        @else
+                                                            <span class="badge badge-danger">Failed</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>{{ $attempt->created_at->format('M d, Y h:i A') }}</td>
                                                 </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($enrollment->quizAttempts as $attempt)
-                                                    <tr>
-                                                        <td>{{ $attempt->quiz->title ?? 'N/A' }}</td>
-                                                        <td>{{ $attempt->score ?? 'N/A' }}%</td>
-                                                        <td>
-                                                            @if ($attempt->passed ?? false)
-                                                                <span class="badge badge-success">Passed</span>
-                                                            @else
-                                                                <span class="badge badge-danger">Failed</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>{{ $attempt->created_at->format('M d, Y h:i A') }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                @else
-                                    <div class="alert alert-info">No quiz attempts recorded yet.</div>
-                                @endif
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
+                        @endif
 
+                        @if ($enrollment->assignmentSubmissions && $enrollment->assignmentSubmissions->count() > 0)
                         <!-- Assignment Submissions Tab -->
                         <div class="tab-pane fade" id="assignments" role="tabpanel">
                             <div class="mt-4">
                                 <h5>Assignment Submissions</h5>
-                                @if ($enrollment->assignmentSubmissions->count() > 0)
-                                    <div class="table-responsive">
-                                        <table class="table table-striped">
-                                            <thead>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Assignment</th>
+                                                <th>Submitted At</th>
+                                                <th>Status</th>
+                                                <th>Grade</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($enrollment->assignmentSubmissions as $submission)
                                                 <tr>
-                                                    <th>Assignment</th>
-                                                    <th>Submitted At</th>
-                                                    <th>Status</th>
-                                                    <th>Grade</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($enrollment->assignmentSubmissions as $submission)
-                                                    <tr>
-                                                        <td>{{ $submission->assignment->title ?? 'N/A' }}</td>
-                                                        <td>{{ $submission->submitted_at ? $submission->submitted_at->format('M d, Y h:i A') : 'N/A' }}
-                                                        </td>
-                                                        <td>
-                                                            @if ($submission->status == 'pending')
-                                                                <span class="badge badge-warning">Pending</span>
-                                                            @elseif($submission->status == 'graded')
-                                                                <span class="badge badge-success">Graded</span>
-                                                            @elseif($submission->status == 'returned')
-                                                                <span class="badge badge-info">Returned</span>
-                                                            @else
-                                                                <span
-                                                                    class="badge badge-secondary">{{ ucfirst($submission->status) }}</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>{{ $submission->grade ?? 'N/A' }}</td>
+                                                    <td>{{ $submission->assignment->title ?? 'N/A' }}</td>
+                                                    <td>{{ $submission->submitted_at ? $submission->submitted_at->format('M d, Y h:i A') : 'N/A' }}
+                                                    </td>
+                                                    <td>
+                                                        @if ($submission->status == 'pending')
+                                                            <span class="badge badge-warning">Pending</span>
+                                                        @elseif($submission->status == 'graded')
+                                                            <span class="badge badge-success">Graded</span>
+                                                        @elseif($submission->status == 'returned')
+                                                            <span class="badge badge-info">Returned</span>
+                                                        @else
+                                                            <span
+                                                                class="badge badge-secondary">{{ ucfirst($submission->status) }}</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>{{ $submission->grade ?? 'N/A' }}</td>
 
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                @else
-                                    <div class="alert alert-info">No assignment submissions recorded yet.</div>
-                                @endif
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>

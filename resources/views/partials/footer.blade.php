@@ -71,9 +71,9 @@
                     </p>
 
                     <ul class="maarifazone-brand-footer__identity-list">
-                        <li><span class="maarifazone-id-dot"></span>Self-paced online &amp; blended learning</li>
-                        <li><span class="maarifazone-id-dot"></span>Expert-led courses, quizzes &amp; live classes</li>
-                        <li><span class="maarifazone-id-dot"></span>QR-verified digital certificates</li>
+                        <li><span class="maarifazone-id-dot"></span>Self-paced 100% online learning</li>
+                        <li><span class="maarifazone-id-dot"></span>Expert-led courses, multimedia lessons &amp; live sessions</li>
+                        <li><span class="maarifazone-id-dot"></span>Practical hands-on knowledge &amp; modular topics</li>
                         <li><span class="maarifazone-id-dot"></span>Accessible learning across every region</li>
                     </ul>
                 </div>

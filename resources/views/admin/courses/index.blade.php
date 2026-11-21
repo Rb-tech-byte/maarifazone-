@@ -451,7 +451,7 @@
                         <li>All Student Enrollments</li>
                         <li>Payment Logs & Transaction History</li>
                         <li>Course Media (Videos, Images, Attachments)</li>
-                        <li>Lessons, Quizzes, and Assignments</li>
+                        <li>Lessons and Learning Materials</li>
                         <li>Reviews and Ratings</li>
                     </ul>
                 </div>

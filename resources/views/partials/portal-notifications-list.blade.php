@@ -54,7 +54,7 @@
                         'success' => ['accent' => '#059669', 'bg' => 'rgba(5, 150, 105, 0.08)', 'icon' => 'fa-circle-check'],
                         'warning' => ['accent' => '#d97706', 'bg' => 'rgba(217, 119, 6, 0.09)', 'icon' => 'fa-triangle-exclamation'],
                         'danger'  => ['accent' => '#dc2626', 'bg' => 'rgba(220, 38, 38, 0.08)', 'icon' => 'fa-circle-exclamation'],
-                        default   => ['accent' => '#f99f1e', 'bg' => 'rgba(249, 159, 30, 0.07)', 'icon' => 'fa-bell'],
+                        default   => ['accent' => '#0f172a', 'bg' => '#f1f5f9', 'icon' => 'fa-bell'],
                     };
                 @endphp
                 <div class="p-3 rounded-3 border d-flex justify-content-between align-items-start gap-3 flex-wrap {{ $isUnread ? 'shadow-sm' : 'opacity-85' }}"

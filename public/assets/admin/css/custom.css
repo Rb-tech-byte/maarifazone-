@@ -211,46 +211,92 @@ body.sidebar-floating .main-navbar {
     }
 }
 
-/* Maarifazone Primary Vibrant Orange (#F99F1E / RGB 249, 159, 30) Admin Overrides */
-.navbar-bg,
+/* Maarifazone Executive Palette Aligned with Dominant Logo Colors (#0F172A Deep Slate Navy / Clean Slate Palette with Subtle Warm Logo Accent) */
+.navbar-bg {
+    background-color: #0f172a !important;
+    background-image: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.15);
+}
+
+.main-navbar .nav-link {
+    color: rgba(255, 255, 255, 0.88) !important;
+}
+
+.main-navbar .nav-link:hover {
+    color: #ffffff !important;
+}
+
 .bg-primary,
 .badge-primary,
 .btn-primary,
 .page-item.active .page-link,
 .nav-pills .nav-item .nav-link.active {
-    background-color: #f99f1e !important;
-    border-color: #f99f1e !important;
+    background-color: #0f172a !important;
+    border-color: #0f172a !important;
+    color: #ffffff !important;
 }
 
 .btn-primary:hover,
 .btn-primary:focus,
 .btn-primary:active {
-    background-color: #d9820b !important;
-    border-color: #d9820b !important;
+    background-color: #1e293b !important;
+    border-color: #1e293b !important;
+    color: #ffffff !important;
 }
 
-.text-primary,
-.main-sidebar .sidebar-menu li.active a,
+.text-primary {
+    color: #0f172a !important;
+}
+
+.main-sidebar {
+    background-color: #ffffff !important;
+    border-right: 1px solid #e2e8f0;
+}
+
+.main-sidebar .sidebar-menu li a {
+    color: #475569 !important;
+    font-weight: 500;
+}
+
+.main-sidebar .sidebar-menu li a:hover {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+.main-sidebar .sidebar-menu li.active a {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    background-color: #f1f5f9 !important;
+}
+
+body:not(.sidebar-mini) .sidebar-style-2 .sidebar-menu > li.active > a:before {
+    background-color: #f99f1e !important; /* Signature subtle warm logo accent pip */
+    width: 4px;
+    border-radius: 0 3px 3px 0;
+}
+
 .main-sidebar .sidebar-menu li ul.dropdown-menu li.active > a {
-    color: #f99f1e !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
 }
 
 .btn-outline-primary {
-    color: #f99f1e !important;
-    border-color: #f99f1e !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+    background-color: #ffffff;
 }
 
 .btn-outline-primary:hover,
 .btn-outline-primary:focus,
 .btn-outline-primary:active {
-    background-color: #f99f1e !important;
-    border-color: #f99f1e !important;
+    background-color: #0f172a !important;
+    border-color: #0f172a !important;
     color: #ffffff !important;
 }
 
 .form-control:focus,
 .select2-container--default.select2-container--focus .select2-selection--single,
 .select2-container--default.select2-container--focus .select2-selection--multiple {
-    border-color: #f99f1e !important;
-    box-shadow: 0 0 0 0.2rem rgba(249, 159, 30, 0.22) !important;
+    border-color: #0f172a !important;
+    box-shadow: 0 0 0 0.2rem rgba(15, 23, 42, 0.12) !important;
 }
