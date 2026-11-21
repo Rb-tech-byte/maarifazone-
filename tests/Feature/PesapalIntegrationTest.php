@@ -318,6 +318,11 @@ class PesapalIntegrationTest extends TestCase
 
     public function test_checkout_renders_native_pesapal_iframe_and_only_active_gateways(): void
     {
+        // Ensure default seeded state: Pesapal + Offline Lipa Namba enabled, Stripe/Flutterwave/PayPal disabled
+        PaymentGatewaySetting::whereIn('identifier', ['stripe', 'flutterwave', 'paypal'])->update(['is_enabled' => false]);
+        PaymentGatewaySetting::whereIn('identifier', ['pesapal', 'offline'])->update(['is_enabled' => true]);
+        app(\App\Services\PaymentGatewayService::class)->refreshCache();
+
         $response = $this->actingAs($this->student)
             ->get(route('courses.checkout', $this->course->id));
 
@@ -325,9 +330,24 @@ class PesapalIntegrationTest extends TestCase
             ->assertSee('id="pesapalCheckoutIframe"', false)
             ->assertSee('Pesapal Express Checkout')
             ->assertSee('maarifazone-checkout-page', false)
+            ->assertSee('61237100')
+            ->assertSee('KOMANYA LUCAS NGONZELA')
+            ->assertSee('61237100_QR-2.pdf', false)
             ->assertDontSee('breadcrumb-wrapper', false)
-            ->assertDontSee('Offline Payments')
-            ->assertDontSee('Pay securely with Stripe');
+            ->assertDontSee('Pay securely with credit/debit card via Stripe.')
+            ->assertDontSee('Pay securely with multiple methods via Flutterwave.')
+            ->assertDontSee('Pay securely with PayPal account or credit/debit card.');
+
+        // When Admin disables Offline gateway, it must not appear at checkout
+        PaymentGatewaySetting::where('identifier', 'offline')->update(['is_enabled' => false]);
+        app(\App\Services\PaymentGatewayService::class)->refreshCache();
+
+        $this->actingAs($this->student)
+            ->get(route('courses.checkout', $this->course->id))
+            ->assertOk()
+            ->assertSee('Pesapal Express Checkout')
+            ->assertDontSee('id="offlinePaymentSection"', false)
+            ->assertDontSee('KOMANYA LUCAS NGONZELA');
     }
 
     public function test_public_ipn_registers_directly_without_get_ipn_list_and_sanitizes_billing_address(): void

@@ -16,15 +16,14 @@
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
                     <h4 class="mb-2 mb-md-0">Payment Gateway Configuration</h4>
                     <div class="d-flex align-items-center">
-                        <span class="badge badge-primary mr-3">{{ $gateways->count() }} gateways</span>
+                        <span class="badge badge-primary mr-3">{{ $gateways->where('is_enabled', true)->count() }} active / {{ $gateways->count() }} total</span>
                         <a href="{{ route('admin.settings.index') }}" class="btn btn-secondary"><i
                                 class="fas fa-arrow-left"></i> Back to Settings</a>
                     </div>
                 </div>
                 <div class="card-body">
                     <p class="text-muted mb-4">
-                        Update API keys, enable or disable gateways, and manage offline payment instructions. Changes take
-                        effect immediately.
+                        Only gateways marked <strong>Enabled</strong> appear on the Scholar checkout page. Disabled gateways are hidden automatically.
                     </p>
 
                     <div class="row">
@@ -37,11 +36,11 @@
                                             <small class="text-muted text-uppercase">{{ $gateway->type }} gateway</small>
                                         </div>
                                         <span
-                                            class="badge badge-{{ $gateway->is_enabled ? 'success' : 'secondary' }}">{{ $gateway->is_enabled ? 'Enabled' : 'Disabled' }}</span>
+                                            class="badge badge-{{ $gateway->is_enabled ? 'success' : 'secondary' }}">{{ $gateway->is_enabled ? 'Enabled (Visible at Checkout)' : 'Disabled (Hidden)' }}</span>
                                     </div>
                                     <div class="card-body">
                                         <form action="{{ route('admin.settings.gateways.update', $gateway->identifier) }}"
-                                            method="POST">
+                                            method="POST" enctype="multipart/form-data">
                                             @csrf
                                             @method('PUT')
 
@@ -50,7 +49,7 @@
                                                     <input type="checkbox" class="custom-control-input"
                                                         id="enable-{{ $gateway->identifier }}" name="is_enabled"
                                                         value="1" {{ $gateway->is_enabled ? 'checked' : '' }}>
-                                                    <label class="custom-control-label"
+                                                    <label class="custom-control-label font-weight-bold"
                                                         for="enable-{{ $gateway->identifier }}">Enable
                                                         {{ $gateway->name }}</label>
                                                 </div>
@@ -97,13 +96,52 @@
                                                     @endif
                                                 </div>
                                             @else
+                                                <div class="border rounded p-3 mb-3 bg-light">
+                                                    <h6 class="mb-3"><i class="fas fa-qrcode mr-1"></i> Lipa Namba &amp; TANQR Configuration</h6>
+                                                    <div class="form-row">
+                                                        <div class="form-group col-md-5">
+                                                            <label class="small font-weight-bold text-uppercase">Lipa Namba</label>
+                                                            <input type="text" name="credentials[lipa_namba]"
+                                                                value="{{ $gateway->lipa_namba }}" class="form-control font-weight-bold"
+                                                                placeholder="61237100">
+                                                        </div>
+                                                        <div class="form-group col-md-7">
+                                                            <label class="small font-weight-bold text-uppercase">Merchant / Account Name</label>
+                                                            <input type="text" name="credentials[merchant_name]"
+                                                                value="{{ $gateway->merchant_name }}" class="form-control"
+                                                                placeholder="KOMANYA LUCAS NGONZELA">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="small font-weight-bold text-uppercase">Network / Provider Label</label>
+                                                        <input type="text" name="credentials[provider]"
+                                                            value="{{ $gateway->provider_label }}" class="form-control"
+                                                            placeholder="TIPS · Selcom Pay TANQR">
+                                                    </div>
+                                                    <div class="form-group mb-2">
+                                                        <label class="small font-weight-bold text-uppercase">QR Code Poster (PDF)</label>
+                                                        <div class="d-flex align-items-center justify-content-between flex-wrap mb-2 p-2 bg-white border rounded">
+                                                            <div class="d-flex align-items-center">
+                                                                <img src="{{ $gateway->qr_image_url }}" alt="TANQR" style="width: 48px; height: 48px; object-fit: contain;" class="mr-2 border rounded p-1">
+                                                                <div>
+                                                                    <div class="small font-weight-bold text-dark">Active QR Poster: 61237100_QR-2.pdf</div>
+                                                                    <a href="{{ $gateway->qr_pdf_url }}" target="_blank" rel="noopener" class="small text-primary font-weight-bold">
+                                                                        <i class="fas fa-file-pdf mr-1"></i> View / Download Seeded PDF
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <input type="file" name="qr_pdf_file" accept=".pdf" class="form-control-file">
+                                                        <small class="text-muted">Leave blank to keep the seeded <code>61237100_QR-2.pdf</code> TANQR poster.</small>
+                                                    </div>
+                                                </div>
+
                                                 <div class="form-group">
                                                     <label for="instructions-{{ $gateway->identifier }}">Offline
                                                         Instructions</label>
-                                                    <textarea name="offline_instructions" id="instructions-{{ $gateway->identifier }}" rows="5" class="form-control"
+                                                    <textarea name="offline_instructions" id="instructions-{{ $gateway->identifier }}" rows="4" class="form-control"
                                                         placeholder="Provide instructions for manual/offline payments.">{{ old('offline_instructions', $gateway->offline_instructions) }}</textarea>
-                                                    <small class="text-muted">These instructions are displayed to
-                                                        instructors and students when offline payments are selected.</small>
+                                                    <small class="text-muted">Displayed alongside the QR code &amp; Lipa Namba at checkout.</small>
                                                 </div>
                                             @endif
 

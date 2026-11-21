@@ -89,11 +89,11 @@
         gap: 10px;
     }
     .maarifazone-co-step-num {
-        width: 26px;
-        height: 26px;
+        width: 28px;
+        height: 28px;
         border-radius: 8px;
-        background: rgba(var(--theme-rgb, 1, 59, 166), 0.1);
-        color: var(--theme, #f99f1e);
+        background: #0f172a;
+        color: #ffffff;
         font-size: 13px;
         font-weight: 700;
         display: inline-flex;
@@ -175,9 +175,9 @@
         background: #f8fafc;
     }
     .maarifazone-co-gateway-option input:checked + .maarifazone-co-gateway-box {
-        border-color: var(--theme, #f99f1e);
-        background: rgba(var(--theme-rgb, 1, 59, 166), 0.04);
-        box-shadow: 0 0 0 3px rgba(var(--theme-rgb, 1, 59, 166), 0.12);
+        border-color: #0f172a;
+        background: #f8fafc;
+        box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
     }
 
     .maarifazone-co-radio-dot {
@@ -191,14 +191,32 @@
         transition: all 0.15s ease;
     }
     .maarifazone-co-gateway-option input:checked + .maarifazone-co-gateway-box .maarifazone-co-radio-dot {
-        border-color: var(--theme, #f99f1e);
+        border-color: #0f172a;
     }
     .maarifazone-co-gateway-option input:checked + .maarifazone-co-gateway-box .maarifazone-co-radio-dot::after {
         content: "";
         position: absolute;
         inset: 3px;
         border-radius: 50%;
-        background: var(--theme, #f99f1e);
+        background: #0f172a;
+    }
+
+    .maarifazone-co-gateway-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #f1f5f9;
+        color: #0f172a;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+        transition: all 0.15s ease;
+    }
+    .maarifazone-co-gateway-option input:checked + .maarifazone-co-gateway-box .maarifazone-co-gateway-icon {
+        background: #0f172a;
+        color: #ffffff;
     }
 
     .maarifazone-co-gateway-title {
@@ -212,18 +230,20 @@
         margin-bottom: 4px;
     }
     .maarifazone-co-gateway-tag {
-        font-size: 11px;
+        font-size: 10.5px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        padding: 2px 8px;
+        padding: 3px 9px;
         border-radius: 999px;
-        background: rgba(var(--theme-rgb, 1, 59, 166), 0.1);
-        color: var(--theme, #f99f1e);
+        background: #f1f5f9;
+        color: #0f172a;
+        border: 1px solid #cbd5e1;
     }
     .maarifazone-co-gateway-tag--offline {
-        background: #fef3c7;
-        color: #92400e;
+        background: #ecfdf5;
+        color: #047857;
+        border-color: #a7f3d0;
     }
     .maarifazone-co-gateway-desc {
         font-size: 12.5px;
@@ -314,13 +334,93 @@
         background: #ffffff;
     }
 
-    /* Offline panel */
+    /* Offline Lipa Namba / TANQR panel */
     .maarifazone-offline-panel {
-        border: 1px solid #fde68a;
-        background: #fffbeb;
+        border: 1.5px solid #e2e8f0;
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 22px;
+        margin-top: 12px;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+    .maarifazone-lipa-card {
+        display: grid;
+        grid-template-columns: 230px 1fr;
+        gap: 20px;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #ffffff;
         border-radius: 14px;
         padding: 20px;
-        margin-top: 8px;
+        margin-bottom: 18px;
+        align-items: center;
+    }
+    .maarifazone-lipa-qr-box {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 12px;
+        text-align: center;
+        color: #0f172a;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    }
+    .maarifazone-lipa-qr-box img {
+        width: 180px;
+        height: 180px;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto 8px;
+    }
+    .maarifazone-lipa-qr-caption {
+        font-size: 11px;
+        font-weight: 700;
+        color: #0f172a;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+    .maarifazone-lipa-number-box {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 12px;
+        padding: 10px 16px;
+        margin: 8px 0 12px;
+    }
+    .maarifazone-lipa-number {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        color: #ffffff;
+        font-family: 'JetBrains Mono', 'Courier New', monospace;
+    }
+    .maarifazone-lipa-copy-btn {
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.14);
+        color: #ffffff;
+        border-radius: 8px;
+        padding: 5px 11px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .maarifazone-lipa-copy-btn:hover {
+        background: #ffffff;
+        color: #0f172a;
+    }
+    .maarifazone-lipa-pdf-frame {
+        width: 100%;
+        height: 520px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        background: #f8fafc;
+    }
+    @media (max-width: 767px) {
+        .maarifazone-lipa-card {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
     }
     .maarifazone-offline-panel .form-control {
         border-radius: 10px;
@@ -603,6 +703,15 @@
                                         No active payment gateways are currently enabled. Please contact support.
                                     </div>
                                 @else
+                                    @php
+                                        $gatewayIcons = [
+                                            'pesapal'     => 'fa-solid fa-bolt',
+                                            'stripe'      => 'fa-regular fa-credit-card',
+                                            'flutterwave' => 'fa-solid fa-globe',
+                                            'paypal'      => 'fa-brands fa-paypal',
+                                            'offline'     => 'fa-solid fa-qrcode',
+                                        ];
+                                    @endphp
                                     <div class="maarifazone-co-gateway-list">
                                         @foreach ($enabledOnlineGateways as $gateway)
                                             @php $identifier = $gateway->identifier; @endphp
@@ -612,6 +721,9 @@
                                                        {{ $defaultGatewayIdentifier === $identifier ? 'checked' : '' }}>
                                                 <div class="maarifazone-co-gateway-box">
                                                     <span class="maarifazone-co-radio-dot"></span>
+                                                    <span class="maarifazone-co-gateway-icon">
+                                                        <i class="{{ $gatewayIcons[$identifier] ?? 'fa-solid fa-lock' }}"></i>
+                                                    </span>
                                                     <div class="flex-grow-1">
                                                         <div class="maarifazone-co-gateway-title">
                                                             <span>{{ $gateway->name }}</span>
@@ -634,12 +746,15 @@
                                                        {{ $defaultGatewayIdentifier === 'offline' ? 'checked' : '' }}>
                                                 <div class="maarifazone-co-gateway-box">
                                                     <span class="maarifazone-co-radio-dot"></span>
+                                                    <span class="maarifazone-co-gateway-icon">
+                                                        <i class="fa-solid fa-qrcode"></i>
+                                                    </span>
                                                     <div class="flex-grow-1">
                                                         <div class="maarifazone-co-gateway-title">
                                                             <span>{{ $offlineGateway->name ?? __('frontend.offline_payment') }}</span>
-                                                            <span class="maarifazone-co-gateway-tag maarifazone-co-gateway-tag--offline">Manual / Bank</span>
+                                                            <span class="maarifazone-co-gateway-tag maarifazone-co-gateway-tag--offline">Scan QR · Lipa Namba {{ $offlineGateway->lipa_namba }}</span>
                                                         </div>
-                                                        <p class="maarifazone-co-gateway-desc">{{ __('frontend.offline_payment_desc') }}</p>
+                                                        <p class="maarifazone-co-gateway-desc">Scan TIPS / Selcom Pay TANQR or pay to Lipa Namba <strong>{{ $offlineGateway->lipa_namba }}</strong> ({{ $offlineGateway->merchant_name }}).</p>
                                                     </div>
                                                 </div>
                                             </label>
@@ -695,24 +810,77 @@
                                         </div>
                                     @endif
 
-                                    {{-- Offline Payment Upload Section --}}
+                                    {{-- Offline Payment: Automatic TIPS / Selcom Pay TANQR & Lipa Namba Section --}}
                                     @if ($hasOfflineGateway)
                                         <div id="offlinePaymentSection"
                                              class="maarifazone-offline-panel {{ $defaultGatewayIdentifier === 'offline' ? '' : 'd-none' }}">
-                                            <h5 class="mb-3 fw-bold">{{ __('frontend.payment_details') }}</h5>
+                                            <div class="maarifazone-lipa-card">
+                                                <div class="maarifazone-lipa-qr-box">
+                                                    <img src="{{ $offlineGateway->qr_image_url }}"
+                                                         alt="TIPS Selcom Pay TANQR - Lipa Namba {{ $offlineGateway->lipa_namba }}">
+                                                    <div class="maarifazone-lipa-qr-caption">
+                                                        <i class="fa-solid fa-camera me-1"></i> Scan TANQR to Pay
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                                        <span class="badge bg-success text-white px-2 py-1" style="font-size: 11px;">
+                                                            <i class="fa-solid fa-qrcode me-1"></i> {{ $offlineGateway->provider_label }}
+                                                        </span>
+                                                        <span class="small text-white-50">Pay with phone, bank or card</span>
+                                                    </div>
+
+                                                    <div class="small text-white-50 text-uppercase fw-semibold mt-2" style="letter-spacing: 0.05em;">
+                                                        Lipa Namba (TIPS / Selcom Pay)
+                                                    </div>
+                                                    <div class="maarifazone-lipa-number-box">
+                                                        <span class="maarifazone-lipa-number" id="lipaNambaNumber">{{ $offlineGateway->lipa_namba }}</span>
+                                                        <button type="button" class="maarifazone-lipa-copy-btn" id="copyLipaNambaBtn"
+                                                                data-number="{{ $offlineGateway->lipa_namba }}">
+                                                            <i class="fa-regular fa-copy me-1"></i> Copy
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <span class="small text-white-50 d-block">Merchant / Account Name</span>
+                                                        <strong class="fs-6 text-white">{{ $offlineGateway->merchant_name }}</strong>
+                                                    </div>
+
+                                                    <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                                                        <a href="{{ $offlineGateway->qr_pdf_url }}" target="_blank" rel="noopener"
+                                                           class="btn btn-sm btn-light fw-semibold text-dark">
+                                                            <i class="fa-solid fa-file-pdf text-danger me-1"></i> Open / Download QR Poster (PDF)
+                                                        </a>
+                                                        <button type="button" class="btn btn-sm btn-outline-light fw-semibold" id="toggleQrPdfPreviewBtn">
+                                                            <i class="fa-solid fa-eye me-1"></i> Preview Full PDF Poster
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div id="qrPdfPreviewWrap" class="d-none">
+                                                <iframe src="{{ $offlineGateway->qr_pdf_url }}"
+                                                        title="Lipa Namba {{ $offlineGateway->lipa_namba }} QR Poster PDF"
+                                                        class="maarifazone-lipa-pdf-frame"></iframe>
+                                            </div>
+
                                             @if (!empty($offlineInstructions))
-                                                <div class="alert alert-info alert-preline mb-3" role="alert">
+                                                <div class="alert alert-light border small mb-3" role="alert">
+                                                    <i class="fa-solid fa-circle-info text-primary me-1"></i>
                                                     {{ $offlineInstructions }}
                                                 </div>
                                             @endif
+
+                                            <h6 class="mb-3 fw-bold text-dark">{{ __('frontend.payment_details') }}</h6>
                                             <div class="row g-3">
                                                 <div class="col-md-6">
                                                     <label for="transaction_id" class="form-label fw-semibold">
-                                                        {{ __('frontend.transaction_id') }} <span class="text-danger">*</span>
+                                                        {{ __('frontend.transaction_id') }} / M-Pesa / Bank Ref <span class="text-danger">*</span>
                                                     </label>
                                                     <input type="text" name="transaction_id" id="transaction_id"
                                                            value="{{ old('transaction_id') }}"
-                                                           placeholder="{{ __('frontend.transaction_id') }}"
+                                                           placeholder="e.g. QK84H92LMS / TIPS Reference"
                                                            class="form-control @error('transaction_id') is-invalid @enderror">
                                                     @error('transaction_id')
                                                         <div class="invalid-feedback d-block mt-1">{{ $message }}</div>
@@ -984,6 +1152,24 @@
 
                 $('#pesapalReloadBtn, #pesapalRetryBtn').on('click', function() {
                     initPesapalIframe(true);
+                });
+
+                $('#copyLipaNambaBtn').on('click', function() {
+                    const $btn = $(this);
+                    const number = $btn.data('number') || '61237100';
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(String(number));
+                    }
+                    const originalHtml = $btn.html();
+                    $btn.html('<i class="fa-solid fa-check me-1"></i> Copied!');
+                    setTimeout(function() {
+                        $btn.html(originalHtml);
+                    }, 1800);
+                });
+
+                $('#toggleQrPdfPreviewBtn').on('click', function() {
+                    const $wrap = $('#qrPdfPreviewWrap');
+                    $wrap.toggleClass('d-none');
                 });
 
                 $('input[name="payment_method"]').on('change', function() {

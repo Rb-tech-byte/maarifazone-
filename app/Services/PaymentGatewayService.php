@@ -37,19 +37,29 @@ class PaymentGatewayService
     }
 
     /**
-     * Online gateways.
+     * Online gateways (only those enabled in Admin).
      */
     public function onlineGateways(): Collection
     {
-        return $this->all()->where('type', 'online')->where('is_enabled', true);
+        return $this->all()->where('type', 'online')->where('is_enabled', true)->values();
     }
 
     /**
-     * Offline gateway.
+     * Offline gateway record.
      */
     public function offlineGateway(): ?PaymentGatewaySetting
     {
         return $this->all()->firstWhere('identifier', 'offline');
+    }
+
+    /**
+     * Enabled offline gateway (returns null when disabled in Admin).
+     */
+    public function enabledOfflineGateway(): ?PaymentGatewaySetting
+    {
+        $gateway = $this->offlineGateway();
+
+        return ($gateway && $gateway->is_enabled) ? $gateway : null;
     }
 
     /**

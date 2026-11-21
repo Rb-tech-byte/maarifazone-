@@ -188,9 +188,8 @@ class CourseEnrollmentController extends Controller
         }
 
         $onlineGateways = $this->paymentGatewayService->onlineGateways();
-        // Online courses use direct online payment only (no manual offline checkout)
-        $offlineGateway = (! $isBundle && $course->isOnline()) ? null : $this->paymentGatewayService->offlineGateway();
-        $offlineInstructions = $offlineGateway && $offlineGateway->is_enabled ? $offlineGateway->offline_instructions : null;
+        $offlineGateway = $this->paymentGatewayService->enabledOfflineGateway();
+        $offlineInstructions = $offlineGateway ? $offlineGateway->offline_instructions : null;
 
         $gatewayDescriptions = [
             'stripe'      => 'Pay securely with credit/debit card via Stripe.',

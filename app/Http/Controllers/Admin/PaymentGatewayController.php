@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PaymentGatewaySetting;
+use App\Services\PaymentGatewayService;
 use Devrabiul\ToastMagic\Facades\ToastMagic;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use App\Services\PaymentGatewayService;
 
 /**
  * Payment Gateway Controller
@@ -48,12 +48,37 @@ class PaymentGatewayController extends Controller
             'is_enabled' => ['nullable', 'boolean'],
             'offline_instructions' => ['nullable', 'string'],
             'credentials' => ['nullable', 'array'],
+            'qr_pdf_file' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
         ]);
 
         $gateway->is_enabled = (bool) ($validated['is_enabled'] ?? false);
 
         if ($gateway->type === 'offline') {
             $gateway->offline_instructions = $validated['offline_instructions'] ?? $gateway->offline_instructions;
+
+            $existingCreds = is_array($gateway->credentials) ? $gateway->credentials : [];
+            $incomingCreds = is_array($validated['credentials'] ?? null) ? $validated['credentials'] : [];
+
+            $mergedCreds = array_merge([
+                'lipa_namba' => PaymentGatewaySetting::DEFAULT_LIPA_NAMBA,
+                'merchant_name' => PaymentGatewaySetting::DEFAULT_MERCHANT_NAME,
+                'provider' => PaymentGatewaySetting::DEFAULT_PROVIDER,
+                'qr_pdf' => PaymentGatewaySetting::DEFAULT_QR_PDF,
+                'qr_image' => PaymentGatewaySetting::DEFAULT_QR_IMAGE,
+            ], $existingCreds);
+
+            foreach (['lipa_namba', 'merchant_name', 'provider'] as $field) {
+                if (array_key_exists($field, $incomingCreds) && is_string($incomingCreds[$field]) && trim($incomingCreds[$field]) !== '') {
+                    $mergedCreds[$field] = trim($incomingCreds[$field]);
+                }
+            }
+
+            if ($request->hasFile('qr_pdf_file')) {
+                $storedPath = $request->file('qr_pdf_file')->store('payment-gateways', 'public');
+                $mergedCreds['qr_pdf'] = 'storage/' . ltrim($storedPath, '/');
+            }
+
+            $gateway->credentials = $mergedCreds;
         } else {
             $credentials = $validated['credentials'] ?? [];
             $gateway->credentials = collect($credentials)
