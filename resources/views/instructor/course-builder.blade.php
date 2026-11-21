@@ -199,108 +199,23 @@
                                                 </div>
 
                                                 <hr class="my-3">
-                                                @php
-                                                    $dMode = old('delivery_mode', $course->delivery_mode ?? 'online');
-                                                    $isCampusMode = in_array($dMode, ['face_to_face', 'hybrid'], true);
-                                                @endphp
+                                                <input type="hidden" name="delivery_mode" value="online">
+                                                <input type="hidden" name="course_type" value="course">
+
                                                 <div class="form-row">
-                                                    <div class="form-group">
-                                                        <label>Delivery Mode</label>
-                                                        <select name="delivery_mode" id="delivery_mode" class="form-control">
-                                                            <option value="online" {{ $dMode === 'online' ? 'selected' : '' }}>Online (Self-Paced / Direct Checkout)</option>
-                                                            <option value="face_to_face" {{ $dMode === 'face_to_face' ? 'selected' : '' }}>Face-to-Face (Campus / Short Course)</option>
-                                                            <option value="hybrid" {{ $dMode === 'hybrid' ? 'selected' : '' }}>Hybrid (Campus + Online LMS)</option>
-                                                        </select>
+                                                    <div class="form-group col-md-6">
+                                                        <label>Delivery Method</label>
+                                                        <div class="form-control-plaintext text-muted d-flex align-items-center">
+                                                            <span class="badge bg-primary text-white px-3 py-2" style="font-size: 13px;"><i class="fa-solid fa-laptop-file me-1"></i> 100% Online Maarifa &amp; Learning</span>
+                                                        </div>
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label>Content Type</label>
-                                                        @php $cType = old('course_type', $course->course_type ?? 'course'); @endphp
-                                                        <select name="course_type" class="form-control">
-                                                            <option value="course" {{ $cType === 'course' ? 'selected' : '' }}>Course</option>
-                                                            <option value="quiz" {{ $cType === 'quiz' ? 'selected' : '' }}>Quiz</option>
-                                                            <option value="test_series" {{ $cType === 'test_series' ? 'selected' : '' }}>Test Series (Quizzes Only)</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="form-group">
+                                                    <div class="form-group col-md-6">
                                                         <label>Drip Content</label>
                                                         @php $dripVal = old('drip_enabled', $course->drip_enabled ?? false); @endphp
                                                         <select name="drip_enabled" class="form-control">
                                                             <option value="0" {{ !$dripVal ? 'selected' : '' }}>No</option>
                                                             <option value="1" {{ $dripVal ? 'selected' : '' }}>Yes</option>
                                                         </select>
-                                                    </div>
-                                                </div>
-
-                                                <div id="campusDeliveryFields" class="p-3 rounded border mb-3" style="background:#f8fafd; display: {{ $isCampusMode ? 'block' : 'none' }};">
-                                                    <h6 class="text-primary font-weight-bold mb-3"><i class="fa-solid fa-building-columns mr-1"></i> Campus / Short-Course Options</h6>
-                                                    <div class="form-row">
-                                                        <div class="form-group col-md-4">
-                                                            <label>Default Branch</label>
-                                                            <select name="default_branch_id" class="form-control">
-                                                                <option value="">-- Any Branch --</option>
-                                                                @foreach($campusBranches ?? [] as $cb)
-                                                                    <option value="{{ $cb->id }}" {{ (string) old('default_branch_id', $course->default_branch_id ?? '') === (string) $cb->id ? 'selected' : '' }}>{{ $cb->name }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                        <div class="form-group col-md-4">
-                                                            <label>Default Venue</label>
-                                                            <select name="default_venue_id" class="form-control">
-                                                                <option value="">-- Any Venue --</option>
-                                                                @foreach($campusVenues ?? [] as $cv)
-                                                                    <option value="{{ $cv->id }}" {{ (string) old('default_venue_id', $course->default_venue_id ?? '') === (string) $cv->id ? 'selected' : '' }}>{{ $cv->name }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                        <div class="form-group col-md-4">
-                                                            <label>Duration (e.g. 4 weeks)</label>
-                                                            <input type="text" name="duration_label" class="form-control" placeholder="e.g. 4 weeks"
-                                                                value="{{ old('duration_label', $course->duration_label ?? '') }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-row">
-                                                        <div class="form-group col-md-4">
-                                                            <label>Attendance Threshold (%)</label>
-                                                            <input type="number" name="attendance_threshold" class="form-control" min="0" max="100"
-                                                                value="{{ old('attendance_threshold', $course->attendance_threshold ?? 75) }}">
-                                                        </div>
-                                                        <div class="form-group col-md-4">
-                                                            <label class="d-block">Eligibility Discount (Staff/Maarifazone)</label>
-                                                            <input type="hidden" name="has_discount" value="0">
-                                                            <label class="custom-control custom-control--checkbox mt-1">
-                                                                <input type="checkbox" name="has_discount" value="1"
-                                                                    {{ old('has_discount', $course->has_discount ?? false) ? 'checked' : '' }}>
-                                                                <span class="control-indicator"></span>
-                                                                <span class="control-label">Allow Course Discount</span>
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-group col-md-4">
-                                                            <label>Discount Amount</label>
-                                                            <input type="number" step="0.01" min="0" name="discount_amount" class="form-control"
-                                                                value="{{ old('discount_amount', $course->discount_amount ?? 0) }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-row">
-                                                        <div class="form-group col-md-6 mb-0">
-                                                            <input type="hidden" name="allow_online_f2f_payment" value="0">
-                                                            <label class="custom-control custom-control--checkbox">
-                                                                <input type="checkbox" name="allow_online_f2f_payment" value="1"
-                                                                    {{ old('allow_online_f2f_payment', $course->allow_online_f2f_payment ?? true) ? 'checked' : '' }}>
-                                                                <span class="control-indicator"></span>
-                                                                <span class="control-label">Allow Online Payment Alongside Offline/Control No.</span>
-                                                            </label>
-                                                        </div>
-                                                        @if(!empty($isAdminBuilder))
-                                                            <div class="form-group col-md-6 mb-0">
-                                                                <input type="hidden" name="f2f_commission_enabled" value="0">
-                                                                <label class="custom-control custom-control--checkbox">
-                                                                    <input type="checkbox" name="f2f_commission_enabled" value="1"
-                                                                        {{ old('f2f_commission_enabled', $course->f2f_commission_enabled ?? false) ? 'checked' : '' }}>
-                                                                    <span class="control-indicator"></span>
-                                                                    <span class="control-label">Enable Instructor Commission Split (otherwise 100% institutional)</span>
-                                                                </label>
-                                                            </div>
-                                                        @endif
                                                     </div>
                                                 </div>
 
@@ -1194,18 +1109,5 @@
                 </div>
             </div>
         </div>
-    @endpush
-    @push('scripts')
-    <script>
-        (function () {
-            var modeEl = document.getElementById('delivery_mode');
-            var campusBox = document.getElementById('campusDeliveryFields');
-            if (modeEl && campusBox) {
-                modeEl.addEventListener('change', function () {
-                    campusBox.style.display = (this.value === 'face_to_face' || this.value === 'hybrid') ? 'block' : 'none';
-                });
-            }
-        })();
-    </script>
     @endpush
 @endsection

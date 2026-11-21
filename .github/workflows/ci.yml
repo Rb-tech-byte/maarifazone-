@@ -97,8 +97,7 @@ jobs:
           DB_PASSWORD: password
         run: |
           php artisan test \
-            tests/Feature/CampusUnifiedWorkflowTest.php \
-            tests/Feature/ScmsFullParityAndRbacTest.php \
+            tests/Feature/MaarifazoneThreeRoleWorkflowTest.php \
             tests/Feature/CurrencyExchangeSwitchTest.php \
             tests/Feature/PesapalIntegrationTest.php \
             tests/Feature/StudentCourseAccessTest.php

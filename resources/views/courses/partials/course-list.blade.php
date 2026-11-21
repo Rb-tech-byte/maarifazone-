@@ -41,11 +41,7 @@
                         @if($course->category)
                             <span class="maarifazone-catalog-card__badge-cat">{{ $course->category }}</span>
                         @endif
-                        @if($course->isFaceToFace())
-                            <span class="maarifazone-catalog-card__badge-cat" style="background:#f99f1e;color:#fff;">Face-to-Face</span>
-                        @elseif($course->isHybrid())
-                            <span class="maarifazone-catalog-card__badge-cat" style="background:#e0860a;color:#fff;">Hybrid</span>
-                        @endif
+                        <span class="maarifazone-catalog-card__badge-cat" style="background:#f99f1e;color:#fff;">Online</span>
                     </div>
 
                     <div class="maarifazone-catalog-card__badges-tr">

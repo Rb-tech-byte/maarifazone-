@@ -9,7 +9,7 @@
     <meta name="author" content="Maarifazone — Wolinet">
     <meta name="application-name" content="{{ site_name() }}">
     <meta name="theme-color" content="#f99f1e">
-    <title>{{ (!empty($pageTitle) && $pageTitle !== site_name()) ? $pageTitle . ' | ' . site_name() . ' Student Campus' : site_name() . ' - Student Campus' }}</title>
+    <title>{{ (!empty($pageTitle) && $pageTitle !== site_name()) ? $pageTitle . ' | ' . site_name() . ' Scholar Portal' : site_name() . ' - Scholar Portal' }}</title>
 
     @stack('meta')
 

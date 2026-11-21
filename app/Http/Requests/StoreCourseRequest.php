@@ -58,15 +58,7 @@ class StoreCourseRequest extends FormRequest
             'objectives' => ['nullable', 'string'],
             'status' => ['nullable', Rule::in(['draft', 'published', 'archived'])],
             'is_live_course' => ['nullable', 'in:0,1,true,false,on,off'],
-            'delivery_mode' => ['nullable', Rule::in(['online', 'face_to_face', 'hybrid'])],
-            'default_branch_id' => ['nullable', 'exists:branches,id'],
-            'default_venue_id' => ['nullable', 'exists:venues,id'],
-            'duration_label' => ['nullable', 'string', 'max:100'],
-            'attendance_threshold' => ['nullable', 'integer', 'min:0', 'max:100'],
-            'has_discount' => ['nullable', 'in:0,1,true,false,on,off'],
-            'discount_amount' => ['nullable', 'numeric', 'min:0'],
-            'allow_online_f2f_payment' => ['nullable', 'in:0,1,true,false,on,off'],
-            'f2f_commission_enabled' => ['nullable', 'in:0,1,true,false,on,off'],
+            'delivery_mode' => ['nullable', Rule::in(['online'])],
             
             'featured_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'], // 5MB
             'intro_video' => ['nullable', 'file', 'mimes:mp4,avi,mov,webm', 'max:512000'], // 500MB

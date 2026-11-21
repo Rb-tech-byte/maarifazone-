@@ -109,69 +109,22 @@ class CourseEnrollmentController extends Controller
                 ], 400);
             }
 
-            if ($request->filled('invoice_id')) {
-                $campusInvoice = \App\Models\Invoice::withoutGlobalScope('branch')
-                    ->with('paymentSchedules')
-                    ->where('id', $request->integer('invoice_id'))
-                    ->where('user_id', $user->id)
-                    ->where('course_id', $course->id)
-                    ->firstOrFail();
+            $existingEnrollment = Enrollment::where('user_id', $user->id)
+                ->where('course_id', $course->id)
+                ->first();
 
-                if ($campusInvoice->balance <= 0) {
-                    return response()->json(['success' => false, 'message' => 'This invoice is already fully paid.'], 422);
+            if ($existingEnrollment) {
+                if (in_array($existingEnrollment->status, [Enrollment::STATUS_APPROVED, Enrollment::STATUS_COMPLETED])) {
+                    return response()->json(['success' => false, 'message' => 'You are already enrolled.'], 400);
                 }
-
-                if (strtolower((string) $request->payment_method) !== Payment::PAYMENT_METHOD_OFFLINE && ! $course->allow_online_f2f_payment) {
-                    return response()->json(['success' => false, 'message' => 'Online installment payment is disabled for this course.'], 422);
+                $payment = $existingEnrollment->payment;
+                if ($payment && $payment->payment_method === Payment::PAYMENT_METHOD_OFFLINE) {
+                    return response()->json(['success' => false, 'message' => 'Pending offline payment request exists.'], 400);
                 }
-
-                $nextSched = $campusInvoice->paymentSchedules->where('status', '!=', 'paid')->sortBy('installment_number')->first();
-                $price = ($request->input('pay') === 'balance' || ! $nextSched)
-                    ? (float) $campusInvoice->balance
-                    : round((float) $nextSched->amount_due - (float) $nextSched->amount_paid, 2);
-
-                Payment::creating(function (Payment $payment) use ($campusInvoice): void {
-                    if (! $payment->invoice_id && (int) $payment->user_id === (int) $campusInvoice->user_id) {
-                        $payment->invoice_id = $campusInvoice->id;
-                        $payment->applicant_id = $campusInvoice->applicant_id;
-                        $payment->installment_type = $campusInvoice->installment_plan;
-                        if ($campusInvoice->enrollment_id) {
-                            $payment->enrollment_id = $campusInvoice->enrollment_id;
-                        }
-                    }
-                });
-            } elseif ($course->requiresApplicantForm()) {
-                return response()->json([
-                    'success' => false,
-                    'requires_applicant_form' => true,
-                    'apply_endpoint' => url('/api/campus/courses/' . $course->id . '/apply'),
-                    'message' => 'Face-to-Face and Hybrid courses require submitting the campus application form before checkout.',
-                ], 422);
-            } else {
-                if (strtolower((string) $request->payment_method) === Payment::PAYMENT_METHOD_OFFLINE && $course->isOnline()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Online courses require direct online payment.',
-                    ], 422);
-                }
-
-                $existingEnrollment = Enrollment::where('user_id', $user->id)
-                    ->where('course_id', $course->id)
-                    ->first();
-
-                if ($existingEnrollment) {
-                    if (in_array($existingEnrollment->status, [Enrollment::STATUS_APPROVED, Enrollment::STATUS_COMPLETED])) {
-                        return response()->json(['success' => false, 'message' => 'You are already enrolled.'], 400);
-                    }
-                    $payment = $existingEnrollment->payment;
-                    if ($payment && $payment->payment_method === Payment::PAYMENT_METHOD_OFFLINE) {
-                        return response()->json(['success' => false, 'message' => 'Pending offline payment request exists.'], 400);
-                    }
-                    $existingEnrollment->delete();
-                }
-
-                $price = $this->calculatePrice($course);
+                $existingEnrollment->delete();
             }
+
+            $price = $this->calculatePrice($course);
             $courseIdToUse = $course->id;
         }
         $paymentMethod = strtolower($request->payment_method);

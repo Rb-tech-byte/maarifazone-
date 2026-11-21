@@ -121,21 +121,14 @@ class DashboardController extends Controller
             ];
         }
 
-        $campusInvoices = \App\Models\Invoice::withoutGlobalScope('branch')
-            ->where('user_id', $user->id)
-            ->get(['id', 'balance', 'payment_status']);
-        $campusBalanceDue = (float) $campusInvoices->sum('balance');
-
         return response()->json([
             'success' => true,
             'data' => [
                 'stats' => [
-                    'total_courses'      => $totalCourses,
-                    'completed_courses'  => $completedCourses,
+                    'total_courses'       => $totalCourses,
+                    'completed_courses'   => $completedCourses,
                     'in_progress_courses' => $inProgressCourses,
-                    'total_spent'        => number_format($totalSpent, 2),
-                    'campus_balance_due' => round($campusBalanceDue, 2),
-                    'open_campus_invoices' => $campusInvoices->where('balance', '>', 0)->count(),
+                    'total_spent'         => number_format($totalSpent, 2),
                 ],
                 'activity'            => $formattedActivityData,
                 'continue_learning'   => $continueLearning,

@@ -17,12 +17,12 @@
     <div class="row">
         <div class="col-md-6 mb-4">
             <div class="card h-100">
-                <div class="card-header"><h5 class="mb-0 text-primary">Student Workflows (Online &amp; Campus F2F)</h5></div>
+                <div class="card-header"><h5 class="mb-0 text-primary"><i class="fa-solid fa-graduation-cap me-1"></i> Scholar Learning Experience</h5></div>
                 <div class="card-body small">
                     <ul class="mb-0">
-                        <li class="mb-2"><strong>Enrollments:</strong> Enroll directly in Online courses via checkout or choose Face-to-Face / Hybrid delivery by selecting a regional branch, venue, session, and start date.</li>
-                        <li class="mb-2"><strong>Invoices &amp; Control Numbers:</strong> Invoices and installment plans issue automatically; use <em>Invoices &amp; Control Nos</em> to generate payment control numbers, upload payment slips, and print official receipts.</li>
-                        <li class="mb-0"><strong>QR Attendance &amp; Certificates:</strong> Scan tutor QR check-in codes during sessions. Once fees are paid and attendance thresholds are met, download your verified <code>MZ-CERT-...</code> PDF certificate.</li>
+                        <li class="mb-2"><strong>100% Online Maarifa:</strong> Enroll directly in self-paced video lessons and interactive content anytime, anywhere without physical attendance barriers.</li>
+                        <li class="mb-2"><strong>Live Classes &amp; Discussions:</strong> Participate in live tutoring sessions and collaborate in open course discussions with fellow scholars.</li>
+                        <li class="mb-0"><strong>Centralized Support Desk:</strong> Contact System Administration directly via Support Tickets for any billing, account, or learning inquiries.</li>
                     </ul>
                 </div>
             </div>
@@ -30,12 +30,12 @@
 
         <div class="col-md-6 mb-4">
             <div class="card h-100">
-                <div class="card-header"><h5 class="mb-0 text-primary">Branch Manager, Coordinator, Marketing, Director &amp; Tutor</h5></div>
+                <div class="card-header"><h5 class="mb-0 text-primary"><i class="fa-solid fa-chalkboard-user me-1"></i> Instructor &amp; Administration Flow</h5></div>
                 <div class="card-body small">
                     <ul class="mb-0">
-                        <li class="mb-2"><strong>Branch Managers &amp; Coordinators:</strong> Register walk-in applicants, assign tutors and physical venues cleanly (double-booking protected), manage installments, and verify offline receipts within your center.</li>
-                        <li class="mb-2"><strong>Reports &amp; Analytics:</strong> Export Weekly/Monthly/Quarterly <em>Center Course Reports</em> and <em>Applicant Reports</em> (PDF, Excel, CSV), inspect active cohorts, waivers, and tutor workloads.</li>
-                        <li class="mb-0"><strong>Tutors / Instructors:</strong> View personal and branch schedules, track Paid vs Unpaid student rosters, record manual/QR attendance, and receive alerts when student certificates become ready.</li>
+                        <li class="mb-2"><strong>Instructors:</strong> Manage assigned courses, host live classes, respond to public course discussions, track revenue share earnings, and request payouts.</li>
+                        <li class="mb-2"><strong>System Administration:</strong> Fully manage courses, categories, instructor assignments, payment gateways (Pesapal &amp; Offline), and platform settings.</li>
+                        <li class="mb-0"><strong>Institutional Governance:</strong> Anti-disintermediation ensures all official scholar inquiries and support requests route centrally through Administration.</li>
                     </ul>
                 </div>
             </div>

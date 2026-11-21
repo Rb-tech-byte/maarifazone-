@@ -156,12 +156,7 @@
                                                 <div>
                                                     <h6 class="mb-0">{{ Str::limit($course->title, 50) }}</h6>
                                                     <small class="text-muted">{{ $course->category ?? 'Uncategorized' }}</small>
-                                                    @php
-                                                        $mode = $course->delivery_mode ?? 'online';
-                                                        $modeBadge = $mode === 'face_to_face' ? 'badge-info' : ($mode === 'hybrid' ? 'badge-warning' : 'badge-light');
-                                                        $modeText = $mode === 'face_to_face' ? 'Face-to-Face' : ($mode === 'hybrid' ? 'Hybrid' : 'Online');
-                                                    @endphp
-                                                    <span class="badge {{ $modeBadge }} ml-1">{{ $modeText }}</span>
+                                                    <span class="badge badge-light ml-1">Online</span>
                                                 </div>
                                             </div>
                                         </td>

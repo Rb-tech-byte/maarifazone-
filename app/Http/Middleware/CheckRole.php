@@ -43,11 +43,6 @@ class CheckRole
             abort(403, 'Unauthorized access');
         }
 
-        // Bind branch context & enforce granular admin restrictions for Staff / Branch / Coordinator / Marketing / Accountant / Director accounts
-        if ($role === 'admin' && method_exists($user, 'effectiveBranchId')) {
-            session(['user_branch_id' => $user->effectiveBranchId()]);
-        }
-
         if ($role === 'admin' && method_exists($user, 'isStaff') && $user->isStaff()) {
             $routeName = (string) ($request->route()?->getName() ?? '');
             $permissionMap = [
@@ -61,7 +56,6 @@ class CheckRole
                 'admin.payments.'              => 'manage-payments',
                 'admin.withdrawals.'           => 'manage-withdrawals',
                 'admin.coupons.'               => 'manage-coupons',
-                'admin.certificates.'          => 'manage-certificates',
                 'admin.reports.'               => 'view-reports',
                 'admin.frontend.'              => 'manage-frontend',
                 'admin.custom-pages.'          => 'manage-frontend',
@@ -72,17 +66,6 @@ class CheckRole
                 'admin.course-categories.'     => 'manage-courses',
                 'admin.course-languages.'      => 'manage-courses',
                 'admin.bundles.'               => 'manage-bundles',
-                'admin.campus.branches.'       => 'manage-branches',
-                'admin.campus.venues.'         => 'manage-venues',
-                'admin.campus.countries.'      => 'manage-countries',
-                'admin.campus.applicants.'     => 'manage-applicants',
-                'admin.campus.timetable.'      => 'manage-timetables',
-                'admin.campus.attendance.'     => 'manage-attendance',
-                'admin.campus.invoices.'       => 'manage-invoices',
-                'admin.campus.installments.'   => 'manage-installments',
-                'admin.campus.certificates.'   => 'manage-certificates',
-                'admin.campus.analytics.'      => 'view-analytics',
-                'admin.campus.templates.'      => 'manage-settings',
                 'admin.user-security.'         => 'student:update',
                 'admin.students.create'        => 'student:create',
                 'admin.students.store'         => 'student:create',

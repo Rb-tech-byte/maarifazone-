@@ -131,30 +131,24 @@ class RevenueShareService
                 $payment->loadMissing('enrollment.course.instructor', 'enrollment.course.coInstructors.user');
                 $course = optional($payment->enrollment)->course;
 
-                // Institutional revenue default for Face-to-Face & Hybrid courses unless explicitly enabled
-                if ($course && !$course->isOnline() && !$course->f2f_commission_enabled) {
-                    $payment->platform_commission = $amount;
-                    $payment->instructor_earning = 0.0;
-                } else {
-                    $payment->instructor_earning = $instructorEarning;
+                $payment->instructor_earning = $instructorEarning;
 
-                    if ($course && $instructorEarning > 0) {
-                        $payoutLog = [];
-                        $this->distributeCoursePool($course, $instructorEarning, $payoutLog, 'course');
-                        if ($course->coInstructors->isNotEmpty()) {
-                            $breakdown = [
-                                'type'                => 'course_co_instructors',
-                                'course_id'           => $course->id,
-                                'course_title'        => $course->title,
-                                'gross_amount'        => $amount,
-                                'platform_commission' => $platformCommission,
-                                'instructor_pool'     => $instructorEarning,
-                                'payouts'             => $payoutLog,
-                                'processed_at'        => now()->toDateTimeString(),
-                            ];
-                            $existingNotes = $payment->notes ? $payment->notes . "\n\n" : '';
-                            $payment->notes = $existingNotes . '<!-- REVENUE_BREAKDOWN:' . json_encode($breakdown) . ' -->';
-                        }
+                if ($course && $instructorEarning > 0) {
+                    $payoutLog = [];
+                    $this->distributeCoursePool($course, $instructorEarning, $payoutLog, 'course');
+                    if ($course->coInstructors->isNotEmpty()) {
+                        $breakdown = [
+                            'type'                => 'course_co_instructors',
+                            'course_id'           => $course->id,
+                            'course_title'        => $course->title,
+                            'gross_amount'        => $amount,
+                            'platform_commission' => $platformCommission,
+                            'instructor_pool'     => $instructorEarning,
+                            'payouts'             => $payoutLog,
+                            'processed_at'        => now()->toDateTimeString(),
+                        ];
+                        $existingNotes = $payment->notes ? $payment->notes . "\n\n" : '';
+                        $payment->notes = $existingNotes . '<!-- REVENUE_BREAKDOWN:' . json_encode($breakdown) . ' -->';
                     }
                 }
             }

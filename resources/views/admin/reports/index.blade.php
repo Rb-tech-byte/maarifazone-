@@ -12,19 +12,8 @@
 @section('main-content')
     <div class="card mb-4">
         <div class="card-body py-3 d-flex justify-content-between align-items-center flex-wrap">
-            <div class="btn-group mb-2 mb-md-0">
-                <a href="{{ route('admin.reports.index') }}" class="btn btn-primary">Executive &amp; Online Overview</a>
-                <a href="{{ route('admin.reports.center-courses') }}" class="btn btn-outline-primary">Center Course Report (Weekly/Monthly/Quarterly)</a>
-                <a href="{{ route('admin.reports.applicants') }}" class="btn btn-outline-primary">Applicant Report (PDF/Excel/CSV)</a>
-            </div>
-            @if (auth()->user()->hasAdminPermission('view-analytics'))
-                <div class="btn-group">
-                    <a href="{{ route('admin.campus.analytics.active-classes') }}" class="btn btn-sm btn-outline-info">Active Classes</a>
-                    <a href="{{ route('admin.campus.analytics.branches') }}" class="btn btn-sm btn-outline-info">Branches</a>
-                    <a href="{{ route('admin.campus.analytics.discounts') }}" class="btn btn-sm btn-outline-info">Discounts</a>
-                    <a href="{{ route('admin.campus.analytics.tutor-workload') }}" class="btn btn-sm btn-outline-info">Tutor Workload</a>
-                </div>
-            @endif
+            <h5 class="text-primary mb-0"><i class="fas fa-chart-line mr-2"></i>Executive &amp; Online Learning Analytics Overview</h5>
+            <span class="badge badge-light">100% Online Maarifa</span>
         </div>
     </div>
 
@@ -342,48 +331,6 @@
         </div>
     </div>
 
-    @if (!empty($campusStats))
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h4>Campus, Delivery Mode &amp; Branch Analytics</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="row mb-4">
-                            <div class="col-md-3"><strong>Online Enrollments:</strong> {{ number_format($campusStats['online_enrollments']) }}</div>
-                            <div class="col-md-3"><strong>Face-to-Face:</strong> {{ number_format($campusStats['f2f_enrollments']) }}</div>
-                            <div class="col-md-3"><strong>Hybrid:</strong> {{ number_format($campusStats['hybrid_enrollments']) }}</div>
-                            <div class="col-md-3"><strong>Overdue Installments:</strong> <span class="badge badge-danger">{{ $campusStats['overdue_installments'] }}</span></div>
-                        </div>
-                        <div class="row mb-4">
-                            <div class="col-md-3"><strong>Invoiced Net:</strong> {{ currency_format($campusStats['invoiced_total']) }}</div>
-                            <div class="col-md-3"><strong>Collected:</strong> <span class="text-success">{{ currency_format($campusStats['invoiced_paid']) }}</span></div>
-                            <div class="col-md-3"><strong>Outstanding Balance:</strong> <span class="text-danger">{{ currency_format($campusStats['invoiced_balance']) }}</span></div>
-                            <div class="col-md-3"><strong>Staff/Eligible Discounts:</strong> {{ currency_format($campusStats['discounts_granted']) }}</div>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped mb-0">
-                                <thead><tr><th>Branch</th><th>Enrollments</th><th>Collected</th><th>Balance</th></tr></thead>
-                                <tbody>
-                                    @forelse ($campusStats['branches'] as $b)
-                                        <tr>
-                                            <td>{{ $b->name }}</td>
-                                            <td>{{ $b->enrollments_count }}</td>
-                                            <td>{{ currency_format($b->collected_amount ?? 0) }}</td>
-                                            <td>{{ currency_format($b->balance_amount ?? 0) }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr><td colspan="4" class="text-muted text-center">No regional branches created yet.</td></tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
 @endsection
 
 @push('scripts')

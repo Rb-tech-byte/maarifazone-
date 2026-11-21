@@ -3,8 +3,7 @@
 /**
  * Artisan Console & Scheduler Definitions
  *
- * Registers scheduled background tasks for live class reminders and
- * daily F2F/Hybrid installment payment reminders.
+ * Registers scheduled background tasks for live class reminders and learning sync in Maarifazone.
  *
  * @author Renatus Bernardo
  */
@@ -19,8 +18,3 @@ Artisan::command('inspire', function () {
 
 // Send live class reminder notifications every 5 minutes
 Schedule::command('live-classes:send-reminders')->everyFiveMinutes();
-
-// Daily installment reminder check for F2F/Hybrid tuition schedules
-Schedule::call(function () {
-    app(\App\Services\InstallmentReminderService::class)->processDueReminders(true);
-})->dailyAt('08:00');

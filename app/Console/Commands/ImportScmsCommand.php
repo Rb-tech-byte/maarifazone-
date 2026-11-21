@@ -186,18 +186,13 @@ class ImportScmsCommand extends Command
 
             $courseMap = [];
             foreach ($src->table('courses')->orderBy('id')->get() as $c) {
-                $mode = match (strtolower((string) ($c->teaching_method ?? 'face_to_face'))) {
-                    'online' => 'online',
-                    'hybrid', 'blended' => 'hybrid',
-                    default => 'face_to_face',
-                };
                 $row = Course::updateOrCreate(
                     ['legacy_scms_id' => $c->id],
                     [
                         'instructor_id' => $defaultOwnerId,
                         'title' => $c->title,
                         'course_type' => 'course',
-                        'delivery_mode' => $mode,
+                        'delivery_mode' => 'online',
                         'pricing_model' => ((float) ($c->fee ?? 0) > 0) ? 'paid' : 'free',
                         'regular_price' => (float) ($c->fee ?? 0),
                         'has_discount' => (bool) ($c->has_discount ?? false),
@@ -284,7 +279,7 @@ class ImportScmsCommand extends Command
                         'applicant_id' => $app['id'] ?? null,
                         'branch_id' => $branchId,
                         'venue_id' => $venueId,
-                        'delivery_mode' => Course::where('id', $courseId)->value('delivery_mode') ?? 'face_to_face',
+                        'delivery_mode' => 'online',
                         'session' => strtolower((string) ($e->session ?? 'morning')),
                         'start_date' => $e->start_date,
                         'end_date' => $e->end_date,
@@ -430,13 +425,9 @@ class ImportScmsCommand extends Command
 
         $this->info('SCMS data imported cleanly!');
         $this->table(['Unified Table', 'Maarifazone Row Count'], [
-            ['branches', Branch::count()],
-            ['venues', Venue::withoutGlobalScope('branch')->count()],
-            ['applicants', Applicant::withoutGlobalScope('branch')->count()],
-            ['enrollments (F2F/Hybrid)', Enrollment::whereIn('delivery_mode', ['face_to_face', 'hybrid'])->count()],
-            ['invoices', Invoice::withoutGlobalScope('branch')->count()],
-            ['payment_schedules', PaymentSchedule::count()],
-            ['payments (with invoice)', Payment::whereNotNull('invoice_id')->count()],
+            ['courses', Course::count()],
+            ['enrollments', Enrollment::count()],
+            ['payments', Payment::count()],
         ]);
 
         return self::SUCCESS;

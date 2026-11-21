@@ -833,31 +833,6 @@
                             </ul>
                         </div>
 
-                        <!-- Delivery Mode -->
-                        <div class="maarifazone-filter-group">
-                            <div class="maarifazone-filter-group__title">DELIVERY MODE</div>
-                            <ul class="maarifazone-filter-list">
-                                <li>
-                                    <label class="maarifazone-filter-item">
-                                        <span class="maarifazone-filter-item__left">
-                                            <input type="radio" name="delivery_mode" value="" class="filter-control" {{ !request('delivery_mode') ? 'checked' : '' }}>
-                                            <span class="maarifazone-filter-item__label">All Modes</span>
-                                        </span>
-                                    </label>
-                                </li>
-                                @foreach(['online' => 'Online (Self-Paced)', 'face_to_face' => 'Face-to-Face (Campus)', 'hybrid' => 'Hybrid (Online & Campus)'] as $modeKey => $modeLabel)
-                                    <li>
-                                        <label class="maarifazone-filter-item">
-                                            <span class="maarifazone-filter-item__left">
-                                                <input type="radio" name="delivery_mode" value="{{ $modeKey }}" class="filter-control" {{ request('delivery_mode') === $modeKey ? 'checked' : '' }}>
-                                                <span class="maarifazone-filter-item__label">{{ $modeLabel }}</span>
-                                            </span>
-                                        </label>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
-
                         <!-- Level -->
                         <div class="maarifazone-filter-group">
                             <div class="maarifazone-filter-group__title">LEVEL</div>
@@ -984,9 +959,6 @@
                     const level = $('input[name="level"]:checked').val();
                     if (level) filters.level = level;
 
-                    const deliveryMode = $('input[name="delivery_mode"]:checked').val();
-                    if (deliveryMode) filters.delivery_mode = deliveryMode;
-
                     const price = $('input[name="price"]:checked').val();
                     if (price) filters.price = price;
 
@@ -1080,7 +1052,6 @@
                     $('#searchFilterInput').val('');
                     $('input[name="category"][value=""]').prop('checked', true);
                     $('input[name="level"][value=""]').prop('checked', true);
-                    $('input[name="delivery_mode"][value=""]').prop('checked', true);
                     $('.price-radio').prop('checked', false);
                     $('.rating-radio').prop('checked', false);
                     $('#instructorFilterSelect').val('');

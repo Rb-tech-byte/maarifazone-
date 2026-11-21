@@ -43,7 +43,7 @@
             </span>
         @else
             <span class="maarifazone-portal-role-badge student d-none d-sm-inline-flex">
-                <i class="fa-solid fa-graduation-cap"></i> Student Campus
+                <i class="fa-solid fa-graduation-cap"></i> Scholar Portal
             </span>
         @endif
     </div>

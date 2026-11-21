@@ -489,7 +489,6 @@
 
 @section('content')
     @php
-        $campusInvoice = null;
         $isBundle = isset($isBundle) && $isBundle;
         $itemTitle = $course->title ?? '';
         $itemImage = !empty($course->featured_image)
@@ -545,24 +544,12 @@
                         @if ($isBundle)
                             <input type="hidden" name="type" value="bundle">
                         @endif
-                        @if (!empty($campusInvoice))
-                            <input type="hidden" name="invoice_id" value="{{ $campusInvoice->id }}">
-                            @if (request('pay'))
-                                <input type="hidden" name="pay" value="{{ request('pay') }}">
-                            @endif
-                        @endif
                         <input type="hidden" name="coupon_code" id="applied_coupon_code" value="">
 
-                        {{-- Card 1: Course / Invoice Overview --}}
+                        {{-- Card 1: Course Overview --}}
                         <div class="maarifazone-co-card">
                             <div class="maarifazone-co-card-title">
                                 <h2><span class="maarifazone-co-step-num">1</span> {{ __('frontend.course_summary') }}</h2>
-                                @if (!empty($campusInvoice))
-                                    <span class="maarifazone-co-badge">
-                                        <i class="fa-regular fa-file-invoice"></i>
-                                        {{ $campusInvoice->invoice_number }}
-                                    </span>
-                                @endif
                             </div>
 
                             <div class="maarifazone-co-course-row">
@@ -580,12 +567,6 @@
                                             <span class="maarifazone-co-badge">
                                                 <i class="fa-solid fa-layer-group"></i>
                                                 {{ ucwords(str_replace('_', ' ', $course->delivery_mode)) }}
-                                            </span>
-                                        @endif
-                                        @if (!empty($campusInvoice?->control_number))
-                                            <span class="maarifazone-co-badge">
-                                                <i class="fa-solid fa-hashtag"></i>
-                                                Control No: {{ $campusInvoice->control_number }}
                                             </span>
                                         @endif
                                     </div>
@@ -772,13 +753,6 @@
                             <strong>{{ \Illuminate\Support\Str::limit($itemTitle, 44) }}</strong>
                         </div>
 
-                        @if (!empty($campusInvoice))
-                            <div class="maarifazone-co-line">
-                                <span>Invoice Balance</span>
-                                <strong>{{ currency_format((float) $campusInvoice->balance) }}</strong>
-                            </div>
-                        @endif
-
                         <div class="maarifazone-co-line">
                             <span>Subtotal</span>
                             <span id="summary-original-price"><strong>{{ $price > 0 ? currency_format($price) : __('frontend.free') }}</strong></span>
@@ -801,7 +775,7 @@
                             <span id="summary-total-price" class="maarifazone-co-total__amount">{{ $formattedTotal }}</span>
                         </div>
 
-                        @if (!$isBundle && empty($campusInvoice) && $price > 0)
+                        @if (!$isBundle && $price > 0)
                             <div class="maarifazone-co-coupon">
                                 <label for="coupon_code_input" class="form-label small fw-semibold text-muted mb-1">Have a Promo Code?</label>
                                 <div class="maarifazone-co-coupon-row">

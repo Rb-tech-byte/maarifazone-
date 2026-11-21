@@ -9,22 +9,22 @@
  * @author Renatus Bernardo
  */
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Front\CoursesController;
-use App\Http\Controllers\Front\CourseEnrollmentController;
-use App\Http\Controllers\Front\ReviewController;
+use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Front\AboutController;
+use App\Http\Controllers\Front\BundleController;
 use App\Http\Controllers\Front\ContactController;
-use App\Http\Controllers\Front\InstructorController;
-use App\Http\Controllers\Front\TestimonialController;
+use App\Http\Controllers\Front\CourseEnrollmentController;
+use App\Http\Controllers\Front\CoursesController;
+use App\Http\Controllers\Front\CurrencyController;
 use App\Http\Controllers\Front\FaqController;
+use App\Http\Controllers\Front\HomeController;
+use App\Http\Controllers\Front\InstructorController;
 use App\Http\Controllers\Front\NewsletterController;
 use App\Http\Controllers\Front\PageController;
-use App\Http\Controllers\Front\HomeController;
-use App\Http\Controllers\Front\CurrencyController;
-use App\Http\Controllers\Front\BundleController;
-use App\Http\Controllers\Admin\ImpersonationController;
+use App\Http\Controllers\Front\ReviewController;
+use App\Http\Controllers\Front\TestimonialController;
 use App\Models\CustomPage;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/currency/{code}', CurrencyController::class)->name('currency.switch');
@@ -58,7 +58,6 @@ try {
             ->name('pages.legacy');
     }
 } catch (\Throwable $exception) {
-        
 }
 
 // FAQ routes

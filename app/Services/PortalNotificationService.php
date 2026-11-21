@@ -27,18 +27,19 @@ class PortalNotificationService
         ?string $dedupeTitle = null,
         int $dedupeMinutes = 0
     ): bool {
-        if (! $user || ! $this->notificationsTableReady()) {
+        if (!$user || !$this->notificationsTableReady()) {
             return false;
         }
 
         try {
             if ($dedupeMinutes > 0) {
                 $targetTitle = $dedupeTitle ?? $title;
-                $alreadySent = $user->notifications()
+                $alreadySent = $user
+                    ->notifications()
                     ->where('created_at', '>=', now()->subMinutes($dedupeMinutes))
                     ->limit(25)
                     ->get()
-                    ->contains(fn ($n) => ($n->data['title'] ?? '') === $targetTitle);
+                    ->contains(fn($n) => ($n->data['title'] ?? '') === $targetTitle);
 
                 if ($alreadySent) {
                     return false;
@@ -58,7 +59,7 @@ class PortalNotificationService
      */
     public function handleLogin(User $user): void
     {
-        if (! $this->notificationsTableReady()) {
+        if (!$this->notificationsTableReady()) {
             return;
         }
 
@@ -75,7 +76,7 @@ class PortalNotificationService
         );
 
         // Remind student if unresolved support ticket updates exist
-        if (! $user->isAdmin() && ! $user->isInstructor() && Schema::hasTable('support_tickets')) {
+        if (!$user->isAdmin() && !$user->isInstructor() && Schema::hasTable('support_tickets')) {
             try {
                 $openTickets = \App\Models\SupportTicket::where('user_id', $user->id)
                     ->whereIn('status', ['open', 'in_progress'])

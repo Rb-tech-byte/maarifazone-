@@ -254,4 +254,56 @@ class MaarifazoneThreeRoleWorkflowTest extends TestCase
             'is_admin_reply' => true,
         ]);
     }
+
+    public function test_courses_are_purely_online_with_no_face_to_face_or_hybrid_options(): void
+    {
+        // 1. Admin course builder create page renders cleanly without campus or F2F fields
+        $builderPage = $this->actingAs($this->admin)->get(route('admin.courses.create'));
+        $builderPage->assertStatus(200);
+        $builderPage->assertSee('100% Online Maarifa &amp; Learning', false);
+        $builderPage->assertDontSee('Face-to-Face (Campus / Short Course)', false);
+        $builderPage->assertDontSee('Hybrid (Campus + Online LMS)', false);
+        $builderPage->assertDontSee('Default Branch', false);
+        $builderPage->assertDontSee('Default Venue', false);
+
+        // 2. Creating a course defaults to 100% online delivery
+        $storeCourse = $this->actingAs($this->admin)->post(route('admin.courses.store'), [
+            'title'         => 'Pure Online DevOps Mastery ' . Str::random(4),
+            'instructor_id' => $this->instructor->id,
+            'description'   => 'A 100% online learning course in Maarifazone.',
+            'pricing_model' => 'free',
+            'status'        => 'published',
+            'visibility'    => 'public',
+        ]);
+        $storeCourse->assertRedirect();
+
+        $newCourse = Course::where('title', 'like', 'Pure Online DevOps Mastery%')->latest()->first();
+        $this->assertNotNull($newCourse);
+        $this->assertEquals('online', $newCourse->delivery_mode);
+        $this->assertTrue($newCourse->isOnline());
+        $this->assertFalse($newCourse->isFaceToFace());
+        $this->assertFalse($newCourse->isHybrid());
+        $this->assertFalse($newCourse->requiresApplicantForm());
+
+        // 3. Frontend courses catalog has no Face-to-Face or Hybrid mode filters
+        $catalogPage = $this->get(route('courses.index'));
+        $catalogPage->assertStatus(200);
+        $catalogPage->assertDontSee('DELIVERY MODE', false);
+        $catalogPage->assertDontSee('Face-to-Face (Campus)', false);
+        $catalogPage->assertDontSee('Hybrid (Online & Campus)', false);
+
+        // 4. Course details page displays pure online features and no campus F2F / attendance hurdles
+        $courseDetails = $this->get(route('courses.show', $newCourse->id));
+        $courseDetails->assertStatus(200);
+        $courseDetails->assertSee('100% Online Maarifa &amp; Learning', false);
+        $courseDetails->assertDontSee('Face-to-Face Campus Delivery', false);
+        $courseDetails->assertDontSee('Hybrid (Campus + Online LMS)', false);
+        $courseDetails->assertDontSee('GePG Control Number &amp; Installment Plans', false);
+        $courseDetails->assertDontSee('Attendance Clearance', false);
+
+        // 5. Admin reports page loads cleanly without broken campus routes
+        $reportsPage = $this->actingAs($this->admin)->get(route('admin.reports.index'));
+        $reportsPage->assertStatus(200);
+        $reportsPage->assertSee('Executive &amp; Online Learning Analytics Overview', false);
+    }
 }

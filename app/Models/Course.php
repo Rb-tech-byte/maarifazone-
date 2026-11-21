@@ -239,7 +239,7 @@ class Course extends Model
     public function getThumbnailAttribute()
     {
         if (! $this->featured_image) {
-            return asset('storage/courses/images/maarifazone-campus-ict.jpg');
+            return asset('assets/front/img/home-1/courses/courses-01.jpg');
         }
         if (str_starts_with($this->featured_image, 'http://') || str_starts_with($this->featured_image, 'https://')) {
             return $this->featured_image;

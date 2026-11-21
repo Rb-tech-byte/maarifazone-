@@ -66,8 +66,8 @@ class CoursesController extends Controller
             $query->whereRaw('LOWER(difficulty) = ?', [strtolower($request->level)]);
         }
 
-        if ($request->filled('delivery_mode') && in_array($request->delivery_mode, ['online', 'face_to_face', 'hybrid'], true)) {
-            $query->where('delivery_mode', $request->delivery_mode);
+        if ($request->filled('delivery_mode') && $request->delivery_mode === 'online') {
+            $query->where('delivery_mode', 'online');
         }
 
         if ($request->filled('rating')) {
@@ -336,7 +336,7 @@ class CoursesController extends Controller
                     'instructor' => optional($course->instructor)->name ?: 'Instructor',
                     'price_label' => $isFree ? 'Free' : $course->formatPrice($effectivePrice, 2, 'symbol'),
                     'is_free' => $isFree,
-                    'thumbnail' => $course->thumbnail ?: asset('storage/courses/images/maarifazone-campus-ict.jpg'),
+                    'thumbnail' => $course->thumbnail ?: asset('assets/front/img/home-1/courses/courses-01.jpg'),
                     'url' => route('courses.show', $course->id),
                 ];
             })

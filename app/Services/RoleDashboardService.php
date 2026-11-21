@@ -33,9 +33,6 @@ class RoleDashboardService
             'profile' => $profile,
             'role_label' => $user->primaryRoleLabel(),
             'scope_label' => 'Full Academy Oversight',
-            'is_multi_branch' => false,
-            'branches' => collect(),
-            'can_view_campus_metrics' => false,
         ];
 
         $now = now();

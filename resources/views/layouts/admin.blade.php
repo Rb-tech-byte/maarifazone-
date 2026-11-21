@@ -17,7 +17,6 @@
             'admin.account-deletions.*',
             'admin.languages.*',
             'admin.notifications.*',
-            'admin.campus.templates.*',
             'admin.audit-logs.*',
             'admin.backups.*',
             'admin.updater.*',

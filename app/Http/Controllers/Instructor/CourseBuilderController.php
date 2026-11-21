@@ -121,11 +121,8 @@ class CourseBuilderController extends Controller
             $course = Course::create([
                 'instructor_id' => $assignedInstructorId,
                 'assistant_instructor_id' => $request->filled('assistant_instructor_id') ? (int) $request->input('assistant_instructor_id') : null,
-                'course_type' => in_array($request->input('course_type'), ['course', 'quiz', 'test_series'], true) ? $request->input('course_type') : 'course',
-                'delivery_mode' => in_array($request->input('delivery_mode'), ['online', 'face_to_face', 'hybrid'], true) ? $request->input('delivery_mode') : 'online',
-                'default_branch_id' => $request->filled('default_branch_id') ? (int) $request->input('default_branch_id') : null,
-                'default_venue_id' => $request->filled('default_venue_id') ? (int) $request->input('default_venue_id') : null,
-                'duration_label' => $request->input('duration_label'),
+                'course_type' => 'course',
+                'delivery_mode' => 'online',
                 'drip_enabled' => filter_var($request->input('drip_enabled', false), FILTER_VALIDATE_BOOLEAN),
                 'title' => $request->title,
                 'description' => $request->description,
@@ -316,16 +313,8 @@ class CourseBuilderController extends Controller
             'id' => $course->id,
             'instructor_id' => $course->instructor_id,
             'assistant_instructor_id' => $course->assistant_instructor_id,
-            'course_type' => $course->course_type ?? 'course',
-            'delivery_mode' => $course->delivery_mode ?? 'online',
-            'default_branch_id' => $course->default_branch_id,
-            'default_venue_id' => $course->default_venue_id,
-            'duration_label' => $course->duration_label,
-            'attendance_threshold' => $course->attendance_threshold ?? 75,
-            'has_discount' => (bool) $course->has_discount,
-            'discount_amount' => $course->discount_amount ?? 0,
-            'allow_online_f2f_payment' => (bool) ($course->allow_online_f2f_payment ?? true),
-            'f2f_commission_enabled' => (bool) $course->f2f_commission_enabled,
+            'course_type' => 'course',
+            'delivery_mode' => 'online',
             'drip_enabled' => (bool) $course->drip_enabled,
             'status' => $course->status,
             'title' => $course->title,
@@ -457,11 +446,8 @@ class CourseBuilderController extends Controller
             }
 
             $updatePayload = [
-                'course_type' => in_array($request->input('course_type'), ['course', 'quiz', 'test_series'], true) ? $request->input('course_type') : ($course->course_type ?? 'course'),
-                'delivery_mode' => in_array($request->input('delivery_mode'), ['online', 'face_to_face', 'hybrid'], true) ? $request->input('delivery_mode') : ($course->delivery_mode ?? 'online'),
-                'default_branch_id' => $request->filled('default_branch_id') ? (int) $request->input('default_branch_id') : null,
-                'default_venue_id' => $request->filled('default_venue_id') ? (int) $request->input('default_venue_id') : null,
-                'duration_label' => $request->input('duration_label'),
+                'course_type' => 'course',
+                'delivery_mode' => 'online',
                 'drip_enabled' => filter_var($request->input('drip_enabled', $course->drip_enabled), FILTER_VALIDATE_BOOLEAN),
                 'title' => $request->title,
                 'description' => $request->description,
@@ -824,8 +810,6 @@ class CourseBuilderController extends Controller
                 ->orderBy('name')
                 ->get(['id', 'name', 'email']),
             'questionBanks' => collect([]),
-            'campusBranches' => collect([]),
-            'campusVenues' => collect([]),
         ];
     }
 

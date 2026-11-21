@@ -25,19 +25,10 @@ class CourseController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Course::with(['instructor', 'categoryRelation', 'defaultBranch:id,name', 'defaultVenue:id,name'])
+        $query = Course::with(['instructor', 'categoryRelation'])
             ->where('status', 'published')
-            ->where('visibility', 'public');
-
-        // Delivery Mode Filter (online, face_to_face, hybrid)
-        if ($request->filled('delivery_mode') && in_array($request->delivery_mode, ['online', 'face_to_face', 'hybrid'], true)) {
-            $query->where('delivery_mode', $request->delivery_mode);
-        }
-
-        // Branch Filter
-        if ($request->filled('branch_id')) {
-            $query->where('default_branch_id', $request->integer('branch_id'));
-        }
+            ->where('visibility', 'public')
+            ->where('delivery_mode', 'online');
 
         // Search
         if ($request->has('search') && !empty($request->search)) {
@@ -100,11 +91,7 @@ class CourseController extends Controller
     {
         $course = Course::with([
             'instructor',
-            'defaultBranch:id,name',
-            'defaultVenue:id,name',
             'topics.lessons',
-            'topics.quizzes.questions',
-            'topics.assignments.files',
             'reviews.user',
             'reviews.replies.user'
         ])
@@ -165,24 +152,11 @@ class CourseController extends Controller
             ->limit(5)
             ->get();
 
-        $upcomingCohorts = $course->requiresApplicantForm()
-            ? \App\Models\CourseAssignment::withoutGlobalScope('branch')
-                ->with(['branch:id,name', 'venue:id,name', 'instructor:id,name'])
-                ->where('course_id', $course->id)
-                ->where('status', 'active')
-                ->orderBy('start_date')
-                ->get()
-            : collect();
-
         return response()->json([
             'success' => true,
             'data' => [
                 'course' => $course,
-                'delivery_mode' => $course->delivery_mode ?? 'online',
-                'requires_applicant_form' => $course->requiresApplicantForm(),
-                'allow_online_f2f_payment' => (bool) ($course->allow_online_f2f_payment ?? true),
-                'attendance_threshold' => (int) ($course->attendance_threshold ?? 75),
-                'upcoming_cohorts' => $upcomingCohorts,
+                'delivery_mode' => 'online',
                 'lesson_count' => $lessonCount,
                 'total_duration' => $totalDuration,
                 'course_start_date' => $courseStartDate,

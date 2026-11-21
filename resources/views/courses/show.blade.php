@@ -1519,72 +1519,31 @@
 
                             <div class="maarifazone-cd-sidebar__includes-title">THIS COURSE INCLUDES</div>
                             <ul class="maarifazone-cd-sidebar__includes-list">
-                                @if($course->requiresApplicantForm())
-                                    <li>
-                                        <i class="fa-solid fa-chalkboard-user"></i>
-                                        <span>{{ $course->isHybrid() ? 'Hybrid (Campus + Online LMS)' : 'Face-to-Face Campus Delivery' }}</span>
-                                    </li>
-                                    @if($course->defaultBranch)
-                                        <li>
-                                            <i class="fa-solid fa-location-dot"></i>
-                                            <span>{{ $course->defaultBranch->name }}{{ $course->defaultVenue ? ' · ' . $course->defaultVenue->name : '' }}</span>
-                                        </li>
-                                    @endif
-                                    <li>
-                                        <i class="fa-solid fa-barcode"></i>
-                                        <span>GePG Control Number &amp; Installment Plans</span>
-                                    </li>
-                                    <li>
-                                        <i class="fa-solid fa-clipboard-user"></i>
-                                        <span>Min {{ $course->attendance_threshold ?? 75 }}% Attendance Clearance</span>
-                                    </li>
-                                @else
-                                    <li>
-                                        <i class="fa-regular fa-circle-play"></i>
-                                        <span>{{ $lessonCount }} {{ $lessonCount === 1 ? 'lesson' : 'lessons' }}</span>
-                                    </li>
-                                    <li>
-                                        <i class="fa-regular fa-clock"></i>
-                                        <span>{{ $formattedDuration }} total duration</span>
-                                    </li>
-                                @endif
+                                <li>
+                                    <i class="fa-solid fa-laptop-file"></i>
+                                    <span>100% Online Maarifa &amp; Learning</span>
+                                </li>
+                                <li>
+                                    <i class="fa-regular fa-circle-play"></i>
+                                    <span>{{ $lessonCount }} {{ $lessonCount === 1 ? 'lesson' : 'lessons' }}</span>
+                                </li>
+                                <li>
+                                    <i class="fa-regular fa-clock"></i>
+                                    <span>{{ $formattedDuration }} total duration</span>
+                                </li>
                                 <li>
                                     <i class="fa-solid fa-signal"></i>
                                     <span>{{ ucfirst($course->difficulty ?? 'Beginner') }} level</span>
                                 </li>
                                 <li>
-                                    <i class="fa-solid fa-award"></i>
-                                    <span>Certificate of completion</span>
+                                    <i class="fa-solid fa-comments"></i>
+                                    <span>Course discussions &amp; study community</span>
+                                </li>
+                                <li>
+                                    <i class="fa-solid fa-infinity"></i>
+                                    <span>Full lifetime access</span>
                                 </li>
                             </ul>
-
-                            @if($course->requiresApplicantForm())
-                                @php
-                                    $upcomingCohorts = \App\Models\CourseAssignment::withoutGlobalScope('branch')
-                                        ->with(['branch:id,name', 'venue:id,name'])
-                                        ->where('course_id', $course->id)
-                                        ->where('status', 'active')
-                                        ->orderBy('start_date')
-                                        ->take(3)
-                                        ->get();
-                                @endphp
-                                @if($upcomingCohorts->isNotEmpty())
-                                    <div class="maarifazone-cd-sidebar__divider"></div>
-                                    <div class="maarifazone-cd-sidebar__includes-title">UPCOMING COHORTS</div>
-                                    <ul class="maarifazone-cd-sidebar__includes-list">
-                                        @foreach($upcomingCohorts as $cohort)
-                                            <li>
-                                                <i class="fa-regular fa-calendar"></i>
-                                                <span>
-                                                    {{ optional($cohort->start_date)->format('M d, Y') }}
-                                                    &bull; {{ ucfirst($cohort->session) }}
-                                                    @if($cohort->branch) ({{ $cohort->branch->name }}) @endif
-                                                </span>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-                            @endif
                         </aside>
                     </div>
                 </div>
