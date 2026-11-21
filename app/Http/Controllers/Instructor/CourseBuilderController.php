@@ -66,8 +66,8 @@ class CourseBuilderController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role !== 'admin' && !$user->is_approved) {
-            return redirect()->route('instructor.pending');
+        if ($user->role !== 'admin') {
+            abort(403, 'Courses are created and curated exclusively by Maarifazone Administration.');
         }
 
         return view('instructor.course-builder', array_merge([
@@ -86,8 +86,8 @@ class CourseBuilderController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role !== 'admin' && !$user->is_approved) {
-            return redirect()->route('instructor.pending')->with('error', 'Your instructor account is not approved yet.');
+        if ($user->role !== 'admin') {
+            abort(403, 'Courses are created and curated exclusively by Maarifazone Administration.');
         }
 
         $taxonomy = $this->resolveTaxonomySelections($request);
@@ -324,8 +324,8 @@ class CourseBuilderController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role !== 'admin' && !$user->is_approved) {
-            return redirect()->route('instructor.pending');
+        if ($user->role !== 'admin') {
+            abort(403, 'Courses are edited and managed exclusively by Maarifazone Administration.');
         }
 
         $course = Course::with([
@@ -333,10 +333,6 @@ class CourseBuilderController extends Controller
             'coInstructors.user:id,name,email',
             'faqs',
         ])->findOrFail($id);
-
-        if (!$course->canUserManageCurriculum($user)) {
-            abort(403, 'Unauthorized action.');
-        }
 
         $courseDataArray = [
             'id' => $course->id,
@@ -430,18 +426,14 @@ class CourseBuilderController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role !== 'admin' && !$user->is_approved) {
-            return redirect()->route('instructor.pending')->with('error', 'Your instructor account is not approved yet.');
+        if ($user->role !== 'admin') {
+            abort(403, 'Courses are edited and managed exclusively by Maarifazone Administration.');
         }
 
         $course = Course::findOrFail($id);
 
-        if (!$course->canUserManageCurriculum($user)) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $isAdmin = $user->role === 'admin';
-        $canManagePricingAndTeam = $course->canUserManagePricingAndTeam($user);
+        $isAdmin = true;
+        $canManagePricingAndTeam = true;
 
         $taxonomy = $this->resolveTaxonomySelections($request);
         $categoryModel = $taxonomy['category'];
@@ -856,12 +848,11 @@ class CourseBuilderController extends Controller
             'selectedLanguageId' => old('course_language_id', $course?->course_language_id),
             'selectedCategoryLabel' => old('category_label', $course?->category),
             'selectedLanguageLabel' => old('language_label', $course?->language),
-            'isAdminBuilder' => $user?->role === 'admin',
-            'canManagePricingAndTeam' => $course ? $course->canUserManagePricingAndTeam($user) : true,
+            'isAdminBuilder' => true,
+            'canManagePricingAndTeam' => true,
             'instructorsList' => User::where('role', 'instructor')
-                ->where('is_approved', true)
                 ->orderBy('name')
-                ->get(['id', 'name', 'email']),
+                ->get(['id', 'name', 'email', 'is_approved']),
             'questionBanks' => collect([]),
         ];
     }
@@ -937,6 +928,10 @@ class CourseBuilderController extends Controller
      */
     public function generateDescription(Request $request, \App\Services\GeminiService $geminiService)
     {
+        if (Auth::user()?->role !== 'admin') {
+            abort(403, 'AI tools are restricted to Maarifazone Administration.');
+        }
+
         $request->validate([
             'title' => 'required|string|max:255',
         ]);
@@ -982,6 +977,10 @@ class CourseBuilderController extends Controller
      */
     public function aiCourseBuilder(Request $request, GeminiService $geminiService): JsonResponse
     {
+        if (Auth::user()?->role !== 'admin') {
+            abort(403, 'AI tools are restricted to Maarifazone Administration.');
+        }
+
         $request->validate([
             'prompt' => 'required|string|max:2000',
             'document' => 'nullable|file|mimes:txt,md,csv,html,json|max:2048',
@@ -1006,6 +1005,10 @@ class CourseBuilderController extends Controller
      */
     public function aiStudio(Request $request, GeminiService $geminiService): JsonResponse
     {
+        if (Auth::user()?->role !== 'admin') {
+            abort(403, 'AI tools are restricted to Maarifazone Administration.');
+        }
+
         $request->validate([
             'mode' => 'required|in:outline,lesson_text,quiz_questions,assignment_rubric,faqs,marketing_copy',
             'prompt' => 'required|string|max:2000',
@@ -1036,6 +1039,10 @@ class CourseBuilderController extends Controller
      */
     public function importYoutubePlaylist(Request $request, YouTubePlaylistService $ytService): JsonResponse
     {
+        if (Auth::user()?->role !== 'admin') {
+            abort(403, 'Curriculum import tools are restricted to Maarifazone Administration.');
+        }
+
         $request->validate([
             'playlist_url' => 'required|string|max:500',
         ]);

@@ -7,6 +7,7 @@ use App\Models\CourseTopic;
 use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Models\User;
+use Database\Seeders\AdminSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Hash;
@@ -41,6 +42,7 @@ class MaarifazoneThreeRoleWorkflowTest extends TestCase
         URL::forceRootUrl('http://localhost');
 
         $this->seed(RoleSeeder::class);
+        $this->seed(AdminSeeder::class);
 
         $this->admin = User::create([
             'name'                => 'System Administrator',

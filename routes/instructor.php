@@ -46,12 +46,21 @@ Route::middleware(['auth', 'role:instructor'])->prefix('instructor')->name('inst
     Route::get('/courses/create', function () {
         return redirect()->route('instructor.courses')->with('error', 'Course creation is managed by Maarifazone Administration. Courses are assigned to you by Admin.');
     })->name('courses.create');
+    Route::post('/courses', function () {
+        abort(403, 'Courses are created and curated exclusively by Maarifazone Administration.');
+    });
     Route::get('/courses/{course}', function (\App\Models\Course $course) {
         return redirect()->route('courses.show', $course->id);
     })->name('courses.show');
     Route::get('/courses/{course}/edit', function (\App\Models\Course $course) {
         return redirect()->route('courses.show', $course->id);
     })->name('courses.edit');
+    Route::put('/courses/{course}', function () {
+        abort(403, 'Courses are edited and managed exclusively by Maarifazone Administration.');
+    });
+    Route::delete('/courses/{course}', function () {
+        abort(403, 'Courses are managed exclusively by Maarifazone Administration.');
+    });
 
     Route::get('/students', [StudentsController::class, 'index'])->name('students');
     Route::get('/students/{id}', [StudentsController::class, 'show'])->name('students.show');

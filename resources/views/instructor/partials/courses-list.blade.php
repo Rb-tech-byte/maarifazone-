@@ -34,7 +34,7 @@
             </div>
 
             <h5 class="student-course-title mb-2">
-                <a href="{{ route('instructor.courses.edit', $course['id']) }}" class="text-decoration-none text-dark">
+                <a href="{{ route('courses.show', $course['id']) }}" class="text-decoration-none text-dark" target="_blank">
                     {{ $course['title'] }}
                 </a>
             </h5>
@@ -56,8 +56,8 @@
         </div>
 
         <div class="student-course-actions">
-            <a href="{{ route('instructor.courses.edit', $course['id']) }}" class="btn btn-primary btn-sm px-3">
-                <i class="fa-solid fa-sliders me-1"></i>Manage
+            <a href="{{ route('courses.show', $course['id']) }}" class="btn btn-outline-primary btn-sm px-3" target="_blank">
+                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>View Course
             </a>
 
             <div class="dropdown">
@@ -72,18 +72,23 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                     <li>
-                        <a class="dropdown-item" href="{{ route('instructor.courses.edit', $course['id']) }}">
-                            <i class="fa-solid fa-pen-to-square me-2 text-primary"></i>Edit Course
+                        <a class="dropdown-item" href="{{ route('courses.show', $course['id']) }}" target="_blank" rel="noopener">
+                            <i class="fa-solid fa-arrow-up-right-from-square me-2 text-primary"></i>View Public Page
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="{{ route('courses.show', $course['id']) }}" target="_blank" rel="noopener">
-                            <i class="fa-solid fa-arrow-up-right-from-square me-2 text-secondary"></i>View Public Page
+                        <a class="dropdown-item" href="{{ route('instructor.students') }}">
+                            <i class="fa-solid fa-users me-2 text-info"></i>Enrolled Scholars
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{{ route('instructor.live-classes.index') }}">
+                            <i class="fa-solid fa-video me-2 text-danger"></i>Live Sessions
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item" href="{{ route('instructor.discussions.index') }}">
-                            <i class="fa-solid fa-comments me-2 text-info"></i>Course Forums
+                            <i class="fa-solid fa-comments me-2 text-success"></i>Course Forums
                         </a>
                     </li>
                     <li><hr class="dropdown-divider"></li>

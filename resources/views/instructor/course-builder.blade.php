@@ -58,9 +58,7 @@
                     </div>
 
                     @php
-                        $formAction = !empty($isAdminBuilder)
-                            ? (isset($course) ? route('admin.courses.update', $course->id) : route('admin.courses.store'))
-                            : (isset($course) ? route('instructor.courses.update', $course->id) : route('instructor.courses.store'));
+                        $formAction = isset($course) ? route('admin.courses.update', $course->id) : route('admin.courses.store');
                     @endphp
                     <form id="courseBuilderForm" class="course-builder-form" method="POST"
                         action="{{ $formAction }}"
@@ -219,29 +217,39 @@
                                                     </div>
                                                 </div>
 
-                                                <div class="form-row">
-                                                    @if(!empty($isAdminBuilder))
-                                                        <div class="form-group">
-                                                            <label>Assign Instructor</label>
-                                                            <select name="instructor_id" class="form-control">
+                                                <div class="card border-0 bg-light rounded-3 p-3 my-3 border">
+                                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                                        <i class="fa-solid fa-chalkboard-user text-primary" style="font-size: 1.25rem;"></i>
+                                                        <div>
+                                                            <h6 class="mb-0 fw-bold">Assigned Registered Instructor</h6>
+                                                            <small class="text-muted" style="font-size: 0.8rem;">Maarifazone Administration curates and creates courses, then assigns registered instructors who facilitate scholar questions, reviews, and live sessions.</small>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-row mt-2">
+                                                        <div class="form-group col-md-6">
+                                                            <label class="fw-semibold">Primary Instructor <span class="text-danger">*</span></label>
+                                                            <select name="instructor_id" class="form-control" required>
+                                                                <option value="">-- Choose Registered Instructor --</option>
                                                                 @foreach($instructorsList as $inst)
-                                                                    <option value="{{ $inst->id }}" {{ (int) old('instructor_id', $course->instructor_id ?? auth()->id()) === (int) $inst->id ? 'selected' : '' }}>
-                                                                        {{ $inst->name }} ({{ $inst->email }})
+                                                                    <option value="{{ $inst->id }}" {{ (int) old('instructor_id', $course->instructor_id ?? '') === (int) $inst->id ? 'selected' : '' }}>
+                                                                        {{ $inst->name }} ({{ $inst->email }}){{ !empty($inst->is_approved) ? '' : ' [Pending Approval]' }}
                                                                     </option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
-                                                    @endif
-                                                    <div class="form-group">
-                                                        <label>Assistant Instructor</label>
-                                                        <select name="assistant_instructor_id" class="form-control" {{ empty($canManagePricingAndTeam) ? 'disabled' : '' }}>
-                                                            <option value="">Select</option>
-                                                            @foreach($instructorsList as $inst)
-                                                                <option value="{{ $inst->id }}" {{ (int) old('assistant_instructor_id', $course->assistant_instructor_id ?? 0) === (int) $inst->id ? 'selected' : '' }}>
-                                                                    {{ $inst->name }} ({{ $inst->email }})
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
+
+                                                        <div class="form-group col-md-6">
+                                                            <label class="fw-semibold">Assistant Instructor (Optional)</label>
+                                                            <select name="assistant_instructor_id" class="form-control">
+                                                                <option value="">-- None --</option>
+                                                                @foreach($instructorsList as $inst)
+                                                                    <option value="{{ $inst->id }}" {{ (int) old('assistant_instructor_id', $course->assistant_instructor_id ?? 0) === (int) $inst->id ? 'selected' : '' }}>
+                                                                        {{ $inst->name }} ({{ $inst->email }}){{ !empty($inst->is_approved) ? '' : ' [Pending Approval]' }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -761,7 +769,7 @@
                         }
                         overlay.style.display = 'flex';
 
-                        fetch('{{ !empty($isAdminBuilder) ? route('admin.courses.generate-description') : (Route::has('instructor.courses.generate-description') ? route('instructor.courses.generate-description') : route('admin.courses.generate-description')) }}', {
+                        fetch('{{ route('admin.courses.generate-description') }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -811,9 +819,9 @@
             });
 
             window.courseBuilderRoutes = {
-                aiBuilder: "{{ !empty($isAdminBuilder) ? route('admin.courses.ai-builder') : route('instructor.courses.ai-builder') }}",
-                aiStudio: "{{ !empty($isAdminBuilder) ? route('admin.courses.ai-studio') : route('instructor.courses.ai-studio') }}",
-                importYoutube: "{{ !empty($isAdminBuilder) ? route('admin.courses.import-youtube-playlist') : route('instructor.courses.import-youtube-playlist') }}",
+                aiBuilder: "{{ route('admin.courses.ai-builder') }}",
+                aiStudio: "{{ route('admin.courses.ai-studio') }}",
+                importYoutube: "{{ route('admin.courses.import-youtube-playlist') }}",
                 csrf: "{{ csrf_token() }}"
             };
 
