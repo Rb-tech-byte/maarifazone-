@@ -20,17 +20,12 @@ APP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${APP_DIR}"
 
 detect_php_bin() {
-  for candidate in \
-    "${PHP_BIN:-}" \
-    "$(command -v php || true)" \
-    /usr/local/lsws/lsphp85/bin/php \
-    /usr/local/lsws/lsphp84/bin/php \
-    /usr/local/lsws/lsphp83/bin/php \
-    /usr/local/bin/ea-php83 \
-    /usr/bin/php8.3; do
-    if [[ -n "${candidate}" ]] && [[ -x "${candidate}" ]]; then
-      if "${candidate}" -r 'exit(version_compare(PHP_VERSION, "8.3.0", ">=") ? 0 : 1);' >/dev/null 2>&1; then
-        printf '%s' "${candidate}"
+  for candidate in "${PHP_BIN:-}" php8.4 php8.3 php; do
+    if [[ -n "${candidate}" ]] && command -v "${candidate}" >/dev/null 2>&1; then
+      local resolved
+      resolved="$(command -v "${candidate}")"
+      if "${resolved}" -r 'exit(version_compare(PHP_VERSION, "8.2.0", ">=") ? 0 : 1);' >/dev/null 2>&1; then
+        printf '%s' "${resolved}"
         return 0
       fi
     fi
@@ -91,7 +86,7 @@ for arg in "$@"; do
 done
 
 if [[ -z "${PHP_BIN}" ]] || ! command -v "${PHP_BIN}" >/dev/null 2>&1; then
-  echo "ERROR: PHP binary not found. Pass --php=/path/to/php (e.g., /usr/local/lsws/lsphp83/bin/php)." >&2
+  echo "ERROR: PHP binary not found in PATH. Pass --php=<php-command> or set PHP_BIN." >&2
   exit 1
 fi
 

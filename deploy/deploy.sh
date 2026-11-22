@@ -18,17 +18,12 @@ cd "${APP_DIR}"
 
 BRANCH="${DEPLOY_BRANCH:-main}"
 detect_php_bin() {
-  for candidate in \
-    "${PHP_BIN:-}" \
-    "$(command -v php || true)" \
-    /usr/local/lsws/lsphp85/bin/php \
-    /usr/local/lsws/lsphp84/bin/php \
-    /usr/local/lsws/lsphp83/bin/php \
-    /usr/local/bin/ea-php83 \
-    /usr/bin/php8.3; do
-    if [[ -n "${candidate}" ]] && [[ -x "${candidate}" ]]; then
-      if "${candidate}" -r 'exit(version_compare(PHP_VERSION, "8.3.0", ">=") ? 0 : 1);' >/dev/null 2>&1; then
-        printf '%s' "${candidate}"
+  for candidate in "${PHP_BIN:-}" php8.4 php8.3 php; do
+    if [[ -n "${candidate}" ]] && command -v "${candidate}" >/dev/null 2>&1; then
+      local resolved
+      resolved="$(command -v "${candidate}")"
+      if "${resolved}" -r 'exit(version_compare(PHP_VERSION, "8.2.0", ">=") ? 0 : 1);' >/dev/null 2>&1; then
+        printf '%s' "${resolved}"
         return 0
       fi
     fi
@@ -335,11 +330,14 @@ if [[ "$(id -u)" -eq 0 ]] && command -v stat >/dev/null 2>&1; then
   fi
 fi
 
-# OpenLiteSpeed caches .htaccess in memory until restarted
-if [[ "$(id -u)" -eq 0 ]] && [[ -x /usr/local/lsws/bin/lswsctrl ]]; then
-  log "Reloading OpenLiteSpeed so .htaccess & PHP caches refresh cleanly..."
-  /usr/local/lsws/bin/lswsctrl restart >/dev/null 2>&1 || systemctl restart lsws >/dev/null 2>&1 || true
-  sleep 2
+# Reload web server / PHP-FPM service if running as root
+if [[ "$(id -u)" -eq 0 ]] && command -v systemctl >/dev/null 2>&1; then
+  for svc in apache2 httpd nginx lsws php8.3-fpm php8.4-fpm php-fpm; do
+    if systemctl is-active --quiet "${svc}" 2>/dev/null; then
+      log "Reloading active service: ${svc}..."
+      systemctl reload "${svc}" >/dev/null 2>&1 || systemctl restart "${svc}" >/dev/null 2>&1 || true
+    fi
+  done
 fi
 
 # 10. Post-deploy HTTP smoke check
