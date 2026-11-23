@@ -63,7 +63,11 @@ for arg in "$@"; do
   esac
 done
 
-# If executed accidently from /root on a cPanel server, automatically relocate into the cPanel account's public_html
+# Guard against terminal paste line-wrap concatenating --db-user="...""--db-pass=..."
+if [[ "${DB_USER}" == *"--db-pass="* ]]; then
+  DB_PASS="${DB_USER#*--db-pass=}"
+  DB_USER="${DB_USER%%--db-pass=*}"
+fi
 if [[ -n "${TARGET_DIR}" ]]; then
   APP_DIR="${TARGET_DIR}"
 elif [[ "${APP_DIR}" == "/root" ]] || [[ "${APP_DIR}" == "/root/"* ]]; then
@@ -80,36 +84,50 @@ mkdir -p "${APP_DIR}"
 cd "${APP_DIR}"
 echo "==> Target deployment directory: ${APP_DIR}"
 
-# Discover genuine PHP 8.2+ CLI binary (skips cPanel cgi-fcgi wrappers that reject -r and artisan)
+# Discover genuine PHP 8.2+ CLI binary with pdo_mysql & tokenizer loaded (prefers ea-php83 on cPanel)
 detect_php_bin() {
   local candidates=()
   [[ -n "${PHP_BIN:-}" ]] && candidates+=("${PHP_BIN}")
-  for cmd in ea-php84 ea-php83 php8.4 php8.3 php-cli php; do
+  for opt_bin in \
+    /opt/cpanel/ea-php83/root/usr/bin/php \
+    /opt/cpanel/ea-php82/root/usr/bin/php \
+    /opt/cpanel/ea-php84/root/usr/bin/php \
+    /usr/local/bin/ea-php83 \
+    /usr/local/bin/ea-php82 \
+    /usr/local/bin/ea-php84 \
+    /usr/local/bin/php; do
+    [[ -x "${opt_bin}" ]] && candidates+=("${opt_bin}")
+  done
+  for cmd in ea-php83 ea-php82 ea-php84 php8.3 php8.2 php8.4 php-cli php; do
     if command -v "${cmd}" >/dev/null 2>&1; then
       candidates+=("$(command -v "${cmd}")")
     fi
   done
-  for opt_bin in /opt/cpanel/ea-php84/root/usr/bin/php /opt/cpanel/ea-php83/root/usr/bin/php /usr/local/bin/ea-php84 /usr/local/bin/ea-php83 /usr/local/bin/php; do
-    [[ -x "${opt_bin}" ]] && candidates+=("${opt_bin}")
-  done
 
+  # 1st pass: CLI binary with PHP >= 8.2 AND pdo_mysql + tokenizer extensions loaded
   for bin in "${candidates[@]}"; do
     if [[ -n "${bin}" ]] && [[ -x "${bin}" ]]; then
-      if "${bin}" -v 2>/dev/null | grep -q "(cli)" && "${bin}" -r 'exit(version_compare(PHP_VERSION,"8.2.0",">=")?0:1);' >/dev/null 2>&1; then
+      if "${bin}" -v 2>/dev/null | grep -q "(cli)" \
+         && "${bin}" -m 2>/dev/null | grep -iq "^pdo_mysql$" \
+         && "${bin}" -m 2>/dev/null | grep -iq "^tokenizer$" \
+         && "${bin}" -r 'exit(version_compare(PHP_VERSION,"8.2.0",">=")?0:1);' >/dev/null 2>&1; then
         printf '%s' "${bin}"
         return 0
       fi
     fi
   done
 
+  # 2nd pass: any CLI binary with PHP >= 8.2
   for bin in "${candidates[@]}"; do
     if [[ -n "${bin}" ]] && [[ -x "${bin}" ]]; then
-      if "${bin}" -r 'exit(version_compare(PHP_VERSION,"8.2.0",">=")?0:1);' >/dev/null 2>&1; then
+      if "${bin}" -v 2>/dev/null | grep -q "(cli)" \
+         && "${bin}" -r 'exit(version_compare(PHP_VERSION,"8.2.0",">=")?0:1);' >/dev/null 2>&1; then
         printf '%s' "${bin}"
         return 0
       fi
     fi
   done
+
   command -v php || true
 }
 
@@ -245,21 +263,30 @@ chmod -R ug+rwX storage bootstrap/cache
 
 if [[ ! -f "${APP_DIR}/vendor/autoload.php" ]]; then
   export COMPOSER_ALLOW_SUPERUSER=1
-  COMPOSER_BIN="${COMPOSER_BIN:-$(command -v composer || true)}"
-  if [[ ! -f "${APP_DIR}/composer.phar" ]]; then
-    echo "==> Downloading composer.phar locally..."
-    "${PHP_BIN}" -r 'copy("https://getcomposer.org/installer","composer-setup.php");'
-    "${PHP_BIN}" composer-setup.php --quiet
-    rm -f composer-setup.php
+  COMPOSER_SCRIPT=""
+  for c_candidate in "${APP_DIR}/composer.phar" /opt/cpanel/composer/bin/composer /usr/local/bin/composer /usr/bin/composer "$(command -v composer 2>/dev/null || true)"; do
+    if [[ -n "${c_candidate}" ]] && [[ -f "${c_candidate}" ]]; then
+      COMPOSER_SCRIPT="${c_candidate}"
+      break
+    fi
+  done
+
+  if [[ -z "${COMPOSER_SCRIPT}" ]]; then
+    echo "==> Downloading composer.phar via curl/wget..."
+    if command -v curl >/dev/null 2>&1; then
+      curl -fsSL https://getcomposer.org/download/latest-stable/composer.phar -o "${APP_DIR}/composer.phar"
+    elif command -v wget >/dev/null 2>&1; then
+      wget -qO "${APP_DIR}/composer.phar" https://getcomposer.org/download/latest-stable/composer.phar
+    fi
+    chmod +x "${APP_DIR}/composer.phar" 2>/dev/null || true
+    [[ -f "${APP_DIR}/composer.phar" ]] && COMPOSER_SCRIPT="${APP_DIR}/composer.phar"
   fi
-  if [[ -f "${APP_DIR}/composer.phar" ]]; then
-    echo "==> Installing Composer production dependencies via composer.phar..."
-    CACHE_STORE=array "${PHP_BIN}" "${APP_DIR}/composer.phar" install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-scripts
-  elif [[ -n "${COMPOSER_BIN}" ]]; then
-    echo "==> Installing Composer production dependencies..."
-    CACHE_STORE=array "${PHP_BIN}" "$(command -v "${COMPOSER_BIN}")" install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-scripts
+
+  if [[ -n "${COMPOSER_SCRIPT}" ]]; then
+    echo "==> Installing Composer production dependencies using ${PHP_BIN} ${COMPOSER_SCRIPT}..."
+    CACHE_STORE=array "${PHP_BIN}" -d allow_url_fopen=1 -d memory_limit=-1 "${COMPOSER_SCRIPT}" install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-scripts
   else
-    echo "ERROR: composer not found. Install composer before running setup." >&2
+    echo "ERROR: composer not found and could not download composer.phar." >&2
     exit 1
   fi
 fi

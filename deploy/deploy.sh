@@ -17,22 +17,32 @@ cd "${APP_DIR}"
 
 BRANCH="${DEPLOY_BRANCH:-main}"
 
-# Discover genuine PHP 8.2+ CLI binary (skips cPanel cgi-fcgi wrappers that reject -r and artisan)
+# Discover genuine PHP 8.2+ CLI binary with pdo_mysql & tokenizer loaded (prefers ea-php83 on cPanel)
 detect_php_bin() {
   local candidates=()
   [[ -n "${PHP_BIN:-}" ]] && candidates+=("${PHP_BIN}")
-  for cmd in ea-php84 ea-php83 php8.4 php8.3 php-cli php; do
+  for opt_bin in \
+    /opt/cpanel/ea-php83/root/usr/bin/php \
+    /opt/cpanel/ea-php82/root/usr/bin/php \
+    /opt/cpanel/ea-php84/root/usr/bin/php \
+    /usr/local/bin/ea-php83 \
+    /usr/local/bin/ea-php82 \
+    /usr/local/bin/ea-php84 \
+    /usr/local/bin/php; do
+    [[ -x "${opt_bin}" ]] && candidates+=("${opt_bin}")
+  done
+  for cmd in ea-php83 ea-php82 ea-php84 php8.3 php8.2 php8.4 php-cli php; do
     if command -v "${cmd}" >/dev/null 2>&1; then
       candidates+=("$(command -v "${cmd}")")
     fi
   done
-  for opt_bin in /opt/cpanel/ea-php84/root/usr/bin/php /opt/cpanel/ea-php83/root/usr/bin/php /usr/local/bin/ea-php84 /usr/local/bin/ea-php83 /usr/local/bin/php; do
-    [[ -x "${opt_bin}" ]] && candidates+=("${opt_bin}")
-  done
 
   for bin in "${candidates[@]}"; do
     if [[ -n "${bin}" ]] && [[ -x "${bin}" ]]; then
-      if "${bin}" -v 2>/dev/null | grep -q "(cli)" && "${bin}" -r 'exit(version_compare(PHP_VERSION,"8.2.0",">=")?0:1);' >/dev/null 2>&1; then
+      if "${bin}" -v 2>/dev/null | grep -q "(cli)" \
+         && "${bin}" -m 2>/dev/null | grep -iq "^pdo_mysql$" \
+         && "${bin}" -m 2>/dev/null | grep -iq "^tokenizer$" \
+         && "${bin}" -r 'exit(version_compare(PHP_VERSION,"8.2.0",">=")?0:1);' >/dev/null 2>&1; then
         printf '%s' "${bin}"
         return 0
       fi
@@ -41,12 +51,14 @@ detect_php_bin() {
 
   for bin in "${candidates[@]}"; do
     if [[ -n "${bin}" ]] && [[ -x "${bin}" ]]; then
-      if "${bin}" -r 'exit(version_compare(PHP_VERSION,"8.2.0",">=")?0:1);' >/dev/null 2>&1; then
+      if "${bin}" -v 2>/dev/null | grep -q "(cli)" \
+         && "${bin}" -r 'exit(version_compare(PHP_VERSION,"8.2.0",">=")?0:1);' >/dev/null 2>&1; then
         printf '%s' "${bin}"
         return 0
       fi
     fi
   done
+
   command -v php || true
 }
 
@@ -211,19 +223,29 @@ if [[ "${NO_GIT}" != "true" ]] && command -v git >/dev/null 2>&1; then
   git reset --hard "origin/${BRANCH}"
 fi
 
-# 3. Install Composer production dependencies (always run composer.phar via PHP_BIN CLI so it never invokes CGI php)
+# 3. Install Composer production dependencies (always run via PHP_BIN CLI with allow_url_fopen=1 so it never invokes CGI php)
 export COMPOSER_ALLOW_SUPERUSER=1
-if [[ ! -f "${APP_DIR}/composer.phar" ]]; then
-  log "Downloading composer.phar locally to run with ${PHP_BIN}..."
-  "${PHP_BIN}" -r 'copy("https://getcomposer.org/installer","composer-setup.php");'
-  "${PHP_BIN}" composer-setup.php --quiet
-  rm -f composer-setup.php
+COMPOSER_SCRIPT=""
+for c_candidate in "${APP_DIR}/composer.phar" /opt/cpanel/composer/bin/composer /usr/local/bin/composer /usr/bin/composer "$(command -v "${COMPOSER_BIN:-composer}" 2>/dev/null || true)"; do
+  if [[ -n "${c_candidate}" ]] && [[ -f "${c_candidate}" ]]; then
+    COMPOSER_SCRIPT="${c_candidate}"
+    break
+  fi
+done
+
+if [[ -z "${COMPOSER_SCRIPT}" ]]; then
+  log "Downloading composer.phar locally via curl/wget to run with ${PHP_BIN}..."
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL https://getcomposer.org/download/latest-stable/composer.phar -o "${APP_DIR}/composer.phar"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO "${APP_DIR}/composer.phar" https://getcomposer.org/download/latest-stable/composer.phar
+  fi
+  chmod +x "${APP_DIR}/composer.phar" 2>/dev/null || true
+  [[ -f "${APP_DIR}/composer.phar" ]] && COMPOSER_SCRIPT="${APP_DIR}/composer.phar"
 fi
 
-if [[ -f "${APP_DIR}/composer.phar" ]]; then
-  COMPOSER_CMD=("${PHP_BIN}" "${APP_DIR}/composer.phar")
-elif [[ -n "${COMPOSER_BIN}" ]]; then
-  COMPOSER_CMD=("${PHP_BIN}" "$(command -v "${COMPOSER_BIN}")")
+if [[ -n "${COMPOSER_SCRIPT}" ]]; then
+  COMPOSER_CMD=("${PHP_BIN}" -d allow_url_fopen=1 -d memory_limit=-1 "${COMPOSER_SCRIPT}")
 else
   echo "ERROR: Composer binary not found. Place composer.phar in ${APP_DIR}." >&2
   exit 1
