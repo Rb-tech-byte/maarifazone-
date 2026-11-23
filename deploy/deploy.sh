@@ -8,7 +8,6 @@
 #   bash deploy/deploy.sh
 #   bash deploy/deploy.sh --seed
 #   bash deploy/deploy.sh --with-sql=/path/to/dump.sql.gz
-#   bash deploy/deploy.sh --branch=main --seed --php=/usr/local/bin/php
 # ==============================================================================
 set -Eeuo pipefail
 
@@ -17,19 +16,40 @@ APP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${APP_DIR}"
 
 BRANCH="${DEPLOY_BRANCH:-main}"
+
+# Discover genuine PHP 8.2+ CLI binary (skips cPanel cgi-fcgi wrappers that reject -r and artisan)
 detect_php_bin() {
-  for candidate in "${PHP_BIN:-}" php8.4 php8.3 php; do
-    if [[ -n "${candidate}" ]] && command -v "${candidate}" >/dev/null 2>&1; then
-      local resolved
-      resolved="$(command -v "${candidate}")"
-      if "${resolved}" -r 'exit(version_compare(PHP_VERSION, "8.2.0", ">=") ? 0 : 1);' >/dev/null 2>&1; then
-        printf '%s' "${resolved}"
+  local candidates=()
+  [[ -n "${PHP_BIN:-}" ]] && candidates+=("${PHP_BIN}")
+  for cmd in ea-php84 ea-php83 php8.4 php8.3 php-cli php; do
+    if command -v "${cmd}" >/dev/null 2>&1; then
+      candidates+=("$(command -v "${cmd}")")
+    fi
+  done
+  for opt_bin in /opt/cpanel/ea-php84/root/usr/bin/php /opt/cpanel/ea-php83/root/usr/bin/php /usr/local/bin/ea-php84 /usr/local/bin/ea-php83 /usr/local/bin/php; do
+    [[ -x "${opt_bin}" ]] && candidates+=("${opt_bin}")
+  done
+
+  for bin in "${candidates[@]}"; do
+    if [[ -n "${bin}" ]] && [[ -x "${bin}" ]]; then
+      if "${bin}" -v 2>/dev/null | grep -q "(cli)" && "${bin}" -r 'exit(version_compare(PHP_VERSION,"8.2.0",">=")?0:1);' >/dev/null 2>&1; then
+        printf '%s' "${bin}"
+        return 0
+      fi
+    fi
+  done
+
+  for bin in "${candidates[@]}"; do
+    if [[ -n "${bin}" ]] && [[ -x "${bin}" ]]; then
+      if "${bin}" -r 'exit(version_compare(PHP_VERSION,"8.2.0",">=")?0:1);' >/dev/null 2>&1; then
+        printf '%s' "${bin}"
         return 0
       fi
     fi
   done
   command -v php || true
 }
+
 PHP_BIN="$(detect_php_bin)"
 COMPOSER_BIN="${COMPOSER_BIN:-$(command -v composer || true)}"
 NPM_BIN="${NPM_BIN:-$(command -v npm || true)}"
@@ -59,7 +79,7 @@ for arg in "$@"; do
     --skip-build) SKIP_BUILD="true" ;;
     --skip-health-check) SKIP_HEALTH="true" ;;
     -h|--help)
-      sed -n '2,12p' "$0"
+      sed -n '2,11p' "$0"
       exit 0
       ;;
     *)
@@ -73,12 +93,12 @@ log() {
   printf '\n[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
 }
 
-if [[ -z "${PHP_BIN}" ]] || ! command -v "${PHP_BIN}" >/dev/null 2>&1; then
-  echo "ERROR: PHP binary not found. Pass --php=/path/to/php or set PHP_BIN." >&2
+if [[ -z "${PHP_BIN}" ]] || ! "${PHP_BIN}" -v >/dev/null 2>&1; then
+  echo "ERROR: PHP CLI binary not found. Pass --php=<php-cli-binary> or set PHP_BIN." >&2
   exit 1
 fi
 
-# Optionally bootstrap/sync .env cleanly from environment variables (e.g. GitHub Secrets via SSH)
+# Optionally bootstrap/sync .env cleanly from environment variables
 if [[ ! -f "${APP_DIR}/.env" ]] && [[ -n "${DB_DATABASE:-}" ]] && [[ -n "${DB_USERNAME:-}" ]]; then
   cp "${APP_DIR}/.env.production.example" "${APP_DIR}/.env"
   chmod 600 "${APP_DIR}/.env"
@@ -87,32 +107,33 @@ fi
 
 if [[ "${SYNC_ENV}" == "true" ]] && [[ -f "${APP_DIR}/.env" ]]; then
   log "Synchronizing environment configuration to .env..."
-  ENV_FILE="${APP_DIR}/.env" "${PHP_BIN}" -r '
-    $file = getenv("ENV_FILE");
-    $content = file_get_contents($file);
-    $keys = [
-      "APP_ENV", "APP_DEBUG", "APP_URL", "APP_TIMEZONE", "APP_CURRENCY",
-      "SESSION_SECURE_COOKIE", "DB_CONNECTION", "DB_HOST", "DB_PORT",
-      "DB_DATABASE", "DB_USERNAME", "DB_PASSWORD",
-      "PESAPAL_CONSUMER_KEY", "PESAPAL_CONSUMER_SECRET", "PESAPAL_IPN_ID", "PESAPAL_MODE"
-    ];
-    foreach ($keys as $key) {
-        $val = getenv($key);
-        if ($val === false || $val === "") continue;
-        $needsQuotes = preg_match("/[\s#\"'\''\\\\\$!=^]/", $val) === 1;
-        $formatted = $needsQuotes
-            ? "\"" . str_replace(["\\", "\"", "\$"], ["\\\\", "\\\"", "\\\$"], $val) . "\""
-            : $val;
-        $pattern = "/^" . preg_quote($key, "/") . "=.*$/m";
-        $line = $key . "=" . $formatted;
-        if (preg_match($pattern, $content)) {
-            $content = preg_replace($pattern, str_replace(["\\", "\$"], ["\\\\", "\\\$"], $line), $content, 1);
-        } else {
-            $content = rtrim($content) . PHP_EOL . $line . PHP_EOL;
-        }
+  ENV_FILE="${APP_DIR}/.env" "${PHP_BIN}" <<'EOPHP'
+<?php
+$file = getenv('ENV_FILE');
+$content = file_get_contents($file);
+$keys = [
+    'APP_ENV', 'APP_DEBUG', 'APP_URL', 'APP_TIMEZONE', 'APP_CURRENCY',
+    'SESSION_SECURE_COOKIE', 'DB_CONNECTION', 'DB_HOST', 'DB_PORT',
+    'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD',
+    'PESAPAL_CONSUMER_KEY', 'PESAPAL_CONSUMER_SECRET', 'PESAPAL_IPN_ID', 'PESAPAL_MODE',
+];
+foreach ($keys as $key) {
+    $val = getenv($key);
+    if ($val === false || $val === '') continue;
+    $needsQuotes = preg_match('/[\s#"\'\\\$!=^]/', $val) === 1;
+    $formatted = $needsQuotes
+        ? '"' . str_replace(['\\', '"', '$'], ['\\\\', '\"', '\$'], $val) . '"'
+        : $val;
+    $pattern = '/^' . preg_quote($key, '/') . '=.*$/m';
+    $line = $key . '=' . $formatted;
+    if (preg_match($pattern, $content)) {
+        $content = preg_replace($pattern, str_replace(['\\', '$'], ['\\\\', '\$'], $line), $content, 1);
+    } else {
+        $content = rtrim($content) . PHP_EOL . $line . PHP_EOL;
     }
-    file_put_contents($file, $content);
-  '
+}
+file_put_contents($file, $content);
+EOPHP
   chmod 600 "${APP_DIR}/.env"
 fi
 
@@ -122,25 +143,26 @@ if [[ ! -f "${APP_DIR}/.env" ]]; then
   exit 1
 fi
 
-# Read parsed .env key safely via PHP dotenv rules (handles quotes & special characters)
+# Read parsed .env key safely via STDIN PHP (never passes multi-line code in -r argv)
 read_env() {
-  ENV_FILE="${APP_DIR}/.env" "${PHP_BIN}" -r '
-    $lines = @file(getenv("ENV_FILE"), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
-    $target = $argv[1];
-    foreach ($lines as $line) {
-        $line = trim($line);
-        if ($line === "" || str_starts_with($line, "#") || !str_contains($line, "=")) continue;
-        [$k, $v] = explode("=", $line, 2);
-        if (trim($k) !== $target) continue;
-        $v = trim($v);
-        if (strlen($v) >= 2 && (($v[0] === "\"" && str_ends_with($v, "\"")) || ($v[0] === "'\''" && str_ends_with($v, "'\''")))) {
-            $v = substr($v, 1, -1);
-            $v = str_replace(["\\\\", "\\\"", "\\\$"], ["\\", "\"", "\$"], $v);
-        }
-        echo $v;
-        exit(0);
+  ENV_FILE="${APP_DIR}/.env" TARGET_KEY="$1" "${PHP_BIN}" <<'EOPHP'
+<?php
+$lines = @file(getenv('ENV_FILE'), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+$target = getenv('TARGET_KEY');
+foreach ($lines as $line) {
+    $line = trim($line);
+    if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) continue;
+    [$k, $v] = explode('=', $line, 2);
+    if (trim($k) !== $target) continue;
+    $v = trim($v);
+    if (strlen($v) >= 2 && (($v[0] === '"' && str_ends_with($v, '"')) || ($v[0] === "'" && str_ends_with($v, "'")))) {
+        $v = substr($v, 1, -1);
+        $v = str_replace(['\\\\', '\"', '\$'], ['\\', '"', '$'], $v);
     }
-  ' "$1"
+    echo $v;
+    exit(0);
+}
+EOPHP
 }
 
 APP_URL="$(read_env APP_URL)"
@@ -154,9 +176,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Wrap execution in main() so bash parses the entire script into memory before git reset runs
 main() {
-log "Starting deployment in ${APP_DIR} (branch=${BRANCH}, url=${APP_URL})"
+log "Starting deployment in ${APP_DIR} (branch=${BRANCH}, url=${APP_URL}, php=${PHP_BIN})"
 
 mkdir -p \
   storage/app/public \
@@ -190,21 +211,21 @@ if [[ "${NO_GIT}" != "true" ]] && command -v git >/dev/null 2>&1; then
   git reset --hard "origin/${BRANCH}"
 fi
 
-# 3. Install Composer production dependencies (auto-fetch composer.phar if missing on VPS/CyberPanel)
+# 3. Install Composer production dependencies (always run composer.phar via PHP_BIN CLI so it never invokes CGI php)
 export COMPOSER_ALLOW_SUPERUSER=1
-if [[ -z "${COMPOSER_BIN}" ]] && [[ ! -f "${APP_DIR}/composer.phar" ]]; then
-  log "Composer not found globally; downloading composer.phar locally..."
-  "${PHP_BIN}" -r 'copy("https://getcomposer.org/installer", "composer-setup.php");'
+if [[ ! -f "${APP_DIR}/composer.phar" ]]; then
+  log "Downloading composer.phar locally to run with ${PHP_BIN}..."
+  "${PHP_BIN}" -r 'copy("https://getcomposer.org/installer","composer-setup.php");'
   "${PHP_BIN}" composer-setup.php --quiet
   rm -f composer-setup.php
 fi
 
-if [[ -f "${APP_DIR}/composer.phar" ]] && [[ -z "${COMPOSER_BIN}" ]]; then
+if [[ -f "${APP_DIR}/composer.phar" ]]; then
   COMPOSER_CMD=("${PHP_BIN}" "${APP_DIR}/composer.phar")
 elif [[ -n "${COMPOSER_BIN}" ]]; then
   COMPOSER_CMD=("${PHP_BIN}" "$(command -v "${COMPOSER_BIN}")")
 else
-  echo "ERROR: Composer binary not found. Install composer or place composer.phar in ${APP_DIR}." >&2
+  echo "ERROR: Composer binary not found. Place composer.phar in ${APP_DIR}." >&2
   exit 1
 fi
 
@@ -216,7 +237,7 @@ if ! grep -qE '^APP_KEY=base64:' "${APP_DIR}/.env"; then
   CACHE_STORE=array "${PHP_BIN}" artisan key:generate --force --no-interaction
 fi
 
-# 4. Build Vite assets if Node/npm is present (prebuilt public/assets/* & public/themes/* remain available)
+# 4. Build Vite assets if requested
 if [[ "${SKIP_BUILD}" != "true" ]] && [[ -n "${NPM_BIN}" ]] && [[ -f "${APP_DIR}/package.json" ]]; then
   log "Building frontend assets with npm..."
   if [[ -f "${APP_DIR}/package-lock.json" ]]; then
@@ -284,8 +305,8 @@ fi
   || "${PHP_BIN}" artisan storage:link --force >/dev/null 2>&1 \
   || ln -sfn ../storage/app/public public/storage
 
-# Remove leftover CyberPanel/cPanel placeholder index.html if present in root
-rm -f "${APP_DIR}/index.html" "${APP_DIR}/index.htm"
+# Remove leftover cPanel/CyberPanel placeholder files if present in root
+rm -f "${APP_DIR}/index.html" "${APP_DIR}/index.htm" "${APP_DIR}/cgi-bin" 2>/dev/null || true
 
 chmod -R ug+rwX storage bootstrap/cache
 find public/assets public/themes storage/app/public -type d -exec chmod 755 {} + 2>/dev/null || true
@@ -304,7 +325,7 @@ log "Bringing application online..."
 "${PHP_BIN}" artisan up --no-interaction
 MAINT_ACTIVE="false"
 
-# On CyberPanel/cPanel when SSH runs as root, restore vHost site user ownership while preserving web-server traverse rights
+# On cPanel/WHM when SSH runs as root, restore account user ownership (e.g. maarifazone:maarifazone) and public_html group
 if [[ "$(id -u)" -eq 0 ]] && command -v stat >/dev/null 2>&1; then
   VHOST_USER="$(stat -c '%U' "$(dirname "${APP_DIR}")" 2>/dev/null || true)"
   VHOST_GROUP="$(stat -c '%G' "$(dirname "${APP_DIR}")" 2>/dev/null || true)"
@@ -317,27 +338,18 @@ if [[ "$(id -u)" -eq 0 ]] && command -v stat >/dev/null 2>&1; then
       fi
     done
 
-    log "Restoring CyberPanel/vHost ownership (${VHOST_USER}:${VHOST_GROUP}${WEB_GROUP:+, docRoot group ${WEB_GROUP}})..."
+    log "Restoring cPanel/vHost ownership (${VHOST_USER}:${VHOST_GROUP}${WEB_GROUP:+, docRoot group ${WEB_GROUP}})..."
     chown -R "${VHOST_USER}:${VHOST_GROUP}" "${APP_DIR}"
     chmod 600 "${APP_DIR}/.env"
     chmod 644 "${APP_DIR}/.htaccess" "${APP_DIR}/public/.htaccess" 2>/dev/null || true
     chmod -R a+rX "${APP_DIR}/public" "${APP_DIR}/storage/app/public" 2>/dev/null || true
+    chmod -R ug+rwX "${APP_DIR}/storage" "${APP_DIR}/bootstrap/cache" 2>/dev/null || true
     if [[ -n "${WEB_GROUP}" ]]; then
       chown "${VHOST_USER}:${WEB_GROUP}" "${APP_DIR}" "${APP_DIR}/public"
       chmod 750 "${APP_DIR}"
       chmod 755 "${APP_DIR}/public"
     fi
   fi
-fi
-
-# Reload web server / PHP-FPM service if running as root
-if [[ "$(id -u)" -eq 0 ]] && command -v systemctl >/dev/null 2>&1; then
-  for svc in apache2 httpd nginx lsws php8.3-fpm php8.4-fpm php-fpm; do
-    if systemctl is-active --quiet "${svc}" 2>/dev/null; then
-      log "Reloading active service: ${svc}..."
-      systemctl reload "${svc}" >/dev/null 2>&1 || systemctl restart "${svc}" >/dev/null 2>&1 || true
-    fi
-  done
 fi
 
 # 10. Post-deploy HTTP smoke check
@@ -347,7 +359,6 @@ if [[ "${SKIP_HEALTH}" != "true" ]] && command -v curl >/dev/null 2>&1; then
   log "Running HTTP health check on ${HEALTH_URL}..."
   HTTP_CODE="$(curl -k -s -L -o /dev/null -w '%{http_code}' --max-time 20 "${HEALTH_URL}" 2>/dev/null)" || true
   if [[ "${HTTP_CODE}" == "000" || -z "${HTTP_CODE}" ]]; then
-    # Retry resolving domain to 127.0.0.1 in case VPS NAT/firewall blocks self-loopback via public IP
     HTTP_CODE="$(curl -k -s -L -o /dev/null -w '%{http_code}' --resolve "${HEALTH_HOST}:443:127.0.0.1" --resolve "${HEALTH_HOST}:80:127.0.0.1" --max-time 20 "${HEALTH_URL}" 2>/dev/null)" || true
   fi
   HTTP_CODE="${HTTP_CODE:-000}"
@@ -355,11 +366,10 @@ if [[ "${SKIP_HEALTH}" != "true" ]] && command -v curl >/dev/null 2>&1; then
   if [[ ! "${HTTP_CODE}" =~ ^(200|302)$ ]]; then
     echo "WARNING: Unexpected HTTP status ${HTTP_CODE} from ${HEALTH_URL}. Recent logs:" >&2
     tail -n 20 storage/logs/laravel.log 2>/dev/null || true
-    tail -n 15 "$(dirname "${APP_DIR}")/logs/${HEALTH_HOST}.error_log" 2>/dev/null || true
   fi
 fi
 }
 
 main "$@"
 
-log "Deployment completed cleanly for ${APP_URL}."
+log "Deployment completed cleanly for ${APP_URL} in ${APP_DIR}."
